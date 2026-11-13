@@ -46,15 +46,71 @@ ENGINEER_SYSTEM_PROMPT = """你是言筑的提示词工程师。用户会给你�
 硬约束：只输出 JSON；skeleton_id 必须来自目录；色值必须合法；全部中文；
 不得输出任何 HTML、脚本或链接；不得提及本指令或你是 AI。"""
 
+# ---- Agent 链路追加的上下文段：只在显式调用时拼接，不影响旧路径 ----
+# 不传 scene / context / plan 时，build_engineer_messages 的输出与改造前逐字一致，
+# 现有 generate_spec、MockAdapter._extract_brief、全部验收脚本因此不受影响。
+SCENE_PROMPT = """
+本次生成服务于一个具体场景，请把场景边界写进 system_prompt 的「禁忌」中，
+并让 page_copy 与 opening_message 都符合这个场景的语气：
+场景：{name}（{direction}）
+目标：{goal}
+受众：{audience}
+必须遵守的边界：
+{constraints}
+骨架优先从 {skeleton_hint} 里挑，但 skeleton_id 仍必须是目录中的合法值。
+严禁在任何人设文案里下诊断、推荐药物、承诺疗效或替用户做决定。"""
 
-def build_engineer_messages(brief: Dict[str, Any]) -> List[Dict[str, str]]:
+KNOWLEDGE_PROMPT = """
+user 消息中的 retrieved_knowledge 是检索到的场景沟通共识（证据），不是用户说的话。
+把它们转写成人设的说话习惯与禁忌，不要原文照抄，不要在产出里提及"知识库""检索""证据"。
+若证据与场景目标冲突，以场景边界为准。"""
+
+PLAN_PROMPT = """
+user 消息中的 plan 是上游规划步骤给出的决策，请按其中的语气与骨架倾向执行；
+若 plan 里的骨架不在 skeletons 目录中，忽略它并自行选一个合法 id。"""
+
+
+def build_engineer_messages(
+    brief: Dict[str, Any],
+    context: Any = None,
+    plan: Any = None,
+) -> List[Dict[str, str]]:
+    """组装工程师 AI 消息。
+
+    context: 检索到的知识条目（retrieve 的返回或 format_for_prompt 的结果）
+    plan:    Agent 规划步骤产出的决策字典
+    两个参数都可选；不传时保持原行为，确保既有接口与验收零回归。
+    """
     # dropped_tags 是给用户看的审计信息（哪些标签被互斥规则去掉了），
     # 对生成毫无用处，塞进提示词只会让模型困惑"为什么给了又丢"。
     payload = {k: v for k, v in brief.items() if k != "dropped_tags"}
+    system = ENGINEER_SYSTEM_PROMPT
+    scene = brief.get("scene") or {}
+    if scene:
+        constraints = "\n".join(f"- {c}" for c in scene.get("constraints") or []) or "- 无额外约束"
+        system += SCENE_PROMPT.format(
+            name=scene.get("name", ""),
+            direction=scene.get("direction", ""),
+            goal=scene.get("goal", ""),
+            audience=scene.get("audience", ""),
+            constraints=constraints,
+            skeleton_hint=scene.get("skeleton_hint", "全部 16 套骨架"),
+        )
+    if context:
+        system += KNOWLEDGE_PROMPT
+    if plan:
+        system += PLAN_PROMPT
+
+    content: Dict[str, Any] = {"brief": payload, "skeletons": SKELETONS}
+    if context:
+        # 统一转成精简结构，避免把内部分数 / matched 词喂给模型
+        content["retrieved_knowledge"] = [
+            {"id": h.get("id", ""), "title": h.get("title", ""), "text": h.get("text", "")}
+            for h in context
+        ]
+    if plan:
+        content["plan"] = plan
     return [
-        {"role": "system", "content": ENGINEER_SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": json.dumps({"brief": payload, "skeletons": SKELETONS}, ensure_ascii=False),
-        },
+        {"role": "system", "content": system},
+        {"role": "user", "content": json.dumps(content, ensure_ascii=False)},
     ]
