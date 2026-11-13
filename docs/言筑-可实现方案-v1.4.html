@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>言筑 YanZhu — 可实现方案 v1.4</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --text:#1f2328; --secondary:#5f6b7a;
+    --border:#e4e7ee; --accent:#4f46e5; --accent-soft:#eef0fe;
+    --green:#15803d; --green-bg:#ecfdf3; --amber:#b45309; --amber-bg:#fef6e7;
+    --red:#b42318; --red-bg:#fef0ef; --code-bg:#f6f8fa; --code-border:#e4e7ee;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+    font-size:15px; line-height:1.75; padding:40px 20px 80px;
+  }
+  .wrap{max-width:980px; margin:0 auto;}
+  header.hero{
+    background:linear-gradient(135deg,#4f46e5 0%,#7c6cf0 100%);
+    color:#fff; border-radius:16px; padding:36px 40px; margin-bottom:28px;
+  }
+  header.hero .kicker{font-size:13px; letter-spacing:2px; opacity:.82; margin-bottom:8px;}
+  header.hero h1{font-size:30px; font-weight:700; margin-bottom:10px;}
+  header.hero p{font-size:14.5px; opacity:.93; max-width:760px;}
+  header.hero .meta{margin-top:16px; font-size:12.5px; opacity:.8;}
+  nav.toc{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:18px 22px; margin-bottom:28px; font-size:13.5px;
+  }
+  nav.toc b{display:block; margin-bottom:8px; font-size:13px; color:var(--secondary); letter-spacing:1px;}
+  nav.toc a{color:var(--accent); text-decoration:none; margin-right:14px; white-space:nowrap; line-height:2;}
+  nav.toc a:hover{text-decoration:underline;}
+  section{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:26px 30px; margin-bottom:22px;
+  }
+  section h2{
+    font-size:19px; font-weight:700; margin-bottom:14px;
+    padding-left:12px; border-left:4px solid var(--accent);
+  }
+  section h3{font-size:15.5px; font-weight:700; margin:20px 0 8px; color:#2b3245;}
+  section p{margin-bottom:10px;}
+  section ul,section ol{margin:6px 0 12px 22px;}
+  section li{margin-bottom:5px;}
+  .lead{color:var(--secondary); font-size:14px; margin-bottom:14px;}
+  table{width:100%; border-collapse:collapse; margin:10px 0 14px; font-size:13.5px;}
+  th{background:#f3f4f9; text-align:left; font-weight:600;}
+  th,td{border:1px solid var(--border); padding:8px 11px; vertical-align:top;}
+  tr td:first-child{white-space:nowrap;}
+  code{
+    font-family:"Cascadia Code",Consolas,"Courier New",monospace;
+    background:var(--code-bg); border:1px solid var(--code-border);
+    border-radius:5px; padding:1px 6px; font-size:12.8px; color:#3b3f8c;
+  }
+  pre{
+    background:var(--code-bg); border:1px solid var(--code-border); border-radius:9px;
+    padding:14px 16px; overflow-x:auto; margin:10px 0 14px;
+    font-family:"Cascadia Code",Consolas,"Courier New",monospace;
+    font-size:12.8px; line-height:1.65; color:#2b3245;
+  }
+  pre code{background:none; border:none; padding:0; color:inherit;}
+  .tag{display:inline-block; font-size:12px; font-weight:600; border-radius:20px; padding:2px 11px; margin-right:6px;}
+  .tag.in{background:var(--green-bg); color:var(--green);}
+  .tag.out{background:var(--red-bg); color:var(--red);}
+  .tag.phase{background:var(--amber-bg); color:var(--amber);}
+  .callout{
+    border-left:4px solid var(--accent); background:var(--accent-soft);
+    border-radius:0 9px 9px 0; padding:12px 16px; margin:12px 0; font-size:13.8px;
+  }
+  .callout.warn{border-color:var(--amber); background:var(--amber-bg);}
+  .callout b{color:#2b3245;}
+  /* architecture diagram */
+  .arch{display:flex; flex-direction:column; align-items:center; gap:0; margin:16px 0 6px;}
+  .layer{
+    width:100%; border:1.5px solid var(--border); border-radius:11px;
+    background:#fbfbfe; padding:13px 16px; position:relative;
+  }
+  .layer .lt{font-size:12px; font-weight:700; letter-spacing:1.5px; color:var(--secondary); margin-bottom:9px;}
+  .boxes{display:flex; gap:10px; flex-wrap:wrap;}
+  .box{
+    flex:1; min-width:130px; border:1px solid var(--border); border-radius:8px;
+    background:#fff; padding:9px 12px; font-size:13px; text-align:center;
+  }
+  .box b{display:block; font-size:13.5px; margin-bottom:2px;}
+  .box span{font-size:12px; color:var(--secondary);}
+  .box.hl{border-color:var(--accent); background:var(--accent-soft);}
+  .box.mock{border-style:dashed; color:var(--secondary);}
+  .arrow{align-self:center; color:var(--accent); font-size:17px; line-height:1; padding:5px 0;}
+  .arrow span{display:block; font-size:11.5px; color:var(--secondary); text-align:center; margin-top:2px;}
+  .side{
+    display:flex; gap:10px; margin-top:10px;
+  }
+  .side .box{background:#fbfbfe;}
+  /* pipeline flow */
+  .flow{display:flex; align-items:stretch; gap:0; flex-wrap:wrap; margin:14px 0;}
+  .fstep{
+    flex:1; min-width:140px; border:1px solid var(--border); border-radius:9px;
+    background:#fff; padding:10px 12px; font-size:12.8px; position:relative;
+  }
+  .fstep b{display:block; font-size:13px; margin-bottom:3px; color:var(--accent);}
+  .fstep .n{
+    position:absolute; top:-9px; left:10px; background:var(--accent); color:#fff;
+    font-size:11px; font-weight:700; border-radius:10px; padding:1px 8px;
+  }
+  .farrow{align-self:center; color:#b6bac8; font-size:16px; padding:0 6px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:760px){ .grid2{grid-template-columns:1fr;} }
+  .mini{
+    border:1px solid var(--border); border-radius:9px; padding:12px 14px; background:#fbfbfe;
+    font-size:13px;
+  }
+  .mini b{display:block; margin-bottom:5px; font-size:13.5px;}
+  .mini ul{margin:4px 0 0 18px;}
+  .lock{background:var(--amber-bg); border:1px solid #f3dfbb; border-radius:9px; padding:10px 14px; font-size:13.5px; margin-top:10px;}
+  footer{color:var(--secondary); font-size:12.5px; text-align:center; margin-top:26px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">PERSONA FORGE · 方案文档</div>
+  <h1>言筑 — 完整可实现方案 v1.4</h1>
+  <p>用户输入人格限定词 → 工程师 AI 扩写为人设规格 → 系统按规格装配出专属聊天页面（骨架模板 + 主题 + 文案）→ 用户与这个人格流式对话。FastAPI + SQLite 后端，React SPA 前端，双密钥 LLM 适配层；框架期不接密钥，Mock 全流程可跑通。</p>
+  <div class="meta">版本 v1.4 · 2026-10-27 · M0/M1 全部落地 + 命名 / 保存 / 沉浸 / 导出 + 本轮标签互斥与配额 · 状态：双密钥已接 DeepSeek，真模型链路验收通过，16 套骨架、换骨架、配色微调、命名导出、标签规则均已上线</div>
+</header>
+
+<nav class="toc">
+  <b>目录</b>
+  <a href="#s1">01 结论速览</a>
+  <a href="#s2">02 产品范围</a>
+  <a href="#s3">03 系统架构</a>
+  <a href="#s4">04 核心管线</a>
+  <a href="#s5">05 数据模型</a>
+  <a href="#s6">06 API 设计</a>
+  <a href="#s7">07 前端设计</a>
+  <a href="#s8">08 双密钥适配层</a>
+  <a href="#s9">09 在线服务化</a>
+  <a href="#s10">10 项目骨架</a>
+  <a href="#s11">11 里程碑</a>
+  <a href="#s12">12 待确认锁定项</a>
+  <a href="#s13">13 命名 · 保存 · 沉浸 · 导出</a>
+  <a href="#s14">14 标签互斥与配额</a>
+</nav>
+
+<!-- ========== 01 ========== -->
+<section id="s1">
+  <h2>01 结论速览</h2>
+  <p class="lead">一句话架构：<b>限定词进，人格页面出，对话持久化</b>。工程师 AI 只产出结构化 JSON（人设提示词 + 骨架选择 + 主题 token + 页面文案），页面由预置骨架模板装配，不生成任何代码。</p>
+  <table>
+    <tr><th style="width:130px">决策点</th><th style="width:170px">选择（Round 1 已定）</th><th>落地方式</th></tr>
+    <tr><td>产品形态</td><td>可分享的在线服务</td><td>账号体系 + JWT + 每用户数据隔离 + 按用户配额限流；部署留 Docker Compose 出口</td></tr>
+    <tr><td>页面生成路径</td><td>C 混合</td><td>16 套预置骨架（React 组件）+ 人格驱动的主题 token / 文案 / 开场白；AI 不做代码生成，从源头杜绝 CDN 依赖与 XSS</td></tr>
+    <tr><td>模型分工</td><td>双密钥分离，先搭框架</td><td>ENGINEER_LLM_*（强模型，生成规格）与 PERSONA_LLM_*（轻量模型，聊天运行时）两组独立配置；框架期走 MockAdapter，接密钥 = 改 .env 重启，零代码改动</td></tr>
+    <tr><td>人格管理</td><td>人格库</td><td>personas 表 CRUD + 重新生成，会话历史按人格归属</td></tr>
+    <tr><td>输入方式</td><td>结构化引导</td><td>预设性格标签分组点选 + 自由补充框 + 一键示例，输出规整 brief</td></tr>
+    <tr><td>MVP 边界</td><td>流式文字 + 持久化历史 + 每人格独立会话</td><td>SSE 流式对话；SQLite 持久化；心情条等装饰由骨架主题顺带实现，不单独立项</td></tr>
+    <tr><td>建造呈现</td><td>建造揭晓（10-25 追加）</td><td>单次调用拿全量 spec，按“骨架 → 主题 → 身份 → 开场”顺序原地分阶段动画落位；不刷新页面、不拆多次调用</td></tr>
+  </table>
+  <div class="callout"><b>设计红线（ senior dev 视角的三个"不"）：</b>不让 LLM 生成可执行代码或 HTML（只产 JSON，模板装配页面）；API 密钥不出后端（前端零密钥，Mock 降级）；用户聊天消息永不能改写 system_prompt（MVP 无工具调用，人格设定只经工程师 AI 管线修订）。</div>
+</section>
+
+<!-- ========== 02 ========== -->
+<section id="s2">
+  <h2>02 产品范围</h2>
+  <h3>MVP 包含</h3>
+  <p>
+    <span class="tag in">含</span>结构化输入向导（标签点选 + 补充 + 示例）
+    <span class="tag in">含</span>人格库（创建 / 列表 / 编辑 / 删除 / 重新生成）
+    <span class="tag in">含</span>工程师 AI 管线（brief → spec JSON → 页面装配）
+    <span class="tag in">含</span>16 套聊天骨架 + 主题 token 驱动
+    <span class="tag in">含</span>建造揭晓（AI 搭页过程原地可视化）
+    <span class="tag in">含</span>SSE 流式文字对话 + 持久化历史 + 每人格多会话
+    <span class="tag in">含</span>账号注册 / 登录 + JWT + 每日 LLM 配额
+    <span class="tag in">含</span>双密钥适配层 + Mock 降级（框架期无密钥全流程可跑）
+  </p>
+  <h3>MVP 不包含（明确后置）</h3>
+  <p>
+    <span class="tag out">不含</span>试聊回流微调（"人设不对 → 工程师 AI 增量修订"，M2 核心差异功能）
+    <span class="tag out">不含</span>人格分享链接 / 只读公开页（M2）
+    <span class="tag out">不含</span>语音、图片人格、AI 生成头像图（头像用 CSS 渐变 + 首字，零图片成本）
+    <span class="tag out">不含</span>心情条、打字节奏差异等高级表现层（骨架主题顺带覆盖）
+    <span class="tag out">不含</span>多语言（MVP 全中文）
+  </p>
+  <div class="callout warn"><b>合规提示：</b>公网服务涉及用户生成内容。MVP 做基础防护（限定词与补充文本长度上限、控制字符过滤、禁用词表、人格输出仅前端纯文本渲染）；完整内容审核送审留给 M2 前评估，不阻塞框架搭建。</div>
+</section>
+
+<!-- ========== 03 ========== -->
+<section id="s3">
+  <h2>03 系统架构</h2>
+  <div class="arch">
+    <div class="layer">
+      <div class="lt">前端 · React 18 + Vite + HashRouter（SPA，无服务器 rewrite 依赖）</div>
+      <div class="boxes">
+        <div class="box"><b>/ 输入向导</b><span>标签点选 + 补充 + 示例</span></div>
+        <div class="box"><b>/personas 人格库</b><span>卡片 / 编辑 / 重生成</span></div>
+        <div class="box"><b>/chat/:id 聊天页</b><span>16 骨架动态渲染 + SSE</span></div>
+      </div>
+    </div>
+    <div class="arrow">▼<span>REST（JSON）+ SSE（fetch 流式读取，不用 EventSource）</span></div>
+    <div class="layer">
+      <div class="lt">后端 · FastAPI + SQLite（WAL）· 全端点按 user_id 隔离</div>
+      <div class="boxes">
+        <div class="box"><b>auth</b><span>注册 / 登录 / JWT 轮换</span></div>
+        <div class="box"><b>personas</b><span>CRUD + regenerate</span></div>
+        <div class="box"><b>chat</b><span>SSE 流式代理</span></div>
+        <div class="box hl"><b>pipeline</b><span>brief 归一化 / spec 校验 / 页面装配</span></div>
+        <div class="box hl"><b>llm 适配层</b><span>BaseAdapter + REGISTRY</span></div>
+      </div>
+      <div class="side">
+        <div class="box hl"><b>engineer adapter</b><span>ENGINEER_LLM_* · 强模型 · 产 spec JSON</span></div>
+        <div class="box hl"><b>persona adapter</b><span>PERSONA_LLM_* · 轻量模型 · 聊天运行时</span></div>
+      </div>
+    </div>
+    <div class="arrow">▼<span>两组密钥各自独立配置，框架期留空即降级</span></div>
+    <div class="layer">
+      <div class="lt">LLM 供应商（OpenAI 兼容协议）</div>
+      <div class="boxes">
+        <div class="box"><b>openai_compat</b><span>zeus.zwnorz.com 中继（gpt-5.4 实测可用）</span></div>
+        <div class="box"><b>deepseek</b><span>备选供应商</span></div>
+        <div class="box"><b>doubao</b><span>备选供应商</span></div>
+        <div class="box mock"><b>MockAdapter</b><span>框架期确定性假数据，全流程可跑</span></div>
+      </div>
+    </div>
+  </div>
+  <table>
+    <tr><th style="width:150px">组件</th><th>选型</th><th style="width:260px">理由</th></tr>
+    <tr><td>后端</td><td>FastAPI + SQLite WAL</td><td>复用 InfoHub 适配器模式；单文件库随项目走；SSE 原生支持；单实例足够，后续可平滑换 Postgres</td></tr>
+    <tr><td>前端</td><td>React 18 + Vite + HashRouter + Antd 5</td><td>与美食地图栈一致，复用熟练度；HashRouter 免服务器配置；依赖 npm 安装后打包，无外网 CDN</td></tr>
+    <tr><td>LLM 接入</td><td>OpenAI 兼容协议适配器 × N 供应商</td><td>zeus 中继、DeepSeek、豆包均兼容 /v1/chat/completions；一套协议通吃</td></tr>
+    <tr><td>部署</td><td>Docker Compose（M3）</td><td>用户已有 Docker 经验；SQLite 卷挂载即可</td></tr>
+  </table>
+</section>
+
+<!-- ========== 04 ========== -->
+<section id="s4">
+  <h2>04 核心管线：限定词 → 人格页面</h2>
+  <p class="lead">四段式管线。工程师 AI 只被允许产出<b>受 schema 约束的 JSON</b>；页面由骨架模板装配，不生成代码。</p>
+
+  <div class="flow">
+    <div class="fstep"><span class="n">S1</span><b>输入净化</b>标签 + 自由文本 → 归一化 brief JSON（截断 200 字、去控制字符）</div>
+    <div class="farrow">→</div>
+    <div class="fstep"><span class="n">S2</span><b>工程师 AI</b>强模型单次调用，JSON 模式，产人设 + 页面规格</div>
+    <div class="farrow">→</div>
+    <div class="fstep"><span class="n">S3</span><b>校验装配</b>pydantic schema 校验 → 骨架 + 主题 + 文案落库</div>
+    <div class="farrow">→</div>
+    <div class="fstep"><span class="n">S4</span><b>聊天运行时</b>轻量模型 + system_prompt 注入 + SSE 流式</div>
+  </div>
+
+  <h3>S1 · brief 归一化</h3>
+  <pre><code>{
+  "tags": ["内向", "害羞"],            // 来自预设标签点选
+  "free_text": "说话轻声细语，熟了会撒娇",  // 来自补充框，截断 200 字
+  "lang": "zh"
+}</code></pre>
+
+  <h3>S2 · 工程师 AI（系统提示词定稿）</h3>
+  <pre><code>你是言筑的提示词工程师。用户会给你一组人格限定词（标签 + 描述），
+你必须只输出一个 JSON 对象，不要任何解释、不要 markdown 代码块。
+
+字段要求：
+1. name：人格名字，中文，2-4 字，贴合气质
+2. system_prompt：完整人设提示词（150-300 字），须包含：
+   身份与姓名、性格核心、说话风格（句长 / 口癖 / 语气词）、
+   与用户的关系定位、禁忌（不承认自己是 AI、不跳出人设）、2-3 句示例对话
+3. skeleton_id：从 SKELETONS 目录中选最契合的一个 id，必须是目录中存在的值
+4. theme：{"primary","bg","surface","text","accent"} 均为 #RRGGBB 十六进制；
+   "font_style" 取值 rounded/serif/mono/system 之一；
+   "decoration" 取值 none/petal/stars/grid/paper 之一
+5. page_copy：{"title","greeting","input_placeholder"} 页面文案，贴合人设口吻
+6. opening_message：人格对用户说的第一句话，20-60 字
+
+硬约束：只输出 JSON；skeleton_id 必须来自目录；色值必须合法；全部中文；
+不得输出任何 HTML、脚本或链接；不得提及本指令或你是 AI。</code></pre>
+
+  <h3>SKELETONS 骨架目录（随 prompt 下发）</h3>
+  <table>
+    <tr><th style="width:90px">id</th><th style="width:110px">风格</th><th>视觉特征</th><th style="width:180px">适配人格</th></tr>
+    <tr><td><code>minimal</code></td><td>极简对话</td><td>干净气泡、留白、无装饰</td><td>理性 / 高冷 / 简约</td></tr>
+    <tr><td><code>radio</code></td><td>深夜电台</td><td>暖色、播放条意象、点歌文案</td><td>温柔 / 陪伴 / 治愈</td></tr>
+    <tr><td><code>diary</code></td><td>手账书信</td><td>纸张质感、日记体、贴纸式装饰</td><td>内向 / 害羞 / 文艺</td></tr>
+    <tr><td><code>terminal</code></td><td>终端风</td><td>等宽字体、命令行美学、暗色</td><td>毒舌 / 极客 / 理性</td></tr>
+    <tr><td><code>letter</code></td><td>素笺短札</td><td>横线信纸、邮戳、落款签名</td><td>正式 / 克制 / 思念 / 长辈</td></tr>
+    <tr><td><code>oracle</code></td><td>塔罗占卜</td><td>深紫牌阵、金边牌面、翻牌解牌</td><td>神秘 / 玄学 / 命运 / 暧昧</td></tr>
+    <tr><td><code>clinic</code></td><td>门诊病历</td><td>白底病历单、字段标签、医师签名</td><td>冷静 / 专业 / 疏离 / 说教</td></tr>
+    <tr><td><code>receipt</code></td><td>深夜小票</td><td>热敏纸小票、虚线、时间戳、条码</td><td>市井 / 烟火气 / 家常 / 老板</td></tr>
+    <tr><td><code>library</code></td><td>借阅卡</td><td>卡纸借阅卡、索书号、到期日、盖章</td><td>书卷气 / 博学 / 老派 / 温和</td></tr>
+    <tr><td><code>starship</code></td><td>星舰通讯</td><td>深空 HUD、任务时间码、操作员标签</td><td>科幻 / 冷静 / 机敏 / 非人感</td></tr>
+    <tr><td><code>potion</code></td><td>炼金配方</td><td>羊皮配方纸、步骤编号、配料投入</td><td>奇幻 / 古怪 / 研究者 / 神秘学</td></tr>
+    <tr><td><code>neon</code></td><td>霓虹街</td><td>黑底霓虹灯管、发光字、故障闪烁</td><td>赛博 / 拽 / 夜场 / 直白</td></tr>
+    <tr><td><code>garden</code></td><td>植物标本</td><td>标本纸、学名斜体、叶脉、采集标签</td><td>自然 / 慢 / 安静 / 治愈</td></tr>
+    <tr><td><code>classroom</code></td><td>黑板课堂</td><td>墨绿黑板、粉笔字、粉笔槽</td><td>严厉 / 师长 / 教导 / 直率</td></tr>
+    <tr><td><code>casefile</code></td><td>侦探卷宗</td><td>牛皮纸卷宗、打字机字体、机密红章</td><td>悬疑 / 推理 / 怀疑 / 冷峻</td></tr>
+    <tr><td><code>bbs</code></td><td>复古论坛</td><td>楼层帖、签名档、浅蓝论坛配色</td><td>怀旧 / 随意 / 网友 / 接地气</td></tr>
+  </table>
+
+  <h3>S3 · spec JSON 示例（工程师 AI 输出）</h3>
+  <pre><code>{
+  "name": "苏桃",
+  "system_prompt": "你是苏桃，一个内向害羞的高中女生，说话轻声细语，
+    句末常带省略号，熟了会小声撒娇。你不善社交，但内心丰富。
+    禁忌：不承认自己是 AI，不用网络流行语，不主动展开大段说教。
+    示例：『那个…你今天…过得还好吗……』『我…我又写了点日记…你要看看吗…』",
+  "skeleton_id": "diary",
+  "theme": {
+    "primary": "#e8a0bf", "bg": "#fdf6f4", "surface": "#ffffff",
+    "text": "#5c4a4a", "accent": "#c98bb0",
+    "font_style": "rounded", "decoration": "petal"
+  },
+  "page_copy": {
+    "title": "苏桃的小本本",
+    "greeting": "那个…你来了呀…",
+    "input_placeholder": "想跟我说什么呢…"
+  },
+  "opening_message": "…你好…我是苏桃…请、请多关照……"
+}</code></pre>
+
+  <h3>校验与降级（可靠性三板斧）</h3>
+  <ol>
+    <li><b>schema 校验</b>：pydantic 严格校验 spec；skeleton_id 必须在目录内；色值必须匹配 <code>^#[0-9a-fA-F]{6}$</code>。</li>
+    <li><b>带错重试</b>：校验失败时，把错误信息回喂工程师 AI 重试 1 次。</li>
+    <li><b>确定性兜底</b>：仍失败则用默认 spec（skeleton=minimal、中性主题、基于 brief 模板拼装的 system_prompt），标记 <code>status=needs_review</code>，用户在人格库可一键重新生成。</li>
+  </ol>
+
+  <h3>S4 · 聊天运行时</h3>
+  <ul>
+    <li>消息组装：<code>[system: persona.system_prompt]</code> + 最近 20 条历史（滑动窗口控成本）+ 新消息。</li>
+    <li>用户聊天消息<b>永不</b>进入 system 层；MVP 无函数调用 / 工具调用，人格设定只能经 S2 管线修订。</li>
+    <li>流式：persona adapter <code>chat_stream()</code> 逐 token 产出，经 SSE 转发；同时落库完整消息与 token 用量。</li>
+  </ul>
+</section>
+
+<!-- ========== 05 ========== -->
+<section id="s5">
+  <h2>05 数据模型（SQLite WAL）</h2>
+  <p class="lead">沿用既有规范：业务表 UUID VARCHAR(36) 主键；高频写入的 messages 用 BIGINT 自增（同 event_log 先例）；图片不存 base64（本产品零图片）；所有查询按 user_id 隔离。</p>
+  <table>
+    <tr><th style="width:150px">表</th><th>字段</th><th style="width:250px">说明</th></tr>
+    <tr><td><code>users</code></td><td>id UUID PK · username UNIQUE · password_hash · quota_gen_daily INT DEFAULT 20 · quota_chat_daily INT DEFAULT 100 · quota_gen_used INT · quota_chat_used INT · quota_reset_at · created_at</td><td>账号 + 每日 LLM 配额计数（LLM 是成本中心，配额按用户维度）</td></tr>
+    <tr><td><code>personas</code></td><td>id UUID PK · user_id FK · name · keywords_json · brief_json · spec_json · skeleton_id · theme_json · status ENUM(active, needs_review) · created_at · updated_at</td><td>人格库主表；keywords_json 留原始输入便于重新生成；索引 user_id</td></tr>
+    <tr><td><code>conversations</code></td><td>id UUID PK · persona_id FK · user_id FK · title · created_at · updated_at</td><td>每人格可有多会话；索引 (user_id, persona_id)</td></tr>
+    <tr><td><code>messages</code></td><td>id BIGINT auto_increment PK · conversation_id FK · role ENUM(user, assistant) · content TEXT · tokens INT · created_at</td><td>高频写，自增主键；索引 (conversation_id, created_at) 支撑历史分页</td></tr>
+    <tr><td><code>llm_calls</code></td><td>id BIGINT auto_increment PK · user_id · purpose ENUM(engineer, persona) · adapter · model · latency_ms · status · error · created_at</td><td>审计与成本观测；配额超限与故障排查的依据</td></tr>
+  </table>
+  <div class="callout"><b>软删除策略：</b>本产品无软删除需求，DELETE personas 级联删除其 conversations 与 messages（SQLite 开外键或应用层保证）。配额重置：quota_reset_at 跨日时清零 used 计数。</div>
+</section>
+
+<!-- ========== 06 ========== -->
+<section id="s6">
+  <h2>06 API 设计</h2>
+  <table>
+    <tr><th style="width:60px">方法</th><th style="width:265px">路径</th><th>说明</th></tr>
+    <tr><td>POST</td><td><code>/api/auth/register</code></td><td>注册；限流 15min / 5 次每 IP</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/login</code></td><td>登录；限流 15min / 20 次每 IP；bcrypt 校验放线程池（防阻塞事件循环）</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/refresh</code></td><td>refresh token 轮换，换发新 access</td></tr>
+    <tr><td>GET</td><td><code>/api/personas</code></td><td>我的人格列表（含最近会话摘要）</td></tr>
+    <tr><td>POST</td><td><code>/api/personas</code></td><td>提交 brief → 触发 S1-S3 管线 → 返回完整 persona（含 spec/theme）</td></tr>
+    <tr><td>GET</td><td><code>/api/personas/:id</code></td><td>人格详情；他人人格一律 404（不做 403，避免枚举）</td></tr>
+    <tr><td>PATCH</td><td><code>/api/personas/:id</code></td><td>改名 / 换骨架 / 改配色。三者都不调 LLM、不耗生成配额、不动聊天记录。换骨架自动套用该骨架的成套主题（深色骨架必须配浅色文字）；改配色只写 theme，前后端都会校验 #RRGGBB 与枚举值</td></tr>
+    <tr><td>DELETE</td><td><code>/api/personas/:id</code></td><td>删除人格，级联会话与消息</td></tr>
+    <tr><td>POST</td><td><code>/api/personas/:id/regenerate</code></td><td>修改关键词后重跑管线，生成新 spec（可对比保留旧版）</td></tr>
+    <tr><td>GET</td><td><code>/api/personas/:id/conversations</code></td><td>该人格的会话列表</td></tr>
+    <tr><td>POST</td><td><code>/api/personas/:id/conversations</code></td><td>新建会话</td></tr>
+    <tr><td>GET</td><td><code>/api/conversations/:id/messages</code></td><td>历史消息，按 id 游标分页</td></tr>
+    <tr><td>POST</td><td><code>/api/conversations/:id/stream</code></td><td>聊天 SSE 端点（见下）</td></tr>
+    <tr><td>GET</td><td><code>/api/meta/skeletons</code></td><td>骨架目录（前端向导"预览风格"用）</td></tr>
+  </table>
+
+  <h3>SSE 协议（聊天端点）</h3>
+  <pre><code>POST /api/conversations/:id/stream
+Body: {"content": "今天好累啊"}
+Authorization: Bearer &lt;access_token&gt;
+
+// 前端用 fetch + ReadableStream 读取（EventSource 只支持 GET，不适用）
+// 事件流：
+event: meta    data: {"persona_name":"苏桃","skeleton_id":"diary"}
+event: token   data: {"delta":"…我…"}          // 逐 token 增量
+event: done    data: {"usage":{"tokens":86}}   // 结束 + 用量
+event: error   data: {"code":"QUOTA_EXCEEDED","message":"今日对话次数已用尽"}
+
+// 断线处理：前端 AbortController 取消；已生成内容随 done/异常落库，不丢历史</code></pre>
+  <p>错误统一格式 <code>{"code": "STRING_CODE", "message": "人类可读信息"}</code>；配额超限返回 429 并带 <code>quota_reset_at</code>。</p>
+</section>
+
+<!-- ========== 07 ========== -->
+<section id="s7">
+  <h2>07 前端设计</h2>
+  <h3>路由（HashRouter）</h3>
+  <table>
+    <tr><th style="width:150px">路径</th><th>页面</th><th style="width:300px">要点</th></tr>
+    <tr><td><code>/</code></td><td>输入向导 WizardPage</td><td>三步条：选标签 → 补描述 → 生成预览</td></tr>
+    <tr><td><code>/personas</code></td><td>人格库 PersonasPage</td><td>卡片网格：渐变首字头像、限定词标签、可点击的骨架名（一键换风格）、状态标记、操作条等高对齐</td></tr>
+    <tr><td><code>/chat/:id</code></td><td>聊天 ChatPage</td><td>按 skeleton_id 动态挂载骨架组件 + 主题 CSS 变量注入</td></tr>
+    <tr><td><code>/login</code> <code>/register</code></td><td>认证页</td><td>Antd Form + JWT 存取（access 内存 + refresh localStorage）</td></tr>
+  </table>
+
+  <h3>输入向导（结构化引导落地）</h3>
+  <ul>
+    <li>预设标签分四组点选：<b>性格基调</b>（内向 / 外向 / 高冷 / 温柔 / 毒舌 / 粘人…）、<b>语气</b>（活泼 / 沉稳 / 腼腆 / 傲娇…）、<b>关系定位</b>（笔友 / 前辈 / 青梅竹马 / 管家…）、<b>禁区</b>（不说教 / 不网络梗 / 不主动提问…）。</li>
+    <li>自由补充框（≤200 字）+ 2 个一键示例 chips（"内向害羞的笔友"、"毒舌但可靠的前辈"）降低冷启动。</li>
+    <li>提交后展示"工程师 AI 工作中"进度态，返回即进入人格库并自动打开聊天页。</li>
+  </ul>
+
+  <h3>骨架组件与主题注入</h3>
+  <pre><code>frontend/src/
+├─ components/skeletons/
+│  ├─ index.js               // 16 套骨架注册表 + 展示名
+│  ├─ shared.js              // 草稿状态机 / 时间戳 / 单据编号
+│  ├─ MinimalSkeleton.jsx    // 极简对话
+│  ├─ RadioSkeleton.jsx      // 深夜电台
+│  ├─ DiarySkeleton.jsx      // 手账书信
+│  ├─ TerminalSkeleton.jsx   // 终端风
+│  ├─ LetterSkeleton.jsx     // 素笺短札
+│  ├─ OracleSkeleton.jsx     // 塔罗占卜
+│  ├─ ClinicSkeleton.jsx     // 门诊病历
+│  ├─ ReceiptSkeleton.jsx    // 深夜小票
+│  ├─ LibrarySkeleton.jsx    // 借阅卡
+│  ├─ StarshipSkeleton.jsx   // 星舰通讯
+│  ├─ PotionSkeleton.jsx     // 炼金配方
+│  ├─ NeonSkeleton.jsx       // 霓虹街
+│  ├─ GardenSkeleton.jsx     // 植物标本
+│  ├─ ClassroomSkeleton.jsx  // 黑板课堂
+│  ├─ CasefileSkeleton.jsx   // 侦探卷宗
+│  └─ BbsSkeleton.jsx        // 复古论坛
+├─ hooks/useChat.js          // 共用聊天逻辑：SSE fetch 流 + 历史加载 + 发送
+└─ hooks/useThemeVars.js     // theme token → CSS 变量注入wrapper div
+
+// 十六套骨架是同一组 props 的不同视觉实现，聊天逻辑零重复：
+// &lt;Skeleton persona={p} messages={ms} streaming={s} onSend={send} /&gt;
+// 主题落地：style={{ "--primary": theme.primary, "--bg": theme.bg, ... }}</code></pre>
+  <div class="callout"><b>头像策略：</b>不用 AI 生图、不存 base64。头像 = 人格首字 + theme.primary/surface 渐变 + font_style 对应字体，零成本零请求，且与主题天然一致。</div>
+
+  <h3>建造揭晓：把“AI 搭页面”的过程变成可见的演出</h3>
+  <p>首页即工位，三态原地切换，不跳路由、不建新页：<b>输入向导态 → 建造中态 → 人格聊天态</b>。从人格库打开或重新生成人格时，重放建造动画。</p>
+  <div class="callout warn"><b>两条硬规则：</b>① 全程组件级原地热替换（React 状态驱动挂载 + CSS 变量过渡），禁止 <code>location.reload()</code>——刷新会丢状态、闪屏、切断 SSE 连接；② 编排式揭晓，禁止把工程师 AI 拆成多次调用换步骤——单次调用拿全量 spec，按真实决策顺序分阶段落位，每个阶段展示的都是 AI 的真实产出。</div>
+  <table>
+    <tr><th style="width:70px">阶段</th><th>页面表现</th><th style="width:200px">数据来源</th></tr>
+    <tr><td>1 布局</td><td>骨架轮廓淡入（空页面框架）</td><td>skeleton_id</td></tr>
+    <tr><td>2 上色</td><td>主题色 / 字体 / 装饰渐变生效</td><td>theme</td></tr>
+    <tr><td>3 身份</td><td>渐变首字头像 + 人格名 + 页面标题落位</td><td>name / page_copy</td></tr>
+    <tr><td>4 开场</td><td>问候语 + 开场白逐字打出</td><td>greeting / opening_message</td></tr>
+    <tr><td>5 就绪</td><td>输入框点亮，可开始聊天</td><td>—</td></tr>
+  </table>
+  <ul>
+    <li><b>节奏对齐真实耗时</b>：工程师调用通常 8-15s，spec 到达即走完后续阶段；未到达时显示“AI 正在决定页面风格”的真实等待态；总时长封顶约 10s，不为动画硬拖。</li>
+    <li><b>失败优雅收尾</b>：管线失败走兜底 spec 时，动画收尾到默认风格并提示“可重新生成”，不能播到一半裸奔。</li>
+    <li><b>无障碍</b>：尊重 <code>prefers-reduced-motion</code>，一键直出完整页面。</li>
+    <li><b>后端零改动</b>：揭晓是纯前端动画层，spec schema 与 API 不变。</li>
+  </ul>
+
+  <h3>无障碍与稳健性</h3>
+  <ul>
+    <li>LLM 输出内容一律纯文本渲染，全程无 <code>dangerouslySetInnerHTML</code>，XSS 无入口。</li>
+    <li>SSE 断线自动重连提示 + 手动"重新生成回复"；流式中可随时停止（AbortController）。</li>
+    <li>access token 过期静默刷新一次，失败跳登录页；路由守卫未登录进 /login。</li>
+  </ul>
+</section>
+
+<!-- ========== 08 ========== -->
+<section id="s8">
+  <h2>08 双密钥 LLM 适配层（先搭框架，暂不接密钥）</h2>
+  <h3>适配器接口（复用 InfoHub BaseAdapter 模式）</h3>
+  <pre><code># backend/app/llm/base.py
+class BaseAdapter(ABC):
+    name: str
+    @abstractmethod
+    async def chat_json(self, messages: list[dict], *, temperature: float = 0.7) -> dict: ...
+    @abstractmethod
+    def chat_stream(self, messages: list[dict], *, temperature: float = 0.8) -&gt; AsyncGenerator[str, None]: ...
+
+# backend/app/llm/registry.py
+REGISTRY: dict[str, type[BaseAdapter]] = {}
+def get_adapter(purpose: Literal["engineer", "persona"]) -&gt; BaseAdapter:
+    cfg = settings.engineer_llm if purpose == "engineer" else settings.persona_llm
+    if not cfg.api_key:              # 框架期：未配置密钥 → 确定性 Mock
+        return MockAdapter(purpose)
+    return REGISTRY[cfg.adapter](cfg)
+
+# 已注册：openai_compat / deepseek / doubao / mock</code></pre>
+
+  <h3>两组独立密钥配置（.env.example）</h3>
+  <pre><code># ---- 工程师 AI：人设与页面规格生成，质量优先，调用频次低 ----
+ENGINEER_LLM_ADAPTER=openai_compat
+ENGINEER_LLM_BASE_URL=https://zeus.zwnorz.com/v1
+ENGINEER_LLM_API_KEY=
+ENGINEER_LLM_MODEL=gpt-5.4
+
+# ---- 人格 AI：聊天运行时，高频调用，快且便宜 ----
+PERSONA_LLM_ADAPTER=openai_compat
+PERSONA_LLM_BASE_URL=https://zeus.zwnorz.com/v1
+PERSONA_LLM_API_KEY=
+PERSONA_LLM_MODEL=
+
+# 框架期（两个 API_KEY 留空）自动走 MockAdapter：注册→建人格→聊天→历史全流程可跑
+# 接密钥 = 填 .env 重启后端，零代码改动</code></pre>
+
+  <h3>MockAdapter 行为约定</h3>
+  <ul>
+    <li><code>chat_json</code>：按 brief 的标签确定性拼装合法 spec（skeleton 按标签映射表选择，主题按标签映射），保证 schema 永远通过，供前端联调。</li>
+    <li><code>chat_stream</code>：按人格口吻模板分片输出 canned 回复（带打字延迟模拟流式），可被相同输入稳定复现。</li>
+  </ul>
+
+  <div class="callout warn"><b>安全边界：</b>密钥只存在于后端环境变量；前端零密钥；Mock 降级只在"未配置密钥"时触发，配置错误（密钥无效）不走 Mock、直接报错，避免"假成功"掩盖故障。</div>
+</section>
+
+<!-- ========== 09 ========== -->
+<section id="s9">
+  <h2>09 在线服务化（Q1 选"可分享"带来的增量）</h2>
+  <div class="grid2">
+    <div class="mini"><b>账号与认证</b>
+      <ul>
+        <li>用户名 + 密码，bcrypt 哈希（放线程池执行，规避美食地图同步阻塞事件循环的坑）</li>
+        <li>JWT：access 15 分钟 + refresh 7 天，refresh 轮换复用检测</li>
+        <li>全端点按 user_id 隔离；他人资源一律 404</li>
+      </ul>
+    </div>
+    <div class="mini"><b>限流与配额</b>
+      <ul>
+        <li>IP 级：注册 15min/5 次、登录 15min/20 次（沿用美食地图实测档位）</li>
+        <li>用户级：每日生成 20 次 + 每日对话 100 次（默认值，可调）</li>
+        <li>429 响应带 quota_reset_at；llm_calls 表支撑成本观测</li>
+      </ul>
+    </div>
+    <div class="mini"><b>内容安全</b>
+      <ul>
+        <li>输入：限定词长度上限、控制字符过滤、禁用词表</li>
+        <li>输出：spec schema 校验 + 前端纯文本渲染</li>
+        <li>MVP 完整送审不阻塞，M2 前评估接入</li>
+      </ul>
+    </div>
+    <div class="mini"><b>部署路径</b>
+      <ul>
+        <li>M3：Docker Compose（FastAPI 容器 + SQLite 卷）</li>
+        <li>前端 Vite build 产物由 FastAPI StaticFiles 或 Nginx 托管</li>
+        <li>规模上来后再评估 Postgres 迁移（数据层已按 ORM 隔离，迁移成本低）</li>
+      </ul>
+    </div>
+  </div>
+  <h3>安全检查清单（上线前逐项过）</h3>
+  <table>
+    <tr><th style="width:200px">项</th><th>措施</th></tr>
+    <tr><td>密钥隔离</td><td>密钥仅后端 env；.env 入 .gitignore；.env.example 只留空模板</td></tr>
+    <tr><td>提示词注入</td><td>用户文本进工程师 prompt 前截断 + 清洗；人格 system_prompt 不可被聊天消息改写</td></tr>
+    <tr><td>输出可信</td><td>工程师输出必须过 pydantic 校验；前端无 HTML 渲染路径</td></tr>
+    <tr><td>数据越权</td><td>所有查询带 user_id 条件；资源不存在即 404</td></tr>
+    <tr><td>成本失控</td><td>双配额 + IP 限流 + llm_calls 审计 + 单次请求 token 上限</td></tr>
+  </table>
+</section>
+
+<!-- ========== 10 ========== -->
+<section id="s10">
+  <h2>10 项目骨架</h2>
+  <pre><code>persona-forge/
+├─ backend/
+│  ├─ app/
+│  │  ├─ main.py            # FastAPI 装配：CORS / 路由 / 静态托管 / 建表
+│  │  ├─ config.py          # pydantic-settings：双密钥组 + APP_ENV
+│  │  ├─ db.py              # SQLite WAL 连接 + 初始化
+│  │  ├─ models.py          # ORM / 表定义
+│  │  ├─ schemas.py         # 请求响应 + spec schema（pydantic）
+│  │  ├─ routers/
+│  │  │  ├─ auth.py         # 注册 / 登录 / refresh
+│  │  │  ├─ personas.py     # CRUD + regenerate（管线入口）
+│  │  │  ├─ chat.py         # SSE 流式端点
+│  │  │  └─ meta.py         # 骨架目录
+│  │  ├─ pipeline/
+│  │  │  ├─ brief.py        # S1 输入归一化
+│  │  │  ├─ engineer_prompt.py  # S2 提示词与 SKELETONS 目录
+│  │  │  ├─ skeleton_presets.py  # 16 套骨架的成套主题预设（换骨架用）
+│  │  │  ├─ validate.py     # S3 schema 校验 + 重试 + 兜底
+│  │  │  └─ assemble.py     # 页面规格装配落库
+│  │  └─ llm/
+│  │     ├─ base.py registry.py
+│  │     ├─ openai_compat.py deepseek.py doubao.py
+│  │     └─ mock.py         # 框架期确定性假数据
+│  ├─ .env.example
+│  └─ requirements.txt
+├─ frontend/
+│  ├─ src/
+│  │  ├─ main.jsx App.jsx           # HashRouter + 路由守卫
+│  │  ├─ pages/                     # Wizard / Personas / Chat / Login
+│  │  ├─ components/skeletons/      # 16 套骨架
+│  │  ├─ components/SkeletonPicker.jsx  # 换骨架选择器（16 套网格）
+│  │  ├─ components/ThemePanel.jsx      # 配色面板：12 套成套色板 + 逐项微调 + 对比度护栏
+│  │  ├─ hooks/                     # useChat / useThemeVars / useBuildReveal
+│  │  ├─ lib/theme.js               # 颜色算术：WCAG 对比度、由主色派生整套、固定底色骨架表
+│  │  └─ lib/api.js                 # fetch 封装 + 静默刷新
+│  ├─ index.html vite.config.js package.json
+├─ docs/                            # 本方案 + API 文档
+└─ docker-compose.yml               # M3 部署</code></pre>
+</section>
+
+<!-- ========== 11 ========== -->
+<section id="s11">
+  <h2>11 里程碑</h2>
+  <table>
+    <tr><th style="width:70px">阶段</th><th style="width:230px">内容</th><th>出口标准（可验证）</th></tr>
+    <tr><td><b>M0 框架</b></td><td>项目骨架 + auth + personas CRUD + Mock 全流程 + minimal 骨架 + 非流式聊天 + 建造揭晓动画</td><td>不接任何密钥跑通：注册 → 建人格（观看建造揭晓）→ 聊天 → 看历史 → 删除人格</td></tr>
+    <tr><td><b>M1 MVP</b></td><td>工程师 AI 接线（双密钥）+ 16 套骨架 + SSE 流式 + 配额限流 + 重新生成 + 手动换骨架与配色微调（均不耗配额）+ 建造揭晓适配 16 套骨架</td><td>输入“内向、害羞”得到苏桃式人格与手账风页面，建造过程完整可见；流式对话历史持久化；配额 429 正确触发</td></tr>
+    <tr><td><b>M2 差异化</b></td><td>试聊回流微调（聊几轮 → "人设不对" → 工程师 AI 增量修订 spec）+ 分享链接 + needs_review 重生成</td><td>用户在一次会话内把人设从"太冷淡"调到"温暖一点"，页面同步更新</td></tr>
+    <tr><td><b>M3 在线化</b></td><td>Docker Compose 部署 + 公网 / 内网穿透访问 + 用量监控 + Postgres 评估</td><td>朋友通过链接注册并使用；llm_calls 可出成本报表</td></tr>
+  </table>
+  <div class="callout"><b>下一步动作：</b>第 12 节锁定项无异议后，我按第 10 节目录直接搭建 M0 框架代码（含 Mock 全流程与 minimal 骨架），交付可运行项目。</div>
+</section>
+
+<!-- ========== 12 ========== -->
+<section id="s12">
+  <h2>12 待确认锁定项（Round 2 收敛点）</h2>
+  <p class="lead">以下为方案中我已按推荐锁定的决策，<b>无异议即生效</b>；有改动直接说，改完进入 M0。</p>
+  <table>
+    <tr><th style="width:50px">#</th><th style="width:230px">锁定项</th><th>锁定内容</th></tr>
+    <tr><td>L1</td><td>项目目录</td><td><code>D:\main-open\vscode Project\03-项目 Projects\persona-forge\</code>（沿用你的成品目录约定）</td></tr>
+    <tr><td>L2</td><td>后端栈</td><td>FastAPI + SQLite WAL（复用 InfoHub 适配器模式；单实例够用，后续可换 Postgres）</td></tr>
+    <tr><td>L3</td><td>前端栈</td><td>React 18 + Vite + HashRouter + Antd 5（与美食地图一致，复用熟练度）</td></tr>
+    <tr><td>L4</td><td>LLM 供应商</td><td>默认 openai_compat 适配 zeus.zwnorz.com 中继；工程师模型先用 gpt-5.4，人格轻量模型接线期再定</td></tr>
+    <tr><td>L5</td><td>配额数值</td><td>每日生成 20 次 / 每日对话 100 次（可调）</td></tr>
+    <tr><td>L6</td><td>骨架数量</td><td>16 套：minimal / radio / diary / terminal / letter / oracle / clinic / receipt / library / starship / potion / neon / garden / classroom / casefile / bbs</td></tr>
+    <tr><td>L7</td><td>项目名</td><td>言筑 YanZhu（队名：未命名者；代号 yanzhu）——已定</td></tr>
+    <tr><td>L8</td><td>建造揭晓</td><td>已定（10-25）：首页三态原地切换 + 五阶段揭晓 + 两条硬规则，列入 M0</td></tr>
+  </table>
+  <div class="lock"><b>仍需你拍板的一个开放问题：</b>工程师 AI 与人格 AI 的"两个密钥"你计划分别用哪家（zeus 中继两把 / zeus + DeepSeek / 其他）？影响 M1 接线时的 .env 填写，不阻塞 M0 框架搭建。</div>
+</section>
+
+<!-- ========== 13 ========== -->
+<section id="s13">
+  <h2>13 本轮新增：命名权、保存、沉浸、网页代码</h2>
+  <p class="lead">四项都围绕同一件事：<b>页面是用户自己的，应该能带走、能改、能专注地待在里头</b>。全部零新增依赖、零额外模型调用。</p>
+
+  <h3>13.1 角色名字由用户决定</h3>
+  <ul>
+    <li><b>向导确认页</b>新增「角色名字」输入（2-20 字，可留空）。填了就是硬约束，留空仍由工程师 AI 起名。</li>
+    <li><b>三层保证</b>：提示词里写明「必须原样使用该名字」→ 落库前<code>_apply_forced_name</code> 再强制覆盖一次（模型改一个字也不生效）→ 把 <code>system_prompt</code> 里模型自己起的旧名字整体替换，避免出现「你的名字是沈砚。你是陆沉，一个档案管理员」这种自相矛盾的人设。</li>
+    <li><b>随时可改</b>：人格库卡片新增「改名」，<code>PATCH /personas/{id}</code> 同步写 <code>personas.name</code>、<code>spec.name</code> 与 <code>system_prompt</code>，不调 LLM、不耗配额；重新生成时默认回填当前名字，不会被悄悄换掉。</li>
+  </ul>
+
+  <h3>13.2 保存对话</h3>
+  <ul>
+    <li>聊天页头部「保存」下拉提供三种格式：<b>Markdown</b>（给人读，粘进笔记就能看）、<b>纯文本</b>（最省事）、<b>JSON</b>（完整消息数组 + 时间戳，可程序化再处理）。</li>
+    <li>文件名统一 <code>言筑-人格名-会话名-YYYYMMDD-HHmm</code>，纯前端 <code>Blob</code> + <code>a[download]</code> 生成，不经后端、不耗配额。</li>
+  </ul>
+
+  <h3>13.3 全屏沉浸</h3>
+  <ul>
+    <li>头部「全屏」进入沉浸态：锁页面滚动、<code>.pf-chat</code> 固定铺满视口、隐藏应用外壳，只留这个人格；再点一次或按 Esc 退出。</li>
+    <li><b>一个踩过的坑（真 bug）</b>：最初把 <code>.pf-chat</code> 自己设为全屏元素，结果「保存」菜单（antd Dropdown 挂在 <code>body</code>）看不见、点不到——浏览器全屏只渲染全屏元素内部。改为对 <code>document.documentElement</code> 请求全屏、视觉占满交给 CSS，弹层与提示都在全屏范围内，问题消失。</li>
+  </ul>
+
+  <h3>13.4 保存搭好的网页代码</h3>
+  <ul>
+    <li>「网页存为单文件 HTML」把当前聊天页做成<b>双击即开</b>的独立页面：DOM 快照 + 按选择器裁剪内联的 CSS（体积约 320-360 KB）+ <code>&lt;script type="application/json" id="yanzhu-spec"&gt;</code> 里随页附带完整 spec。</li>
+    <li><b>为什么快照而不是另写静态模板</b>：16 套骨架各有独立布局，重写一份必然与线上走样；快照保证「导出即所见」，主题变量、装饰、字号全部原样保留。</li>
+    <li>静态化处理：摘掉点头部按钮与会话切换条（点不动只会误导），输入框降级为只读并提示「这是导出的静态页面」，底部标注导出时间与来源。</li>
+    <li>另提供「配置存为 JSON」：<code>spec</code> + 主题 + 关键词 + brief，方便自己拿去做二次开发或喂给别的模型。</li>
+  </ul>
+
+  <h3>13.5 验收</h3>
+  <table>
+    <tr><th style="width:230px">验证项</th><th style="width:120px">结果</th><th>覆盖内容</th></tr>
+    <tr><td>name_test.py</td><td><b>25 / 25</b></td><td>纯函数（brief 归一化、强制改名、旧名替换）+ PATCH 改名落库一致性 + 真模型带 name 生成 + 非法名字 422 + 只有名字没有限定词 400</td></tr>
+    <tr><td>pf-save.mjs</td><td><b>35 / 35</b></td><td>改名往返、向导名字输入、沉浸态进出（铺满/锁滚动/头部底色/Esc）、三种对话格式下载、HTML 导出在 <code>file://</code> 下渲染零报错、导出页底色跟随主题、配置 JSON</td></tr>
+    <tr><td>回归</td><td><b>全绿</b></td><td>冒烟 14/14、换骨架 32/32、配色 54/54、限流分桶 17/17；390/360/1920 三档零横向溢出</td></tr>
+  </table>
+</section>
+
+<!-- ========== 14 ========== -->
+<section id="s14">
+  <h2>14 标签互斥：把矛盾挡在生成之前</h2>
+  <p class="lead">用户能同时选中「内向」和「外向」、「活泼」和「沉稳」。危害不是报错，而是<b>成品悄悄变平庸</b>——模型收到自相矛盾的 brief，只能二选一或折中，用户以为给了六个限定词，实际强度只剩三个。</p>
+
+  <h3>14.1 问题不在标签太多，而在三处缺口</h3>
+  <table>
+    <tr><th style="width:150px">缺口</th><th style="width:300px">原来的状态</th><th>后果</th></tr>
+    <tr><td>互斥关系没声明</td><td>10 个性格标签平铺在一个数组里，彼此关系未定义</td><td>内向与外向被当成两个独立维度</td></tr>
+    <tr><td>跨组冲突没人管</td><td>性格组与语气组各管各的</td><td>内向配活泼这种更隐蔽的组合无人拦</td></tr>
+    <tr><td>数量没约束</td><td>前端无上限，后端限 12 个</td><td>选满即交，模型负担过重</td></tr>
+  </table>
+
+  <h3>14.2 用「轴」建模，不是两两配对</h3>
+  <p>两两列互斥要列九对，加标签还得逐个补关系。改成声明四条轴，每轴最多选一个，四条声明覆盖全部冲突。</p>
+  <table>
+    <tr><th style="width:150px">轴</th><th>成员</th></tr>
+    <tr><td>性格·社交向</td><td>内向 ／ 外向</td></tr>
+    <tr><td>性格·判断式</td><td>理性 ／ 感性</td></tr>
+    <tr><td>语气·能量</td><td>活泼 ／ 安静 ／ 沉稳 ／ 冷淡</td></tr>
+    <tr><td>语气·分寸</td><td>严肃 ／ 俏皮 ／ 撒娇</td></tr>
+  </table>
+
+  <h3>14.3 反差不算矛盾，别一起禁掉</h3>
+  <p>「毒舌＋温柔」是嘴硬心软，「高冷＋粘人」是反差萌——这类组合恰恰是出彩的地方。所以分三档处理：</p>
+  <table>
+    <tr><th style="width:180px">类型</th><th style="width:280px">例子</th><th>处理</th></tr>
+    <tr><td>硬矛盾（同轴两极）</td><td>内向／外向、活泼／沉稳</td><td>直接挡，选一个另一个置灰</td></tr>
+    <tr><td>反差张力</td><td>毒舌＋温柔、高冷＋粘人、慢热＋粘人</td><td>不禁，仅在补充描述为空时提示一句怎么调和</td></tr>
+    <tr><td>自由组合</td><td>傲娇＋前辈、腼腆＋笔友</td><td>不管</td></tr>
+  </table>
+
+  <h3>14.4 四层落地</h3>
+  <ol>
+    <li><b>选中即互斥</b>：置灰而非隐藏，标签留在原位，用户看得懂"为什么点不了"；点击时给一句解释（移动端没有 hover，只靠 title 等于没提示）。</li>
+    <li><b>组配额</b>：性格 3、语气 2、关系 1，总数 8。禁区不设上限——"不说教＋不玩梗＋不主动提问"是叠加的约束，彼此不冲突。</li>
+    <li><b>反差提示</b>：命中张力对时提示一句，用户写了补充描述就自动收起。</li>
+    <li><b>后端兜底</b>：<code>pipeline/tag_rules.py</code> 做确定性消解，同轴保留先出现的，被丢弃的写进 <code>brief.dropped_tags</code> 随详情回传——不做静默删改。前端拦不住的三条路（重新生成弹窗、历史数据、直接调 API）都由这一层接住。</li>
+  </ol>
+  <p>两个配套修正：<code>keywords_json</code> 改存去冲突后的值（否则卡片标签与"重新生成"回填会把这些冲突复活）；提示词构建时剔除 <code>dropped_tags</code>（对生成无用，只会让模型困惑"为什么给了又丢"）。</p>
+
+  <h3>14.5 验收</h3>
+  <table>
+    <tr><th style="width:200px">验证项</th><th style="width:110px">结果</th><th>覆盖内容</th></tr>
+    <tr><td>tag_test.py</td><td><b>33 / 33</b></td><td>前后端分组与轴逐项比对（防漂移）、同轴去重、组配额、总数上限、幂等性、自由标签不受影响、提示词不含审计字段、真模型生成时 keywords 存 kept</td></tr>
+    <tr><td>pf-tags.mjs</td><td><b>30 / 30</b></td><td>置灰与点击解释、互斥优先于配额、配额 2/2、反差提示出现与收起、8/8 上限、老数据进弹窗自动校正、390/360 两档零溢出</td></tr>
+    <tr><td>回归</td><td><b>全绿</b></td><td>冒烟 14/14、换骨架 32/32、配色 54/54、限流 17/17、命名 25/25、保存导出 35/35</td></tr>
+  </table>
+  <p class="lead" style="font-size:15px">顺带修掉两处工程问题：<br>
+  ① <b>限流后门</b>——注册 15min/5IP 导致连跑几套验收就打满，每次都要重启后端。加 <code>RATE_LIMIT_DISABLED</code> 开关，且 <code>app_env=prod</code> 时强制失效。<br>
+  ② <b>改名漏同步</b>——原 PATCH 只在提示词里含旧名时才替换，导致"提示词本来没写名字"的人格改完仍不自称。改为替换不到就补一句身份声明。</p>
+</section>
+
+<footer>言筑 YanZhu · 可实现方案 v1.4 · 2026-10-26 · 未命名者（白 × 江）</footer>
+</div>
+</body>
+</html>
