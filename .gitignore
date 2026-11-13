@@ -1,0 +1,31 @@
+# ===== 依赖与构建产物 =====
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.venv/
+backend/.venv/
+
+# ===== 本地数据与环境（.env 绝不入库，只保留模板）=====
+.env
+.env.local
+.env.*
+!.env.example
+backend/data/*
+!backend/data/.gitkeep
+*.db
+*.db-wal
+*.db-shm
+
+# ===== 在线演示与临时产物 =====
+share-url.txt
+*.log
+*.zip
+*.7z
+
+# ===== 编辑器 / 系统杂物 =====
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.workbuddy/
