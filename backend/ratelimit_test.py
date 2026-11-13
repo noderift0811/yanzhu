@@ -40,23 +40,29 @@ def check(label, cond, detail=""):
         print(f"[FAIL] {label} {detail}")
 
 
+# 基准登录账号由脚本自建，不依赖任何预置数据（全新空库也能跑）。
+# 注册档是 15min/5IP 的进程内滑动窗口，本脚本须在干净窗口单独运行：
+# 刚重启后端，或 15 分钟内没跑过其它会注册账号的验收脚本。
+LOGIN_BASE = "rlbase" + secrets.token_hex(3)
+call("POST", "/auth/register", {"username": LOGIN_BASE, "password": "test123456"}, expect=201)
+
 # 登录 6 次（超过注册档的 5 次上限），注册不应受牵连
 for i in range(6):
-    call("POST", "/auth/login", {"username": "real02", "password": "test123456"}, expect=200)
+    call("POST", "/auth/login", {"username": LOGIN_BASE, "password": "test123456"}, expect=200)
 check("连续登录 6 次未触发登录限流", True)
 
 name = "rl" + secrets.token_hex(3)
 code, body = call("POST", "/auth/register", {"username": name, "password": "test123456"}, expect=201)
 check("登录 6 次后仍可注册（两档独立计数）", code == 201, body)
 
-# 注册档自己仍然生效：同一 IP 再注册 4 次，第 6 次应 429
-for i in range(4):
+# 注册档自己仍然生效：基准账号与 name 已各占 1 次，再注册 3 次到满，第 6 次应 429
+for i in range(3):
     call("POST", "/auth/register", {"username": f"{name}x{i}", "password": "test123456"}, expect=201)
 code, body = call("POST", "/auth/register", {"username": f"{name}z", "password": "test123456"}, expect=429)
 check("注册档上限仍生效（第 6 个被拒）", code == 429, body)
 
 # 注册被限后，登录不受影响
-call("POST", "/auth/login", {"username": "real02", "password": "test123456"}, expect=200)
+call("POST", "/auth/login", {"username": LOGIN_BASE, "password": "test123456"}, expect=200)
 check("注册被限时登录仍正常", True)
 
 # 清理这几个账号
@@ -66,7 +72,8 @@ conn = sqlite3.connect("data/yanzhu.db")
 uids = [
     r[0]
     for r in conn.execute(
-        "SELECT id FROM users WHERE username LIKE ?", (name + "%",)
+        "SELECT id FROM users WHERE username LIKE ? OR username = ?",
+        (name + "%", LOGIN_BASE),
     )
 ]
 for uid in uids:
