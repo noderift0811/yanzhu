@@ -8,6 +8,7 @@ from ..pipeline.engineer_prompt import SKELETONS
 from ..pipeline.knowledge import knowledge_stats, retrieve
 from ..pipeline.presets import DEFAULT_PRESET_ID, list_presets
 from ..pipeline.skeleton_presets import SKELETON_PRESETS
+from ..pipeline.tools import list_tools
 
 router = APIRouter(prefix="/meta", tags=["meta"])
 
@@ -27,6 +28,12 @@ def skeletons() -> Dict[str, Any]:
 def presets() -> Dict[str, Any]:
     """场景预设目录：前端卡片、Agent 检索语料与护栏级别的唯一来源。"""
     return {"default": DEFAULT_PRESET_ID, "items": list_presets()}
+
+
+@router.get("/tools")
+def tools() -> Dict[str, Any]:
+    """MCP 风格工具清单：Agent 每一步能调用什么、参数契约是什么，全部可查。"""
+    return list_tools()
 
 
 @router.get("/knowledge")

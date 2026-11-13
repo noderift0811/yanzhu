@@ -96,6 +96,17 @@ class PersonaCreateIn(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=20)
 
 
+class AgentBuildIn(PersonaCreateIn):
+    """五步 Agent 链路入参：与自由生成同一套字段，额外带场景预设与演示原话。
+
+    preset_id 未知时后端回落到 free，不报错——外部直接调 API 也不该打断生成。
+    user_query 只用于检索与护栏演示，不写入人格。
+    """
+
+    preset_id: Optional[str] = Field(default=None, max_length=20)
+    user_query: str = Field(default="", max_length=200)
+
+
 class PersonaPatchIn(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=20)
     theme: Optional[ThemeModel] = None
