@@ -6,6 +6,7 @@ import "./styles/theme.css";
 import "./styles/skeletons.css";
 import "./styles/skeletons-extra.css";
 import "./styles/picker.css";
+import "./styles/agent.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
