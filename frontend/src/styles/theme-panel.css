@@ -1,0 +1,571 @@
+/* 主题微调面板：白底紧凑面板，与换骨架选择器同一套边框与主色 */
+
+/* 遮罩压淡：调色时要能看清左边聊天页的实时变化 */
+.pf-th-root .ant-modal-mask {
+  background: rgba(24, 27, 38, 0.16);
+}
+
+.pf-th-modal .ant-modal-body {
+  max-height: calc(100vh - 268px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* 固定 footer：对比度护栏 + 恢复默认 + 取消/保存 */
+.pf-th-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.pf-th-foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pf-th-foot-btns {
+  display: flex;
+  gap: 8px;
+}
+
+/* 逐项微调折叠区 */
+.pf-th-more {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: -2px 0 14px;
+  padding: 7px 11px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: #4b5563;
+  text-align: left;
+  background: #fbfcfe;
+  border: 1px dashed #d9dde8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.pf-th-more:hover {
+  color: #322fc4;
+  border-color: #a9aee0;
+  background: #f6f7ff;
+}
+
+.pf-th-more.open {
+  border-style: solid;
+  border-color: #c7cbe8;
+}
+
+.pf-th-more em {
+  font-style: normal;
+  font-size: 11px;
+  color: #8b95a5;
+}
+
+.pf-th-detail {
+  display: none;
+}
+
+.pf-th-detail.open {
+  display: block;
+}
+
+.pf-th-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pf-th-lead {
+  font-size: 12.5px !important;
+  line-height: 1.75;
+  margin-bottom: 14px !important;
+}
+
+.pf-th-block {
+  margin-bottom: 12px;
+}
+
+.pf-th-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #2b3038;
+}
+
+.pf-th-block-head em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 11.5px;
+  color: #7a8494;
+}
+
+/* ---------- 内嵌迷你预览 ---------- */
+
+.pf-th-prev {
+  margin-bottom: 12px;
+  padding: 8px 11px 9px;
+  background: var(--pf-bg, #fff);
+  border: 1px solid rgba(31, 35, 40, 0.12);
+  border-radius: 12px;
+  font-family: var(--pf-font, inherit);
+}
+
+.pf-th-prev-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  opacity: 0.85;
+}
+
+.pf-th-prev-bar i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.pf-th-prev-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 0 8px;
+}
+
+.pf-th-prev-a,
+.pf-th-prev-u {
+  max-width: 82%;
+  margin: 0;
+  padding: 7px 11px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  border-radius: 10px;
+}
+
+.pf-th-prev-a {
+  align-self: flex-start;
+  border-bottom-left-radius: 3px;
+}
+
+.pf-th-prev-u {
+  align-self: flex-end;
+  border-bottom-right-radius: 3px;
+}
+
+.pf-th-prev-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 6px 5px 11px;
+  border-radius: 9px;
+  font-size: 12px;
+  border: 1px solid rgba(31, 35, 40, 0.08);
+}
+
+.pf-th-prev-input button {
+  padding: 4px 11px;
+  font-size: 11.5px;
+  font-family: inherit;
+  border: 0;
+  border-radius: 7px;
+  cursor: default;
+}
+
+/* 固定底色骨架的说明条 */
+.pf-th-lock {
+  margin: 0 0 12px;
+  padding: 7px 11px;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: #5b6473;
+  background: #f6f7fb;
+  border-left: 2px solid #c7cbe8;
+  border-radius: 0 7px 7px 0;
+}
+
+/* ---------- 整套配色 ---------- */
+
+.pf-th-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pf-th-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px 5px 4px;
+  background: #fff;
+  border: 1px solid #e2e5ee;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pf-th-preset:hover {
+  border-color: #b3b8e8;
+}
+
+.pf-th-preset:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 1px;
+}
+
+.pf-th-preset.on {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.14);
+}
+
+.pf-th-strip {
+  display: flex;
+  height: 20px;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(31, 35, 40, 0.08);
+}
+
+.pf-th-strip i {
+  flex: 1;
+}
+
+.pf-th-preset-name {
+  font-size: 11.5px;
+  color: #4b5563;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ---------- 由主色生成 ---------- */
+
+.pf-th-gen {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f8f9fc;
+  border: 1px solid #e6e9f2;
+  border-radius: 10px;
+}
+
+.pf-th-gen-side {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pf-th-gen-hex {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 12.5px;
+  color: #3b4250;
+  letter-spacing: 0.3px;
+}
+
+.pf-th-gen-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.pf-th-gen-btns button {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #444c5c;
+  background: #fff;
+  border: 1px solid #d9dde8;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pf-th-gen-btns button:hover {
+  border-color: #a9aee0;
+  color: #322fc4;
+}
+
+.pf-th-gen-btns button:disabled {
+  color: #b6bcc7;
+  background: #f4f5f9;
+  border-color: #e6e9f2;
+  cursor: not-allowed;
+}
+
+/* ---------- 色块 ---------- */
+
+.pf-th-swatch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid rgba(31, 35, 40, 0.16);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.pf-th-swatch-lg {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+}
+
+.pf-th-swatch input[type="color"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pf-th-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-th-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: #fbfcfe;
+  border: 1px solid #eaedf4;
+  border-radius: 8px;
+}
+
+.pf-th-meta {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.pf-th-label {
+  font-size: 12.5px;
+  color: #2b3038;
+}
+
+.pf-th-hint {
+  font-size: 11px;
+  color: #8b95a5;
+}
+
+.pf-th-row-note {
+  margin-left: 4px;
+  font-style: normal;
+  color: #a08a4a;
+}
+
+.pf-th-hex {
+  width: 82px;
+  padding: 3px 6px;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+  color: #3b4250;
+  text-align: right;
+  background: #fff;
+  border: 1px solid #e0e4ee;
+  border-radius: 5px;
+  letter-spacing: 0.2px;
+}
+
+.pf-th-hex:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
+}
+
+/* ---------- 字体气质 ---------- */
+
+.pf-th-fonts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pf-th-font {
+  padding: 9px 4px;
+  font-size: 13px;
+  color: #3b4250;
+  background: #fff;
+  border: 1px solid #e2e5ee;
+  border-radius: 8px;
+  cursor: pointer;
+  line-height: 1.3;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pf-th-font:hover {
+  border-color: #b3b8e8;
+}
+
+.pf-th-font.on {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.14);
+  color: #2b2b8f;
+}
+
+.pf-th-font-system {
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.pf-th-font-rounded {
+  font-family: "Yuanti SC", "YouYuan", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.pf-th-font-serif {
+  font-family: Georgia, "Songti SC", SimSun, serif;
+}
+
+.pf-th-font-mono {
+  font-family: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+  font-size: 12px;
+}
+
+/* ---------- 背景装饰 ---------- */
+
+.pf-th-decors {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pf-th-decor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px 5px;
+  background: #fff;
+  border: 1px solid #e2e5ee;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pf-th-decor:hover {
+  border-color: #b3b8e8;
+}
+
+.pf-th-decor.on {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.14);
+}
+
+.pf-th-decor i {
+  display: block;
+  width: 100%;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid rgba(31, 35, 40, 0.09);
+}
+
+.pf-th-decor span {
+  font-size: 11px;
+  color: #6b7484;
+}
+
+/* ---------- 对比度检查 ---------- */
+
+.pf-th-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 0;
+  padding: 7px 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid transparent;
+  text-align: left;
+}
+
+.pf-th-check-num {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-th-check-good {
+  color: #1c6b46;
+  background: #eefaf3;
+  border-color: #cdeedd;
+}
+
+.pf-th-check-warn {
+  color: #8a5a12;
+  background: #fdf6e7;
+  border-color: #f0e0bf;
+}
+
+.pf-th-check-bad {
+  color: #8f2320;
+  background: #fdf0ef;
+  border-color: #f3d3d0;
+}
+
+.pf-th-check-sub {
+  font-style: normal;
+  opacity: 0.82;
+}
+
+/* ---------- 恢复默认 ---------- */
+
+.pf-th-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+  padding: 0;
+  font-size: 12px;
+  color: #5b6473;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pf-th-reset:hover:not(:disabled) {
+  color: #322fc4;
+}
+
+.pf-th-reset:disabled {
+  color: #b6bcc7;
+  cursor: default;
+}
+
+/* ---------- 手机端 ---------- */
+
+@media (max-width: 560px) {
+  .pf-th-modal .ant-modal-body {
+    max-height: calc(100vh - 300px);
+  }
+
+  .pf-th-presets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pf-th-decors {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,176 @@
+/* 换骨架选择器 + 骨架 chip：浅色面板，与人格库卡片同一套边框与主色 */
+
+.pf-pick-hint {
+  font-size: 12.5px !important;
+  line-height: 1.75;
+  margin-bottom: 14px !important;
+}
+
+.pf-sk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 10px;
+  max-height: 54vh;
+  overflow-y: auto;
+  padding: 2px 4px 4px 2px;
+}
+
+.pf-sk-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 11px 12px 12px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #dfe2ec;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.pf-sk-card:hover {
+  border-color: #a9aee0;
+}
+
+.pf-sk-card:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 1px;
+}
+
+.pf-sk-card-on {
+  background: #f6f7ff;
+}
+
+.pf-sk-card-sel {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.pf-sk-name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #23262f;
+}
+
+.pf-sk-visual {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #6b7280;
+}
+
+.pf-sk-fit {
+  display: block;
+  margin-top: 5px;
+  font-size: 11.5px;
+  color: #9aa0ad;
+}
+
+.pf-sk-flag {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  padding: 0 6px;
+  font-size: 10.5px;
+  line-height: 16px;
+  color: #4f46e5;
+  background: #eef0fe;
+  border-radius: 8px;
+}
+
+.pf-sk-tick {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  font-size: 13px;
+  color: #4f46e5;
+}
+
+/* 手机上两列，比单列少滑一半；卡片文字各收一档字号 */
+@media (max-width: 560px) {
+  .pf-sk-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-height: 58vh;
+  }
+
+  .pf-sk-card {
+    padding: 9px 10px 10px;
+  }
+
+  .pf-sk-name {
+    font-size: 13px;
+  }
+
+  .pf-sk-visual {
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  .pf-sk-fit {
+    font-size: 11px;
+  }
+}
+
+/* 人格库卡片里的骨架 chip：点一下就能换 */
+.pf-skeleton-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  font: inherit;
+  font-size: 12.5px;
+  color: #4f46e5;
+  background: none;
+  border: none;
+  border-bottom: 1px dashed rgba(79, 70, 229, 0.45);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.pf-skeleton-chip:hover {
+  color: #3530b8;
+  border-bottom-color: #3530b8;
+}
+
+.pf-skeleton-chip:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+.pf-skeleton-chip-dot {
+  font-size: 10px;
+}
+
+/* 骨架 chip 右侧的配色入口：与换骨架同一行，都属于「视觉调整」 */
+.pf-theme-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 6px;
+  padding: 0;
+  font-size: 13px;
+  color: #55606f;
+  background: #f4f5f9;
+  border: 1px solid #e2e5ee;
+  border-radius: 6px;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.pf-theme-chip:hover {
+  color: #4f46e5;
+  background: #f6f7ff;
+  border-color: #b3b8e8;
+}
+
+.pf-theme-chip:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}

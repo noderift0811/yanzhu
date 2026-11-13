@@ -1,0 +1,368 @@
+/* 人格骨架样式：radio 深夜电台 / diary 手账书信 / terminal 终端风
+   每套骨架是独立视觉语言（布局、字体、交互隐喻都不同），不是同一聊天窗的换色版。
+   颜色一律吃主题 CSS 变量（--pf-primary/accent/bg/surface/text），人格配色由工程师 AI 决定。 */
+
+/* ================= 深夜电台 ================= */
+
+.sk-radio {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sk-radio-console {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 18px;
+  background: var(--pf-surface, #3a2c20);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--pf-text, #f3e6d8);
+  flex-wrap: wrap;
+}
+
+.sk-radio-onair {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #e0685f;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.sk-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e0685f;
+  animation: sk-radio-blink 1.6s ease-in-out infinite;
+}
+
+.sk-radio-freq {
+  opacity: 0.75;
+}
+
+.sk-radio-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+
+.sk-radio-eq i {
+  width: 3px;
+  background: var(--pf-accent, #f0b95c);
+  border-radius: 1px;
+  animation: sk-eq 1.1s ease-in-out infinite;
+}
+
+.sk-radio-eq i:nth-child(1) { height: 40%; animation-delay: 0s; }
+.sk-radio-eq i:nth-child(2) { height: 80%; animation-delay: 0.15s; }
+.sk-radio-eq i:nth-child(3) { height: 55%; animation-delay: 0.3s; }
+.sk-radio-eq i:nth-child(4) { height: 95%; animation-delay: 0.45s; }
+.sk-radio-eq i:nth-child(5) { height: 65%; animation-delay: 0.6s; }
+
+.sk-radio-listeners {
+  margin-left: auto;
+  opacity: 0.55;
+}
+
+.sk-radio-msgs {
+  gap: 16px;
+}
+
+.sk-radio-silence {
+  margin: auto;
+  color: var(--pf-text, #f3e6d8);
+  opacity: 0.55;
+  font-size: 13.5px;
+}
+
+.sk-radio-bubble {
+  max-width: min(74%, 560px);
+  background: var(--pf-surface, #3a2c20);
+  border-left: 3px solid var(--pf-accent, #f0b95c);
+  border-radius: 4px 12px 12px 4px;
+  padding: 10px 16px 12px;
+  color: var(--pf-text, #f3e6d8);
+}
+
+.sk-radio-bubble p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sk-radio-tag {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--pf-accent, #f0b95c);
+  opacity: 0.85;
+}
+
+.sk-radio-letter {
+  align-self: flex-end;
+  max-width: min(70%, 480px);
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 0 0 10px 10px;
+  padding: 10px 16px 12px;
+  color: var(--pf-text, #f3e6d8);
+}
+
+.sk-radio-letter p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sk-radio-letter .sk-radio-tag {
+  color: var(--pf-text, #f3e6d8);
+  opacity: 0.55;
+}
+
+.sk-radio-loading p {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  height: 22px;
+}
+
+.sk-radio-wave i {
+  width: 3px;
+  height: 10px;
+  background: var(--pf-accent, #f0b95c);
+  border-radius: 1px;
+  animation: sk-eq 0.9s ease-in-out infinite;
+}
+
+.sk-radio-wave i:nth-child(2) { animation-delay: 0.12s; }
+.sk-radio-wave i:nth-child(3) { animation-delay: 0.24s; }
+.sk-radio-wave i:nth-child(4) { animation-delay: 0.36s; }
+
+.sk-radio-composer {
+  align-items: flex-end;
+}
+
+.sk-radio-callsign {
+  flex: none;
+  font-size: 11.5px;
+  letter-spacing: 1.5px;
+  color: var(--pf-accent, #f0b95c);
+  border: 1px solid var(--pf-accent, #f0b95c);
+  border-radius: 10px;
+  padding: 1px 9px;
+  margin-bottom: 6px;
+  opacity: 0.85;
+}
+
+/* ================= 手账书信 ================= */
+
+.sk-diary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sk-diary-msgs {
+  gap: 22px;
+}
+
+.sk-diary-blank {
+  margin: auto;
+  color: var(--pf-text, #5c4a4a);
+  opacity: 0.6;
+  font-size: 13.5px;
+}
+
+.sk-diary-page,
+.sk-diary-note {
+  position: relative;
+  max-width: min(76%, 540px);
+  background: var(--pf-surface, #fff);
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(31, 35, 40, 0.06), 0 6px 18px rgba(31, 35, 40, 0.07);
+  padding: 18px 20px 12px;
+  color: var(--pf-text, #5c4a4a);
+}
+
+.sk-diary-page p,
+.sk-diary-note p {
+  margin: 0;
+  font-family: "Kaiti SC", "STKaiti", "KaiTi", "楷体", Georgia, serif;
+  font-size: 15.5px;
+  line-height: 2.05;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sk-diary-note {
+  align-self: flex-end;
+  transform: rotate(-0.7deg);
+  background: #fdf3f6;
+  background: color-mix(in srgb, var(--pf-accent, #c98bb0) 9%, #fff);
+}
+
+.sk-diary-tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 74px;
+  height: 18px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgba(201, 139, 176, 0.45);
+  background: color-mix(in srgb, var(--pf-accent, #c98bb0) 45%, transparent);
+  border-left: 1px dashed rgba(255, 255, 255, 0.5);
+  border-right: 1px dashed rgba(255, 255, 255, 0.5);
+}
+
+.sk-diary-note .sk-diary-tape {
+  left: 22px;
+  transform: rotate(-7deg);
+}
+
+.sk-diary-stamp {
+  display: block;
+  margin-top: 8px;
+  text-align: right;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--pf-accent, #c98bb0);
+  opacity: 0.8;
+}
+
+.sk-diary-writing p {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  height: 30px;
+}
+
+.sk-diary-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pf-accent, #c98bb0);
+  animation: sk-blink 1s ease-in-out infinite;
+}
+
+.sk-diary-dots i:nth-child(2) { animation-delay: 0.18s; }
+.sk-diary-dots i:nth-child(3) { animation-delay: 0.36s; }
+
+/* ================= 终端风 ================= */
+
+.sk-terminal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sk-term-msgs {
+  font-family: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+  font-size: 13.5px;
+  line-height: 1.85;
+  gap: 2px;
+}
+
+.sk-term-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sk-term-session {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(63, 214, 140, 0.35);
+  border-bottom: 1px dashed color-mix(in srgb, var(--pf-primary, #3fd68c) 35%, transparent);
+}
+
+.sk-term-session .sk-term-line {
+  opacity: 0.5;
+}
+
+.sk-term-cmd {
+  color: var(--pf-text, #d6e2dc);
+  opacity: 0.82;
+}
+
+.sk-term-out {
+  color: var(--pf-primary, #3fd68c);
+  text-shadow: 0 0 7px rgba(63, 214, 140, 0.45);
+  text-shadow: 0 0 7px color-mix(in srgb, var(--pf-primary, #3fd68c) 45%, transparent);
+}
+
+.sk-term-time {
+  opacity: 0.45;
+  margin-right: 4px;
+}
+
+.sk-term-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.05em;
+  background: var(--pf-primary, #3fd68c);
+  vertical-align: text-bottom;
+  animation: sk-blink 1s steps(2) infinite;
+}
+
+.sk-term-composer {
+  align-items: center;
+  gap: 10px;
+}
+
+.sk-term-prompt {
+  flex: none;
+  font-family: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+  color: var(--pf-primary, #3fd68c);
+}
+
+.sk-term-composer .ant-input {
+  font-family: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+  background: transparent;
+  color: var(--pf-text, #d6e2dc);
+}
+
+.sk-term-error {
+  color: #ff7a72;
+}
+
+/* ================= 动画 ================= */
+
+@keyframes sk-eq {
+  0%, 100% { transform: scaleY(0.45); }
+  50% { transform: scaleY(1); }
+}
+
+@keyframes sk-blink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@keyframes sk-radio-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* 窄屏：骨架消息列拉满 */
+@media (max-width: 640px) {
+  .sk-radio-bubble,
+  .sk-radio-letter,
+  .sk-diary-page,
+  .sk-diary-note {
+    max-width: 90%;
+  }
+}
