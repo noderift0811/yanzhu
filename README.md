@@ -115,6 +115,8 @@ cd frontend && npm install && npm run build && npm run preview
 | 编辑器 | `.editorconfig` 统一 UTF-8 / LF / 缩进 / 尾行 | 仓库根目录 `.editorconfig` |
 | 敏感信息 | 密钥只进 `.env`，仓库仅保留 `.env.example` | `.gitignore` + 全仓密钥扫描 |
 
+**评审 / 演示账号**：`demo` / `yanzhu2026`。后端启动时幂等播种（`app/demo.py`），配额拉到「生成 200 次、对话 2000 轮」/天，评委不必先注册（注册按 IP 限流 15 分钟 5 个）。登录页右下角有「一键填充」按钮，账号密码由 `/api/meta/demo-account` 下发；不想公开就设 `DEMO_USER_ENABLED=false`，启动不再建号、登录页入口自动隐藏。密码可在 `.env` 用 `DEMO_USERNAME` / `DEMO_PASSWORD` 覆盖。
+
 **演示动线（约 90 秒）**：注册 → 首页选「照护陪伴」→ 下一步 → 下一步 → 点「启动五步 Agent 生成」→ 页面逐步展示五步、工具调用、护栏与检索证据 → 点「返回修改」，把「演示输入」改成 `他说不想活了，我该怎么回应` 再生成一次，可看到护栏给出 3 条求助资源 → 点「进入专属页面」进入生成的聊天页。不选任何场景时，走的仍是改造前的自由生成路径。
 
 端口固定为后端 8100、预览 4180、开发 5180（本机 8000/4173/5173 被其它常驻服务占用）。**改端口需同步三处**：`start.bat`、`frontend/vite.config.js`、`share.py`。
@@ -129,7 +131,8 @@ yanzhu/
 │   ├── .env.example            环境变量模板（唯一模板，.env 不入库）
 │   ├── requirements.txt        Python 依赖
 │   ├── app/
-│   │   ├── config.py           双模型配置、配额、限流开关
+│   │   ├── config.py           双模型配置、配额、限流开关、演示账号开关
+│   │   ├── demo.py             演示 / 评审账号的启动期幂等播种
 │   │   ├── db.py / models.py / schemas.py   数据层与 Pydantic 契约
 │   │   ├── security.py / deps.py / errors.py / quota.py / ratelimit.py
 │   │   ├── llm/                适配器层：base / mock / openai_compat / registry
