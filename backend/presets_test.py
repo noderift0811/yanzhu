@@ -62,7 +62,7 @@ def http_json(path):
 print("=== A 预设表 ===")
 errs = validate_presets()
 check("启动期自检通过", errs == [], errs)
-check("预设数量 3", len(PRESETS) == 3, len(PRESETS))
+check("预设数量 5", len(PRESETS) == 5, len(PRESETS))
 check("id 唯一", len({p["id"] for p in PRESETS}) == len(PRESETS))
 check("默认预设是 free", DEFAULT_PRESET_ID == "free")
 check("未知 id 回落 free", get_preset("nope")["id"] == "free")
@@ -87,7 +87,7 @@ for p in PRESETS:
 
 print("\n=== C 检索器 ===")
 stats = knowledge_stats()
-check("知识条目 12", stats["count"] == 12, stats["count"])
+check("知识条目 42（care 18 / 其余各 8）", stats["count"] == 42 and stats["per_scene"]["care"] == 18, stats["per_scene"])
 check("免责声明存在", bool(stats.get("disclaimer")))
 check("检索器标注", "bm25" in stats["retriever"])
 
@@ -146,9 +146,9 @@ for label, msgs in (("基础路径", msgs_plain), ("Agent 路径", msgs_full)):
 print("\n=== E HTTP（服务不可达则跳过） ===")
 try:
     d = http_json("/meta/presets")
-    check("GET /meta/presets", d.get("default") == "free" and len(d.get("items", [])) == 3, d)
+    check("GET /meta/presets", d.get("default") == "free" and len(d.get("items", [])) == 5, d)
     k = http_json("/meta/knowledge?q=%E7%85%A7%E6%8A%A4%E8%80%85%E5%BE%88%E7%B4%AF&top_k=2")
-    check("GET /meta/knowledge 带查询", len(k.get("hits", [])) <= 2 and k["stats"]["count"] == 12, k)
+    check("GET /meta/knowledge 带查询", len(k.get("hits", [])) <= 2 and k["stats"]["count"] == 42, k)
 except Exception as e:  # noqa: BLE001
     print(f"[skip] HTTP 部分未运行：{type(e).__name__}: {e}")
 

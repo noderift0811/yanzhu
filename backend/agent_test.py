@@ -120,8 +120,8 @@ check("工具描述符合 MCP 口径", all({"name", "description", "inputSchema"
 
 
 async def tools_roundtrip():
-    r1 = await call_tool("retrieve_care_knowledge", {"query": "照护者很累", "top_k": 2, "preset_id": "care"})
-    check("retrieve 工具命中", r1["result"]["count"] > 0 and r1["tool"] == "retrieve_care_knowledge")
+    r1 = await call_tool("retrieve_scene_knowledge", {"query": "照护者很累", "top_k": 2, "preset_id": "care"})
+    check("retrieve 工具命中", r1["result"]["count"] > 0 and r1["tool"] == "retrieve_scene_knowledge")
     r2 = await call_tool("screen_text", {"text": "不想活了", "level": "strict"})
     check("screen 工具给资源", len(r2["result"]["resources"]) == 3)
     r3 = await call_tool("pick_skeleton", {"tags": ["温柔"], "hint": "radio / garden"})
@@ -166,7 +166,7 @@ final_steps = [d for d in steps if d["status"] in ("done", "skipped")]
 check("五步都有终态", [d["id"] for d in final_steps] == [s["id"] for s in STEPS], [d["id"] for d in final_steps])
 check("兜底步骤待命", final_steps[-1]["status"] == "skipped" and final_steps[-1]["used"] is False, final_steps[-1])
 tool_names = [d["tool"] for e, d in evs if e == "tool"]
-check("主链路工具全部调用", {"retrieve_care_knowledge", "plan_generation", "generate_spec", "validate_spec"} <= set(tool_names), tool_names)
+check("主链路工具全部调用", {"retrieve_scene_knowledge", "plan_generation", "generate_spec", "validate_spec"} <= set(tool_names), tool_names)
 check("guard 事件两条", len([1 for e, d in evs if e == "guard" and d["phase"] in ("input", "output")]) == 2)
 result = next(d for e, d in evs if e == "result")
 check("result.trace 五条", len(result["trace"]) == 5, result["trace"])
@@ -209,6 +209,10 @@ try:
     reg, code = call("POST", "/auth/register", {"username": user, "password": "test123456"}, expect=201)
     check("注册成功", code == 201 and bool(reg.get("access_token")), (code, reg))
     token = reg.get("access_token", "")
+
+    # 场景锁定后，账号必须先选场景才能按该场景生成（否则 400 SCENE_MISMATCH）
+    sc, _sc_code = call("POST", "/auth/scene", {"scene": "care"}, token)
+    check("账号已选场景 care", sc.get("scene_id") == "care", sc)
 
     t, c = call("GET", "/meta/tools", token=token)
     check("GET /meta/tools", c == 200 and t["count"] == 7, (c, t.get("count")))

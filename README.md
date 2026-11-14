@@ -7,7 +7,9 @@
 
 **AI 的产物不是一段文字，而是界面本身。**
 
-生成过程不是一次黑盒调用，而是一条可见的五步 Agent 主链路：**检索 → 规划 → 生成 → 校验 → 兜底**。每一步调用的工具、参数与结论都通过 SSE 实时推到页面；「照护陪伴」场景预设是这条链路的**落地验证场景**——用真实的情感陪伴需求检验 RAG、AI 安全与 MCP 风格工具层能否串成闭环。移除 AI，整个链路无法产出任何页面。
+生成过程不是一次黑盒调用，而是一条可见的五步 Agent 主链路：**检索 → 规划 → 生成 → 校验 → 兜底**。每一步调用的工具、参数与结论都通过 SSE 实时推到页面。
+
+在这条链路之上，产品形态是**场景制**：账号注册后先选定一个主场景（心理陪伴 / 学习搭子 / 职场沟通演练 / 亲密关系沟通 / 自由创作），之后所有生成都受该场景约束——检索只在该场景语料内进行，护栏按该场景级别判定，默认骨架与文案也随场景走。场景由**服务端**从账号读取，请求参数改不动它。移除 AI，既没有场景约束也没有界面产出。
 
 ---
 
@@ -20,7 +22,7 @@
 | 3 多模态 AI 创意平台 | **主贴**（选题归类依据） | 结构化生成驱动视觉主题与页面装配；文本到视觉的跨模态产出 |
 | 4 AI 协同办公工具 | 次贴 | 生成流水线即一次可编排、可解释的工作流 |
 | 10 AI 社交与社区应用 | 次贴 | 人格化交互与对话体验 |
-| 6 AI 健康与生活服务 | **仅落地验证场景，不作选题归类** | 「照护陪伴」预设用于检验链路；本项目不是健康产品，不提供诊断、评估或干预建议 |
+| 6 AI 健康与生活服务 | **仅落地验证场景，不作选题归类** | 「心理陪伴」场景用于检验链路；本项目不是健康产品，不提供诊断、评估或干预建议 |
 
 AI 位于主链路核心——不是在传统功能上外挂问答框，也不是把 RAG / 安全 / 工具调用做成旁边的独立按钮。
 
@@ -31,10 +33,11 @@ AI 位于主链路核心——不是在传统功能上外挂问答框，也不�
 | 双模型分工 | 生成用 `ENGINEER_LLM_*`（质量优先）；聊天用 `PERSONA_LLM_*`（首 token 优先） | `backend/app/config.py`、`llm/registry.py` |
 | 结构化输出 | 工程师 AI 只产 JSON、禁止生成代码；输出经 schema 校验后方可装配 | `pipeline/engineer_prompt.py`、`validate.py` |
 | 多步 Agent 编排 | retrieve → plan → generate → validate → fallback；规划优先 LLM，超时/失败降级确定性规则 | `pipeline/agent.py`、`routers/agent.py` |
-| RAG 检索 | 本地 12 条照护沟通共识，中文单字 + bigram 的 BM25-lite；口语危机表达做查询改写 | `pipeline/knowledge.py`、`care_knowledge.json` |
-| AI 安全护栏 | 危机识别、医疗越界、否定感受措辞、PII 脱敏；边界确定性写入 `system_prompt`，越界转兜底 | `pipeline/guard.py` |
+| RAG 检索 | 本地 42 条场景语料（心理陪伴 18 / 其余各 8），按场景分库；中文单字 + bigram 的 BM25-lite，只在当前场景内检索，口语危机表达做查询改写 | `pipeline/knowledge.py`、`pipeline/knowledge/*.json` |
+| AI 安全护栏 | 危机识别、医疗越界、否定感受措辞、PII 脱敏；按场景分级（strict / normal / loose），边界确定性写入 `system_prompt`，越界转兜底 | `pipeline/guard.py` |
 | MCP 风格工具层 | 7 个工具以 JSON Schema 描述，统一 `call_tool` 调度，`GET /api/meta/tools` 可查 | `pipeline/tools.py`、`routers/meta.py` |
-| 场景预设 | 三套预设改变检索语料、规划约束与护栏级别，不改数据库表与骨架系统 | `pipeline/presets.py`、`components/PresetPicker.jsx` |
+| 场景约束 | 五套场景改变检索语料、规划约束与护栏级别；**账号级唯一主场景**，切换需二次确认并二次冷却 30 天 | `pipeline/presets.py`、`scenes.py`、`pages/ScenePage.jsx` |
+| 运行时调参 | 悬浮工作台：三个语气开关拼成运行时指令追加在 system_prompt 末尾，不重生成、不耗生成配额，点一下即时生效 | `scenes.py`、`routers/chat.py`、`components/AssistantFab.jsx` |
 | 预置骨架 | 16 套手工设计骨架，AI 只选择并填充 token，规避代码生成的不确定性 | `pipeline/skeleton_presets.py`、`components/skeletons/` |
 | 流式交互 | 生成链路 SSE 逐步推事件；对话 SSE 逐 token 推送 | `routers/agent.py`、`routers/chat.py`、`hooks/useChat.js` |
 | 无密钥降级 | 两个 `*_API_KEY` 留空即自动切换 MockAdapter，五步链路与 UI 全可离线演示 | `llm/mock.py`、`registry.py` |
@@ -50,7 +53,7 @@ AI 选型理由：生成是低频、高价值、可容忍延迟的环节，用�
 |---|---|---|
 | LLM（8） | 双模型分工 + 结构化 spec JSON 驱动界面生成 | `POST /api/personas`、16 套骨架画廊 |
 | Agent（8） | 五步显式编排，每步工具调用与状态可见 | `POST /api/agent/build` SSE、页面时间线 |
-| RAG（6） | 本地知识库 + BM25-lite + 查询改写，证据注入提示词 | `GET /api/meta/knowledge?q=照护者很累`、证据面板 |
+| RAG（6） | 五套场景各带独立语料 + BM25-lite + 查询改写，证据按场景隔离并注入提示词 | `GET /api/meta/knowledge?q=照护者很累&scene=care`、证据面板 |
 | 多模态（5） | 文本语义到 16 套视觉骨架 / 主题 token / 装饰的最小验证 | 骨架画廊、生成结果配色 |
 | AI 安全（4） | 危机求助资源、医疗越界拦截、禁用语、PII 脱敏、边界注入 | 把「演示输入」改成危机表达即可现场复现 |
 | MCP（4） | 7 个工具的 name/description/inputSchema 契约 + 统一调度 | `GET /api/meta/tools` |
@@ -60,14 +63,14 @@ AI 选型理由：生成是低频、高价值、可容忍延迟的环节，用�
 ## 三、技术架构
 
 ```
-React 18 + Vite 5 + Antd 5 + HashRouter     前端：预设 / 五步时间线 / 骨架装配 / 流式渲染
+React 18 + Vite 5 + Antd 5 + HashRouter     前端：选场景 / 五步时间线 / 骨架装配 / 流式渲染 / 悬浮工作台
         |  X-Yanzhu-Token (JWT) + SSE
 FastAPI + SQLite WAL + PyJWT + bcrypt       后端：AI 接入层 + 轻数据持久化
         |  OpenAI 兼容协议
 Engineer LLM / Persona LLM                  外部模型服务（留空即 MockAdapter）
 
 生成主链路（后端 pipeline/）：
-  brief 归一化 + 场景 enrich
+  brief 归一化 + 场景 enrich（场景从账号读，取请求参数会被 400 拒）
     → retrieve 本地知识库 ─┐
     → screen 输入护栏     ├→ plan（LLM 优先 / 规则降级）
     → pick_skeleton       ─┘        ↓
@@ -115,9 +118,13 @@ cd frontend && npm install && npm run build && npm run preview
 | 编辑器 | `.editorconfig` 统一 UTF-8 / LF / 缩进 / 尾行 | 仓库根目录 `.editorconfig` |
 | 敏感信息 | 密钥只进 `.env`，仓库仅保留 `.env.example` | `.gitignore` + 全仓密钥扫描 |
 
-**评审 / 演示账号**：`demo` / `yanzhu2026`。后端启动时幂等播种（`app/demo.py`），配额拉到「生成 200 次、对话 2000 轮」/天，评委不必先注册（注册按 IP 限流 15 分钟 5 个）。登录页右下角有「一键填充」按钮，账号密码由 `/api/meta/demo-account` 下发；不想公开就设 `DEMO_USER_ENABLED=false`，启动不再建号、登录页入口自动隐藏。密码可在 `.env` 用 `DEMO_USERNAME` / `DEMO_PASSWORD` 覆盖。
+**评审 / 演示账号**：`demo` / `yanzhu2026`。后端启动时幂等播种（`app/demo.py`），配额拉到「生成 200 次、对话 2000 轮」/天，评委不必先注册（注册按 IP 限流 15 分钟 5 个）。登录页右下角有「一键填充」按钮，账号密码由 `/api/meta/demo-account` 下发；不想公开就设 `DEMO_USER_ENABLED=false`，启动不再建号、登录页入口自动隐藏。密码可在 `.env` 用 `DEMO_USERNAME` / `DEMO_PASSWORD` 覆盖。演示账号预置场景为「心理陪伴」，并且**不受场景切换冷却限制**——评委想逐个验证五套场景，不用等 30 天。
 
-**演示动线（约 90 秒）**：注册 → 首页选「照护陪伴」→ 下一步 → 下一步 → 点「启动五步 Agent 生成」→ 页面逐步展示五步、工具调用、护栏与检索证据 → 点「返回修改」，把「演示输入」改成 `他说不想活了，我该怎么回应` 再生成一次，可看到护栏给出 3 条求助资源 → 点「进入专属页面」进入生成的聊天页。不选任何场景时，走的仍是改造前的自由生成路径。
+**场景切换规则**：注册后强制选一次场景（未选时除 `/scene` 外所有路由都重定向过来）；此后再换需二次确认 + 距上次满 30 天，未满返回 `409 SCENE_COOLDOWN` 并带下次可改时间。切换时旧人格置为 `archived`（只读归档，不删除），列表默认折叠并在接口里回传 `archived_count`。这条规则只服务端判定，请求里塞别的场景 id 会被 `400 SCENE_MISMATCH` 拒掉。
+
+**演示动线（约 120 秒）**：登录页点「一键填充」（自动填 `demo` / `yanzhu2026`）→ 登录 → 选场景页点「心理陪伴」（演示账号可随时换场景，评委可现场验别的场景）→ 工作台已被该场景预置好标签与演示输入 → 下一步 → 点「启动五步 Agent 生成」→ 页面逐步展示五步、工具调用、护栏与检索证据 → 点「返回修改」，把「演示输入」改成 `他说不想活了，我该怎么回应` 再生成一次，可看到护栏给出 3 条求助资源 → 进聊天页后点右下角悬浮球，打开工作台切一个语气开关（如「更沉稳」），再发一句话即可听出差别——这一步不耗配额、即时生效。
+
+想验证场景隔离，同一句「领导让我加班到十一点，我想拒绝」在心理陪伴与职场沟通演练下检索到的证据与护栏反应完全不同；自由创作则是**无场景注入的对照基线**，选它等价于改造前的自由生成路径（老库升级时未选场景的账号统一回填为自由创作）。
 
 端口固定为后端 8100、预览 4180、开发 5180（本机 8000/4173/5173 被其它常驻服务占用）。**改端口需同步三处**：`start.bat`、`frontend/vite.config.js`、`share.py`。
 
@@ -133,28 +140,32 @@ yanzhu/
 │   ├── app/
 │   │   ├── config.py           双模型配置、配额、限流开关、演示账号开关
 │   │   ├── demo.py             演示 / 评审账号的启动期幂等播种
-│   │   ├── db.py / models.py / schemas.py   数据层与 Pydantic 契约
+│   │   ├── scenes.py           场景锁定的服务端唯一判定点（冷却、归档、语气指令）
+│   │   ├── db.py / models.py / schemas.py   数据层、迁移与 Pydantic 契约
 │   │   ├── security.py / deps.py / errors.py / quota.py / ratelimit.py
 │   │   ├── llm/                适配器层：base / mock / openai_compat / registry
 │   │   ├── pipeline/
 │   │   │   ├── brief.py / engineer_prompt.py / validate.py / assemble.py
 │   │   │   ├── skeleton_presets.py   16 套骨架与主题成套定义
-│   │   │   ├── presets.py            场景预设（care / study / free）
-│   │   │   ├── care_knowledge.json  12 条照护沟通共识语料
-│   │   │   ├── knowledge.py         BM25-lite 检索与查询改写
+│   │   │   ├── presets.py            五套场景定义（含护栏级别与默认骨架）
+│   │   │   ├── knowledge/            分场景语料：care / study / workplace / relation
+│   │   │   ├── knowledge.py          BM25-lite 检索、查询改写、按场景隔离
 │   │   │   ├── guard.py             安全护栏与边界注入
 │   │   │   ├── tools.py             MCP 风格工具注册表与统一调度
 │   │   │   └── agent.py             五步 Agent 编排与 SSE 事件
 │   │   └── routers/           auth / personas / agent / chat / meta
 │   ├── data/.gitkeep          运行时 SQLite 落点（内容忽略）
-│   └── *_test.py              接口与行为验收脚本（含 presets_test / agent_test）
+│   └── *_test.py              接口与行为验收脚本（含 presets / scene / agent / scene_lock）
 ├── frontend/
 │   ├── src/components/
 │   │   ├── skeletons/         16 套骨架组件
-│   │   ├── PresetPicker.jsx   场景预设卡片
+│   │   ├── AssistantFab.jsx   悬浮工作台（语气开关 + 当前场景）
 │   │   ├── AgentBuildView.jsx SSE 容器与状态机
 │   │   └── AgentTimeline.jsx  五步时间线 / 工具 / 护栏 / 证据
-│   ├── src/styles/agent.css   预设与 Agent 视图样式
+│   ├── src/pages/ScenePage.jsx 选场景 / 换场景（含冷却与归档说明）
+│   ├── src/lib/me.js          账号级场景与语气的全局缓存
+│   ├── src/styles/scene.css   场景引导页与工作台样式
+│   ├── src/styles/agent.css   Agent 视图样式
 │   ├── src/hooks/             构建揭示、流式聊天、主题变量
 │   ├── src/lib/               API 封装、页面导出、对话导出
 │   └── src/pages/             页面
@@ -172,9 +183,11 @@ yanzhu/
 | 冒烟 | 14/14 | 是（`smoke_test.py 02`） |
 | 标签 / 命名 | 33+30 / 25/25 | 是（标签 33/33、命名 25/25） |
 | 换骨架 / 配色 | 32/32、54/54 | 是 |
-| 场景预设与检索 | 45/45 | 是（`presets_test.py`） |
-| Agent / 护栏 / MCP | 55/55 | 是（`agent_test.py`，含 HTTP 端到端与旧接口回归） |
-| 浏览器端到端 | 19/19 | 是（五步链路 + 危机护栏双场景、无 JS 报错） |
+| 场景预设与检索 | 49/49、57/57 | 是（`presets_test.py`、`scene_test.py`：分场景不串味、场景红线、边界注入） |
+| Agent / 护栏 / MCP | 56/56 | 是（`agent_test.py`，含 HTTP 端到端与旧接口回归） |
+| 场景锁定 | 41/41 | 是（`scene_lock_test.py`：强制选场景、改参数绕过被 400、冷却 409、切换归档、演示账号豁免） |
+| 演示账号 | 14/14 | 是（`demo_test.py`：重复播种不重复建号、密码 bcrypt 入库、配额档位、接口下发、错误密码 401） |
+| 浏览器端到端 | 13/13 + 场景链路 | 是（五步链路 + 危机护栏双场景 + 选场景/冷却/工作台，控制台零错误零 401） |
 | 限流 | 17/17 | 是（限流开启、干净窗口下单独跑；脚本已改为自建基准账号，不再依赖预置数据） |
 | 保存导出 | 35/35 | 沿用既有基线；E2E 脚本位于本机工作区，未入仓 |
 

@@ -19,6 +19,7 @@ OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 from app.config import get_settings
 from app.db import db_session
 from app.demo import ensure_demo_user
+from app.scenes import scene_of as demo_scene
 
 BASE = os.environ.get("YANZHU_API", "http://127.0.0.1:8100/api")
 passed = failed = 0
@@ -59,7 +60,7 @@ check("重复播种不重复建号", first is False and second is False, f"{firs
 
 with db_session() as conn:
     rows = conn.execute(
-        "SELECT id, password_hash, quota_gen_daily, quota_chat_daily, quota_gen_used"
+        "SELECT id, password_hash, quota_gen_daily, quota_chat_daily, quota_gen_used, primary_scene"
         " FROM users WHERE username=?",
         (s.demo_username,),
     ).fetchall()
@@ -72,7 +73,8 @@ if row:
         (row["quota_gen_daily"], row["quota_chat_daily"]) == (s.demo_quota_gen, s.demo_quota_chat),
         (row["quota_gen_daily"], row["quota_chat_daily"]),
     )
-    check("新建账号已用次数为 0", row["quota_gen_used"] == 0, row["quota_gen_used"])
+    check("演示账号未超配额", row["quota_gen_used"] <= row["quota_gen_daily"], row["quota_gen_used"])
+    check("演示账号首页场景已预置", bool(demo_scene(row)), demo_scene(row))
 
 print("\n=== B HTTP（服务不可达则跳过） ===")
 try:
