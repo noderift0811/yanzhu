@@ -87,6 +87,21 @@ class TokenOut(BaseModel):
     token_type: str = "bearer"
 
 
+class SceneIn(BaseModel):
+    """选场景 / 换场景。confirm 只在「已有场景再换」时必填。"""
+
+    scene: str = Field(min_length=2, max_length=20)
+    confirm: bool = False
+
+
+class ToneIn(BaseModel):
+    """语气开关：三项都可空，只改传了的那些（悬浮球逐项点击）。"""
+
+    calm: Optional[bool] = None
+    brief: Optional[bool] = None
+    no_exclaim: Optional[bool] = None
+
+
 class PersonaCreateIn(BaseModel):
     # 上限 8：标签越多模型越难收敛，六七个互不冲突的标签已经足够描述一个人。
     # 互斥与组配额由 pipeline/tag_rules.py 进一步消解（这里只挡明显超量）。

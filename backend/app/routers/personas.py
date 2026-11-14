@@ -15,6 +15,9 @@ from ..errors import ApiError
 from ..llm.registry import get_adapter
 from ..pipeline.assemble import spec_columns
 from ..pipeline.brief import normalize_brief
+from ..pipeline.guard import inject_safety
+from ..pipeline.presets import enrich_brief, has_scene
+from ..scenes import scene_of
 from ..pipeline.engineer_prompt import SKELETONS
 from ..pipeline.skeleton_presets import SKELETON_PRESETS
 from ..pipeline.validate import generate_spec
@@ -36,6 +39,7 @@ def _summary(row: sqlite3.Row) -> Dict[str, Any]:
         "name": row["name"],
         "skeleton_id": row["skeleton_id"],
         "skeleton_name": _SKELETON_NAMES.get(row["skeleton_id"], row["skeleton_id"]),
+        "scene_id": row["scene_id"] if "scene_id" in row.keys() else "free",
         "theme": json.loads(row["theme_json"]),
         # 卡片上要显示限定词标签、重新生成要回填标签，列表接口必须带上 keywords
         "keywords": json.loads(row["keywords_json"]),
@@ -84,9 +88,15 @@ def _apply_forced_name(spec: SpecModel, name: str) -> SpecModel:
     return spec.model_copy(update={"name": name, "system_prompt": prompt[:1500]})
 
 
-async def _run_pipeline(conn: sqlite3.Connection, user_id: str, body: PersonaCreateIn) -> Dict[str, str]:
-    """S1-S3 管线：brief 归一化 → 工程师 AI → 校验/兜底 → 待写入列。"""
-    brief = normalize_brief(body.tags, body.free_text, body.name)
+async def _run_pipeline(
+    conn: sqlite3.Connection, user_id: str, body: PersonaCreateIn, scene_id: str
+) -> Dict[str, str]:
+    """S1-S3 管线：brief 归一化 → 场景注入 → 工程师 AI → 校验/兜底 → 待写入列。
+
+    scene_id 由调用方从 users.primary_scene 读出来传入，**不接受请求参数**：
+    「一个账号一个场景」如果由前端决定，改个请求就绕过了。
+    """
+    brief = enrich_brief(normalize_brief(body.tags, body.free_text, body.name), scene_id)
     adapter = get_adapter("engineer")
     started = time.monotonic()
     status, err = "ok", ""
@@ -98,6 +108,13 @@ async def _run_pipeline(conn: sqlite3.Connection, user_id: str, body: PersonaCre
         spec, needs_review, status, err = fallback_spec(brief), True, "error", str(e)
     if brief.get("name"):
         spec = _apply_forced_name(spec, brief["name"])
+    if has_scene(scene_id):
+        # 老路径（POST /personas）此前没有确定性护栏，只有 Agent 链路的 validate 步骤有。
+        # 场景账号必须补上：否则同一个人在两条入口生成，边界一个有一个没有。
+        level = (brief.get("scene") or {}).get("safety_level", "normal")
+        spec = SpecModel.model_validate(
+            inject_safety(spec, level=level, scene_id=scene_id).model_dump()
+        )
     latency = int((time.monotonic() - started) * 1000)
     log_llm_call(conn, user_id, "engineer", adapter.name, adapter.cfg.model, latency, status, err)
     row: Dict[str, str] = {
@@ -119,9 +136,13 @@ def list_personas(
     conn: sqlite3.Connection = Depends(get_db),
 ) -> Dict[str, Any]:
     rows = conn.execute(
-        "SELECT * FROM personas WHERE user_id=? ORDER BY created_at DESC", (user["id"],)
+        "SELECT * FROM personas WHERE user_id=? AND status!='archived' ORDER BY created_at DESC",
+        (user["id"],),
     ).fetchall()
-    return {"items": [_summary(r) for r in rows]}
+    archived = conn.execute(
+        "SELECT COUNT(*) c FROM personas WHERE user_id=? AND status='archived'", (user["id"],)
+    ).fetchone()["c"]
+    return {"items": [_summary(r) for r in rows], "archived_count": archived}
 
 
 @router.post("", status_code=201)
@@ -133,14 +154,17 @@ async def create_persona(
     check_quota(conn, user, "gen")
     if not body.tags and not body.free_text.strip():
         raise ApiError(400, "EMPTY_BRIEF", "请至少选择一个标签或填写描述")
-    row = await _run_pipeline(conn, user["id"], body)
+    scene_id = scene_of(user)
+    row = await _run_pipeline(conn, user["id"], body, scene_id)
     pid, now = str(uuid.uuid4()), _utcnow()
     conn.execute(
         "INSERT INTO personas (id, user_id, name, keywords_json, brief_json, spec_json,"
-        " skeleton_id, theme_json, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        " skeleton_id, theme_json, status, scene_id, created_at, updated_at)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
         (
             pid, user["id"], row["name"], row["keywords_json"], row["brief_json"],
-            row["spec_json"], row["skeleton_id"], row["theme_json"], row["status"], now, now,
+            row["spec_json"], row["skeleton_id"], row["theme_json"], row["status"],
+            scene_id, now, now,
         ),
     )
     consume_quota(conn, user["id"], "gen")
@@ -245,7 +269,7 @@ async def regenerate_persona(
     check_quota(conn, user, "gen")
     if not body.tags and not body.free_text.strip():
         raise ApiError(400, "EMPTY_BRIEF", "请至少选择一个标签或填写描述")
-    row = await _run_pipeline(conn, user["id"], body)
+    row = await _run_pipeline(conn, user["id"], body, scene_of(user))
     row["updated_at"] = _utcnow()
     sets = ", ".join(f"{k}=?" for k in row)
     conn.execute(

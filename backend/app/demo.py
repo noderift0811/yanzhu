@@ -27,13 +27,16 @@ def ensure_demo_user() -> bool:
     if not s.demo_user_enabled:
         return False
 
+    # 演示账号预置「心理陪伴」并豁免切换冷却（评委要逐个场景验证），
+    # 所以它必须一开始就有一个已选场景，否则会被引导页拦住。
     with db_session() as conn:
-        row = conn.execute("SELECT id FROM users WHERE username=?", (s.demo_username,)).fetchone()
+        row = conn.execute("SELECT * FROM users WHERE username=?", (s.demo_username,)).fetchone()
         if row is None:
             conn.execute(
                 "INSERT INTO users (id, username, password_hash, quota_gen_daily,"
-                " quota_chat_daily, quota_gen_used, quota_chat_used, quota_reset_at, created_at)"
-                " VALUES (?,?,?,?,?,0,0,?,?)",
+                " quota_chat_daily, quota_gen_used, quota_chat_used, quota_reset_at, created_at,"
+                " primary_scene, scene_changed_at)"
+                " VALUES (?,?,?,?,?,0,0,?,?,?,?)",
                 (
                     str(uuid.uuid4()),
                     s.demo_username,
@@ -41,6 +44,8 @@ def ensure_demo_user() -> bool:
                     s.demo_quota_gen,
                     s.demo_quota_chat,
                     date.today().isoformat(),
+                    _now(),
+                    s.demo_scene,
                     _now(),
                 ),
             )
@@ -51,4 +56,11 @@ def ensure_demo_user() -> bool:
             "UPDATE users SET quota_gen_daily=?, quota_chat_daily=? WHERE id=?",
             (s.demo_quota_gen, s.demo_quota_chat, row["id"]),
         )
+        # 老库里的演示账号是在场景功能之前建的，没有主场景，补一个免得被引导页拦住；
+        # 已经选过的（包括评委切到别的场景）一律不动。
+        if not row["primary_scene"]:
+            conn.execute(
+                "UPDATE users SET primary_scene=?, scene_changed_at=? WHERE id=?",
+                (s.demo_scene, _now(), row["id"]),
+            )
         return False

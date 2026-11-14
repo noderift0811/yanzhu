@@ -16,6 +16,7 @@ from ..deps import get_current_user
 from ..errors import ApiError
 from ..llm.registry import get_adapter
 from ..quota import check_quota, consume_quota, log_llm_call
+from ..scenes import tone_clause, tone_of
 from ..schemas import ConversationCreateIn, MessageCreateIn
 
 router = APIRouter(tags=["chat"], dependencies=[Depends(get_current_user)])
@@ -148,7 +149,11 @@ async def send_message_stream(
         (conversation_id, s.chat_history_window),
     ).fetchall()
     spec = json.loads(persona["spec_json"])
-    messages: List[Dict[str, str]] = [{"role": "system", "content": spec["system_prompt"]}]
+    # 语气开关拼在 system 末尾而不是重写人设：重写要走工程师模型（30 秒 + 耗配额），
+    # 悬浮球点一下必须立刻生效，所以这里只追加一段运行时说法约束。
+    tone = tone_of(user)
+    system_prompt = spec["system_prompt"] + (("\n" + tone_clause(tone)) if any(tone.values()) else "")
+    messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
     messages += [{"role": h["role"], "content": h["content"]} for h in reversed(history)]
 
     adapter = get_adapter("persona")
@@ -158,7 +163,7 @@ async def send_message_stream(
         def sse(event: str, data: Dict[str, Any]) -> str:
             return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
-        yield sse("meta", {"user_message": user_msg})
+        yield sse("meta", {"user_message": user_msg, "tone": tone})
         chunks: List[str] = []
         try:
             async for delta in adapter.chat_stream(messages):
@@ -233,7 +238,11 @@ async def send_message(
         (conversation_id, s.chat_history_window),
     ).fetchall()
     spec = json.loads(persona["spec_json"])
-    messages: List[Dict[str, str]] = [{"role": "system", "content": spec["system_prompt"]}]
+    # 语气开关拼在 system 末尾而不是重写人设：重写要走工程师模型（30 秒 + 耗配额），
+    # 悬浮球点一下必须立刻生效，所以这里只追加一段运行时说法约束。
+    tone = tone_of(user)
+    system_prompt = spec["system_prompt"] + (("\n" + tone_clause(tone)) if any(tone.values()) else "")
+    messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
     messages += [{"role": h["role"], "content": h["content"]} for h in reversed(history)]
 
     adapter = get_adapter("persona")

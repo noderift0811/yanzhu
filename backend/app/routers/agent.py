@@ -26,6 +26,7 @@ from ..pipeline.brief import normalize_brief
 from ..pipeline.guard import SAFETY_MARK
 from ..pipeline.presets import enrich_brief, scene_of
 from ..quota import check_quota, consume_quota, log_llm_call
+from ..scenes import scene_of as account_scene
 from ..schemas import AgentBuildIn, SpecModel
 from .personas import _detail, _utcnow
 
@@ -62,8 +63,19 @@ async def build_with_agent(
     if not body.tags and not body.free_text.strip():
         raise ApiError(400, "EMPTY_BRIEF", "请至少选择一个标签或填写描述")
 
+    # 场景由账号决定，不由请求决定；只接受与账号一致的取值，否则 400。
+    # 这条校验是「一个账号一个场景」的服务端落点，前端改参数绕不过去。
+    scene_id = account_scene(user)
+    if body.preset_id and body.preset_id != scene_id:
+        raise ApiError(
+            400,
+            "SCENE_MISMATCH",
+            f"当前账号的场景是 {scene_id}，不能按 {body.preset_id} 生成",
+            {"scene_id": scene_id},
+        )
+
     brief = normalize_brief(body.tags, body.free_text, body.name)
-    brief = enrich_brief(brief, body.preset_id)
+    brief = enrich_brief(brief, scene_id)
     scene = scene_of(brief)
     engineer = get_adapter("engineer")
     persona = get_adapter("persona")
@@ -105,7 +117,7 @@ async def build_with_agent(
             # 不必为参赛新增数据库表，也不破坏现有字段语义。
             stored_brief = {
                 **brief,
-                "preset_id": scene.get("preset_id", "free"),
+                "preset_id": scene.get("preset_id", scene_id),
                 "agent": {
                     "trace": result.get("trace") or [],
                     "tools_called": result.get("tools_called") or [],
@@ -128,10 +140,12 @@ async def build_with_agent(
             pid, now = str(uuid.uuid4()), _utcnow()
             conn.execute(
                 "INSERT INTO personas (id, user_id, name, keywords_json, brief_json, spec_json,"
-                " skeleton_id, theme_json, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                " skeleton_id, theme_json, status, scene_id, created_at, updated_at)"
+                " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     pid, user["id"], row["name"], row["keywords_json"], row["brief_json"],
-                    row["spec_json"], row["skeleton_id"], row["theme_json"], row["status"], now, now,
+                    row["spec_json"], row["skeleton_id"], row["theme_json"], row["status"],
+                    scene_id, now, now,
                 ),
             )
             consume_quota(conn, user["id"], "gen")

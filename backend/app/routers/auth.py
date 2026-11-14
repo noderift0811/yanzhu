@@ -12,7 +12,8 @@ from ..db import get_db
 from ..deps import get_current_user
 from ..errors import ApiError
 from ..ratelimit import LOGIN_LIMIT, REGISTER_LIMIT, check_limit_if_enabled
-from ..schemas import LoginIn, RefreshIn, RegisterIn, TokenOut
+from ..scenes import choose_scene, scene_profile, tone_of, update_tone
+from ..schemas import LoginIn, RefreshIn, RegisterIn, SceneIn, TokenOut, ToneIn
 from ..security import (
     create_access_token,
     create_refresh_token,
@@ -99,4 +100,28 @@ def me(user: sqlite3.Row = Depends(get_current_user)) -> dict:
         "quota_chat_used": user["quota_chat_used"],
         "quota_reset_at": user["quota_reset_at"],
         "created_at": user["created_at"],
+        # 场景与语气：前端据此决定是否强制进引导页、悬浮球显示什么状态
+        **scene_profile(user),
+        "tone": tone_of(user),
     }
+
+
+@router.post("/scene")
+def set_scene(
+    body: SceneIn,
+    user: sqlite3.Row = Depends(get_current_user),
+    conn: sqlite3.Connection = Depends(get_db),
+) -> dict:
+    """首次选场景或受控切换。规则全在 scenes.py，路由只做透传。"""
+    return choose_scene(conn, user, body.scene, body.confirm)
+
+
+@router.patch("/tone")
+def set_tone(
+    body: ToneIn,
+    user: sqlite3.Row = Depends(get_current_user),
+    conn: sqlite3.Connection = Depends(get_db),
+) -> dict:
+    """语气开关：只改传了的项，不调 LLM、不耗生成配额。"""
+    tone = update_tone(conn, user, body.model_dump(exclude_none=True))
+    return {"tone": tone}
