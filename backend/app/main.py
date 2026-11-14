@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
+from .demo import ensure_demo_user
 from .errors import install_error_handlers
 from .models import init_db
 from .pipeline.presets import validate_presets
@@ -15,6 +16,8 @@ from .routers import agent, auth, chat, meta, personas
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    # 演示账号幂等播种：空库首启就存在，评委不必先注册（注册有 IP 限流）
+    ensure_demo_user()
     # 场景预设是数据表，写错（字段缺失 / 标签互斥冲突）会静默生成互相打架的
     # 限定词，与骨架预设同理，启动期就红比运行时难查强。
     errors = validate_presets()

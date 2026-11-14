@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Query
 
+from ..config import get_settings
 from ..pipeline.engineer_prompt import SKELETONS
 from ..pipeline.knowledge import knowledge_stats, retrieve
 from ..pipeline.presets import DEFAULT_PRESET_ID, list_presets
@@ -28,6 +29,20 @@ def skeletons() -> Dict[str, Any]:
 def presets() -> Dict[str, Any]:
     """场景预设目录：前端卡片、Agent 检索语料与护栏级别的唯一来源。"""
     return {"default": DEFAULT_PRESET_ID, "items": list_presets()}
+
+
+@router.get("/demo-account")
+def demo_account() -> Dict[str, Any]:
+    """登录页「一键填充」的数据源；关闭演示账号时返回 enabled=false，前端自动隐藏。"""
+    s = get_settings()
+    if not s.demo_user_enabled:
+        return {"enabled": False}
+    return {
+        "enabled": True,
+        "username": s.demo_username,
+        "password": s.demo_password,
+        "note": "演示账号，配额已调高，可直接登录体验",
+    }
 
 
 @router.get("/tools")

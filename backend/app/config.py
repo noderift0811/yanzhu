@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     quota_chat_daily: int = 100
     chat_history_window: int = 20
 
+    # 演示 / 评审账号：固定账号让评委绕过注册限流直接登录（见 demo.py）。
+    # 上线想关掉就设 DEMO_USER_ENABLED=false，登录页的填充入口会自动隐藏。
+    demo_user_enabled: bool = True
+    demo_username: str = "demo"
+    demo_password: str = "yanzhu2026"
+    demo_quota_gen: int = 200
+    demo_quota_chat: int = 2000
+
     # 限流开关：仅供反复跑验收时使用（注册 15min/5IP 连跑几套测试就打满）。
     # app_env=prod 时无论怎么设都强制开启，见 ratelimit.py。
     rate_limit_disabled: bool = False
