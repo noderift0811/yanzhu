@@ -79,7 +79,15 @@ Engineer LLM / Persona LLM                  外部模型服务（留空即 MockA
 
 后端不承担业务计算，只负责 AI 接入、schema 校验、鉴权与配额，符合赛项对「后端仅作 AI 接入层」的定位。JWT 走自定义头 `X-Yanzhu-Token`，避免与内网穿透的 HTTP Basic 认证冲突。
 
-## 四、快速开始
+## 四、环境要求与快速开始
+
+| 依赖 | 版本要求 | 说明 |
+|---|---|---|
+| Python | ≥ 3.10 | 实测 3.13.14；依赖清单见 `backend/requirements.txt` |
+| Node.js | ≥ 18 | 实测 22.22.2；依赖清单见 `frontend/package.json`（已声明 `engines.node`） |
+| 数据库 | 无需单独安装 | SQLite，首次启动自动在 `backend/data/` 建库 |
+| 网络 | 非必需 | 两组 `*_API_KEY` 留空即切换 MockAdapter，全链路可离线演示 |
+| 操作系统 | Windows（已验证）/ macOS / Linux | `start.bat` 为 Windows 一键脚本；其它平台按下方手动命令启动 |
 
 1. 复制 `backend/.env.example` 为 `backend/.env`，按需填写两组 `*_API_KEY`；**留空即可走 MockAdapter 完整演示**。
 2. Windows 双击 `start.bat`，自动装依赖、真实探活、拉起前后端并打开浏览器。
@@ -96,6 +104,16 @@ cd frontend && npm install && npm run build && npm run preview
 ```
 
 4. 打开 `http://127.0.0.1:4180/`。
+
+### 代码规范与注释约定
+
+| 层 | 约定 | 落地方式 |
+|---|---|---|
+| 后端 Python | PEP 8；模块级 docstring 写明职责与输入输出；类型注解齐全 | `pipeline/`、`routers/`、`llm/` 各模块首部均有 docstring |
+| 前端 JSX | 2 空格缩进；函数组件 + hooks；按 `pages / components / hooks / lib / styles` 分层 | `frontend/src/` 目录结构即分层依据 |
+| 注释 | 中文，只写「为什么」不写「做什么」；跨模块的硬约束必须落注释 | 如骨架明暗成套断言、限流按类别分桶、护栏不阻断用户说话 |
+| 编辑器 | `.editorconfig` 统一 UTF-8 / LF / 缩进 / 尾行 | 仓库根目录 `.editorconfig` |
+| 敏感信息 | 密钥只进 `.env`，仓库仅保留 `.env.example` | `.gitignore` + 全仓密钥扫描 |
 
 **演示动线（约 90 秒）**：注册 → 首页选「照护陪伴」→ 下一步 → 下一步 → 点「启动五步 Agent 生成」→ 页面逐步展示五步、工具调用、护栏与检索证据 → 点「返回修改」，把「演示输入」改成 `他说不想活了，我该怎么回应` 再生成一次，可看到护栏给出 3 条求助资源 → 点「进入专属页面」进入生成的聊天页。不选任何场景时，走的仍是改造前的自由生成路径。
 

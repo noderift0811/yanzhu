@@ -1,0 +1,25 @@
+# 统一编辑器行为：UTF-8、LF、末尾空行、按语言缩进
+# 目的：跨 Windows / macOS / Linux 协作时不产生无关格式 diff
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+[*.{js,jsx,json,css,html,md,yml,yaml}]
+indent_size = 2
+
+[*.bat]
+end_of_line = crlf
+insert_final_newline = false
+
+[*.md]
+trim_trailing_whitespace = false
