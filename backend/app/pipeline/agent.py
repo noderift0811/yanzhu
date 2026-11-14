@@ -22,7 +22,7 @@ from .presets import scene_of
 from .tools import call_tool, list_tools
 
 STEPS: List[Dict[str, str]] = [
-    {"id": "retrieve", "name": "检索", "tool": "retrieve_care_knowledge", "desc": "从本地知识库取回场景证据，并扫描输入风险"},
+    {"id": "retrieve", "name": "检索", "tool": "retrieve_scene_knowledge", "desc": "从当前场景的本地语料取回证据，并扫描输入风险"},
     {"id": "plan", "name": "规划", "tool": "plan_generation", "desc": "LLM 决定语气、骨架倾向与安全策略"},
     {"id": "generate", "name": "生成", "tool": "generate_spec", "desc": "工程师 AI 产出结构化 spec JSON（不产代码）"},
     {"id": "validate", "name": "校验", "tool": "validate_spec", "desc": "schema 校验 + 安全护栏 + 边界确定性注入"},
@@ -144,7 +144,7 @@ def _short_args(args: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _tool_summary(name: str, result: Dict[str, Any]) -> str:
-    if name == "retrieve_care_knowledge":
+    if name == "retrieve_scene_knowledge":
         return f"命中 {result.get('count', 0)} 条证据：{' / '.join(result.get('top_ids') or []) or '无'}"
     if name == "screen_text":
         return result.get("summary") or "扫描完成"
@@ -177,6 +177,7 @@ async def run_agent(
     """
     scene = scene_of(brief)
     level = scene.get("safety_level", "normal")
+    scene_id = scene.get("preset_id") or None
     ctx: Dict[str, Any] = {
         "engineer_adapter": engineer_adapter,
         "persona_adapter": persona_adapter,
@@ -221,7 +222,7 @@ async def run_agent(
         s0 = STEPS[0]
         t0 = time.monotonic()
         yield "step", step_event(s0, "running", "正在检索场景证据…", t0)
-        r, ev = await invoke("retrieve_care_knowledge", {
+        r, ev = await invoke("retrieve_scene_knowledge", {
             "query": build_query(brief, user_query or brief.get("free_text", "")),
             "top_k": 3,
             "preset_id": scene.get("preset_id", "free"),
@@ -232,7 +233,7 @@ async def run_agent(
         input_text = " ".join([
             user_query or "", brief.get("free_text") or "", " ".join(brief.get("tags") or []),
         ])
-        gr, gev = await invoke("screen_text", {"text": input_text, "level": level})
+        gr, gev = await invoke("screen_text", {"text": input_text, "level": level, "scene": scene_id})
         input_guard = gr["result"]
         yield "tool", gev
         yield "guard", {"phase": "input", **{k: input_guard.get(k) for k in ("level", "flags", "resources", "summary")}}
@@ -280,7 +281,7 @@ async def run_agent(
         s3 = STEPS[3]
         t3 = time.monotonic()
         yield "step", step_event(s3, "running", "校验结构并注入安全边界…", t3)
-        val, vev = await invoke("validate_spec", {"spec": spec, "level": level})
+        val, vev = await invoke("validate_spec", {"spec": spec, "level": level, "scene": scene_id})
         spec = val["result"]["spec"]
         valid = bool(val["result"].get("valid"))
         output_guard = val["result"]["guard"]
@@ -301,7 +302,7 @@ async def run_agent(
             t4,
         )
         if need_fallback:
-            fb, fev = await invoke("fallback_spec", {"brief": brief, "level": level})
+            fb, fev = await invoke("fallback_spec", {"brief": brief, "level": level, "scene": scene_id})
             spec = fb["result"]["spec"]
             needs_review = True
             yield "tool", fev

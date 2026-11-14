@@ -2,13 +2,20 @@
 
 为什么不用向量库：参赛作品要在评审机上一条命令跑起来，任何需要下载模型、
 起额外服务、或联网 embedding 的方案都会在演示时变成风险源。这里用
-中文单字 + bigram 的 BM25-lite 打分，语料是 12 条人工整理的照护沟通共识，
+中文单字 + bigram 的 BM25-lite 打分，语料按场景分文件放在 `knowledge/` 下，
 检索结果直接作为证据注入工程师 AI 的提示词，并在 Agent 时间线上可见。
+
+**索引按场景分开建**（每个场景自己的 df / avgdl）：语料小、跨场景词表差异大，
+共用一份倒排会让「汇报」这种高频词在陪伴语料里拿到错误的 idf，
+检索看似有分数、其实在乱排。分场景建索引也保证了场景之间不会互相串味——
+心理陪伴的检索永远不会返回职场谈薪条目。
 
 检索不是装饰：命中条目会同时影响
   1) 生成人设时的边界约束（engineer_prompt 注入 retrieved_knowledge）
   2) 安全护栏的 strict 级别（guard 读 scene.safety_level）
   3) 前端 Agent 时间线展示的「工具调用与证据」
+
+free 场景不注入任何锚点，检索走全库合并，充当评审对照基线。
 """
 from __future__ import annotations
 
@@ -19,9 +26,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .presets import get_preset
+from .presets import KNOWLEDGE_SCENE_IDS, PRESET_IDS, get_preset, has_scene
 
-KNOWLEDGE_PATH = Path(__file__).with_name("care_knowledge.json")
+KNOWLEDGE_DIR = Path(__file__).with_name("knowledge")
 
 _K1 = 1.5
 _B = 0.75
@@ -41,6 +48,10 @@ QUERY_EXPANSIONS = [
     ),
     (("想开点", "别矫情", "至少你还", "都会好起来"), "禁用语 否定感受 措辞"),
     (("陪床", "照护", "照顾", "家属", "喊累", "喘不过气"), "照护者 疲惫 喘息 家属 压力"),
+    (("加班", "改方案", "下班", "领导", "老板", "辞退"), "拒绝 加班 边界 表达 向上反馈"),
+    (("谈薪", "涨薪", "加薪", "工资", "绩效"), "谈薪 区间 依据 表达"),
+    (("吵架", "冷战", "不回消息", "分手", "委屈"), "冲突 降温 需求表达 边界"),
+    (("拖延", "发呆", "看不进去", "学不进去", "没动"), "拖延 启动 拆解 最小步骤"),
 ]
 
 
@@ -65,14 +76,19 @@ def _tokenize(text: str) -> List[str]:
 
 
 @lru_cache(maxsize=1)
-def _load() -> Dict[str, Any]:
-    return json.loads(KNOWLEDGE_PATH.read_text(encoding="utf-8"))
+def _load_all() -> Dict[str, Dict[str, Any]]:
+    """按场景加载语料；缺文件视为该场景没有语料（启动期校验会单独报错）。"""
+    data: Dict[str, Dict[str, Any]] = {}
+    for scene in KNOWLEDGE_SCENE_IDS:
+        path = KNOWLEDGE_DIR / f"{scene}.json"
+        if not path.exists():
+            continue
+        data[scene] = json.loads(path.read_text(encoding="utf-8"))
+    return data
 
 
-@lru_cache(maxsize=1)
-def _index() -> List[Dict[str, Any]]:
-    """构建倒排索引：tags 重复两遍以提高主题词权重。"""
-    entries = _load()["entries"]
+def _build_index(entries: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """构建单场景倒排索引：tags 重复两遍以提高主题词权重。"""
     docs: List[Dict[str, Any]] = []
     for e in entries:
         tags = e.get("tags") or []
@@ -95,14 +111,31 @@ def _index() -> List[Dict[str, Any]]:
     return docs
 
 
+@lru_cache(maxsize=1)
+def _indexes() -> Dict[str, List[Dict[str, Any]]]:
+    return {scene: _build_index(data.get("entries") or []) for scene, data in _load_all().items()}
+
+
+def scene_ids_with_knowledge() -> List[str]:
+    return [s for s in KNOWLEDGE_SCENE_IDS if s in _load_all()]
+
+
 def knowledge_stats() -> Dict[str, Any]:
-    data = _load()
+    """可查证的语料概览：总数 + 分场景条数，供 /meta/knowledge 与启动期校验使用。"""
+    data = _load_all()
+    per_scene = {s: len(d.get("entries") or []) for s, d in data.items()}
+    first = next(iter(data.values()), {})
     return {
-        "version": data.get("version"),
-        "disclaimer": data.get("disclaimer"),
-        "count": len(data["entries"]),
-        "retriever": "bm25-lite / zh-unigram+bigram",
-        "entries": [{"id": e["id"], "title": e["title"], "tags": e.get("tags") or []} for e in data["entries"]],
+        "version": first.get("version"),
+        "disclaimer": first.get("disclaimer"),
+        "count": sum(per_scene.values()),
+        "per_scene": per_scene,
+        "retriever": "bm25-lite / zh-unigram+bigram / per-scene index",
+        "entries": [
+            {"id": e["id"], "title": e["title"], "tags": e.get("tags") or [], "scene": s}
+            for s, d in data.items()
+            for e in d.get("entries") or []
+        ],
     }
 
 
@@ -120,22 +153,7 @@ def build_query(brief: Dict[str, Any], user_query: Optional[str] = None) -> str:
     return " ".join(parts)
 
 
-def retrieve(query: str, top_k: int = 3, preset_id: Optional[str] = None) -> List[Dict[str, Any]]:
-    """返回按 BM25 分数降序的证据条目；无有效命中时返回空列表（不硬凑）。"""
-    docs = _index()
-    q = expand_query((query or "").strip())
-    if preset_id and preset_id != "free":
-        anchors = get_preset(preset_id).get("retrieve_anchors") or []
-        q = " ".join([q, " ".join(anchors)])
-    q_tokens = [t for t in _tokenize(q) if t]
-    if not q_tokens or not docs:
-        return []
-
-    # 查询词去重但保留权重：重复出现 2 次的词按 1.25 倍计，避免长文本刷分
-    counts: Dict[str, int] = {}
-    for t in q_tokens:
-        counts[t] = counts.get(t, 0) + 1
-
+def _score_scene(docs: List[Dict[str, Any]], counts: Dict[str, int], scene: str) -> List[Dict[str, Any]]:
     scored: List[Dict[str, Any]] = []
     for d in docs:
         score = 0.0
@@ -156,9 +174,42 @@ def retrieve(query: str, top_k: int = 3, preset_id: Optional[str] = None) -> Lis
                 "title": e["title"],
                 "text": e["text"],
                 "tags": e.get("tags") or [],
+                "scene": scene,
                 "score": round(score, 4),
                 "matched": matched,
             })
+    return scored
+
+
+def retrieve(query: str, top_k: int = 3, preset_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """返回按 BM25 分数降序的证据条目；无有效命中时返回空列表（不硬凑）。
+
+    preset_id 为真实场景时只搜该场景语料；为空或 free 时合并全库，
+    并在结果里带上 scene 字段说明证据来自哪个场景。
+    """
+    indexes = _indexes()
+    if not indexes:
+        return []
+    q = expand_query((query or "").strip())
+    if has_scene(preset_id):
+        anchors = get_preset(preset_id).get("retrieve_anchors") or []
+        q = " ".join([q, " ".join(anchors)])
+        targets = [preset_id] if preset_id in indexes else []
+    else:
+        targets = list(indexes)
+
+    q_tokens = [t for t in _tokenize(q) if t]
+    if not q_tokens:
+        return []
+
+    # 查询词去重但保留权重：重复出现 2 次的词按更高权重计，避免长文本刷分
+    counts: Dict[str, int] = {}
+    for t in q_tokens:
+        counts[t] = counts.get(t, 0) + 1
+
+    scored: List[Dict[str, Any]] = []
+    for scene in targets:
+        scored.extend(_score_scene(indexes[scene], counts, scene))
     scored.sort(key=lambda x: (-x["score"], x["id"]))
     return scored[: max(0, top_k)]
 
@@ -169,20 +220,48 @@ def retrieve_for_brief(brief: Dict[str, Any], top_k: int = 3, user_query: Option
 
 
 def format_for_prompt(hits: List[Dict[str, Any]]) -> List[Dict[str, str]]:
-    """注入提示词的精简证据：只给标题 + 正文，分数是内部排序用的，不必喂给模型。"""
-    return [{"id": h["id"], "title": h["title"], "text": h["text"]} for h in hits]
+    """注入提示词的精简证据：只给场景 + 标题 + 正文，分数是内部排序用的。"""
+    return [
+        {"id": h["id"], "scene": h.get("scene", ""), "title": h["title"], "text": h["text"]}
+        for h in hits
+    ]
+
+
+def validate_knowledge() -> List[str]:
+    """启动期自检：每个真实场景都要有语料，且条目字段齐全、id 不重复。"""
+    from .presets import PRESET_IDS
+
+    errors: List[str] = []
+    data = _load_all()
+    seen: Dict[str, str] = {}
+    for scene in PRESET_IDS:
+        if scene == "free":
+            continue
+        entries = (data.get(scene) or {}).get("entries") or []
+        if len(entries) < 8:
+            errors.append(f"{scene} 语料不足 8 条（当前 {len(entries)}）")
+        for e in entries:
+            for key in ("id", "title", "text"):
+                if not e.get(key):
+                    errors.append(f"{scene} 条目缺字段 {key}: {e}")
+            eid = e.get("id")
+            if eid in seen:
+                errors.append(f"语料 id 重复: {eid}（{seen[eid]} / {scene}）")
+            elif eid:
+                seen[eid] = scene
+    return errors
 
 
 # MCP 风格工具描述：与 tools.py 的注册表共用同一份 schema 口径
 RETRIEVE_TOOL = {
-    "name": "retrieve_care_knowledge",
-    "description": "从本地照护沟通共识知识库做 BM25-lite 检索，返回带分数的证据条目，用于约束生成边界。",
+    "name": "retrieve_scene_knowledge",
+    "description": "在当前场景的本地语料里做 BM25-lite 检索，返回带分数与场景标记的证据条目，用于约束生成边界。",
     "inputSchema": {
         "type": "object",
         "properties": {
             "query": {"type": "string", "description": "用户原话或场景关键词"},
             "top_k": {"type": "integer", "minimum": 1, "maximum": 8, "default": 3},
-            "preset_id": {"type": "string", "enum": ["care", "study", "free"], "default": "free"},
+            "preset_id": {"type": "string", "enum": list(PRESET_IDS), "default": "free"},
         },
         "required": ["query"],
     },

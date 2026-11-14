@@ -99,7 +99,11 @@ def _h_retrieve(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
 def _h_screen(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
     from .guard import scan
 
-    return scan(args.get("text", ""), level=args.get("level", "normal")).as_dict()
+    return scan(
+        args.get("text", ""),
+        level=args.get("level", "normal"),
+        scene_id=args.get("scene") or None,
+    ).as_dict()
 
 
 def _h_skeleton(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
@@ -118,9 +122,10 @@ def _h_skeleton(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
 
 def _h_validate(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
     level = args.get("level", "normal")
+    scene_id = args.get("scene") or None
     spec = SpecModel.model_validate(args.get("spec") or {})
-    report = guard_spec(spec, level=level)
-    safe = inject_safety(spec, level=level)
+    report = guard_spec(spec, level=level, scene_id=scene_id)
+    safe = inject_safety(spec, level=level, scene_id=scene_id)
     # 注入后再校验一次：护栏自己也必须产出合法 spec
     safe = SpecModel.model_validate(safe.model_dump())
     return {
@@ -128,17 +133,19 @@ def _h_validate(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
         "guard": report.as_dict(),
         "spec": safe.model_dump(),
         "safety_injected": "【安全边界" in safe.system_prompt,
+        "scene_clause": bool(scene_id),
     }
 
 
 def _h_fallback(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
     level = args.get("level", "normal")
-    spec = inject_safety(fallback_spec(args.get("brief") or {}), level=level)
+    scene_id = args.get("scene") or None
+    spec = inject_safety(fallback_spec(args.get("brief") or {}), level=level, scene_id=scene_id)
     return {"spec": SpecModel.model_validate(spec.model_dump()).model_dump(), "needs_review": True}
 
 
 HANDLERS: Dict[str, Callable] = {
-    "retrieve_care_knowledge": _h_retrieve,
+    "retrieve_scene_knowledge": _h_retrieve,
     "screen_text": _h_screen,
     "pick_skeleton": _h_skeleton,
     "validate_spec": _h_validate,

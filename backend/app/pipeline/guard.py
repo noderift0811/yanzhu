@@ -38,6 +38,40 @@ PII_PATTERNS = [
     ("email", re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")),
 ]
 
+# 场景专属红线：不同场景「我们的产出不该说什么」并不一样。
+# 心理陪伴怕否定感受，职场演练怕伪法律结论，学习搭子怕代写，关系沟通怕操控话术。
+# 这些只拦「我们生成的内容」；用户怎么说话永远不被阻断。
+SCENE_PATTERNS: Dict[str, List[str]] = {
+    "care": [
+        r"(?:你|他|她)(?:肯定|一定|就是)[^。；]{0,8}(?:抑郁|焦虑症|双相)",
+    ],
+    "study": [
+        r"(?:帮你|我替你|直接给你)[^。；]{0,10}(?:写完|代写|写完整|做完作业|答案如下)",
+        r"(?:作业|论文|代码)(?:我)?(?:直接|帮你)(?:生成|写完|输出)完整",
+    ],
+    "workplace": [
+        r"(?:一定|肯定|绝对)(?:能|会)(?:赢|拿到赔偿|胜诉)",
+        r"(?:直接|就该)(?:去)?(?:仲裁|告他|起诉)(?:就行|吧)",
+        r"劳动法第[一二三四五六七八九十\d]+条",
+    ],
+    "relation": [
+        r"(?:让他|让她|让对方)(?:愧疚|吃醋|嫉妒)",
+        # 只拦「教人怎么操控」：要带试探/冷处理的动词，否则用户说「他对我冷暴力」
+        # 这种受害叙述也会被误判成越界。
+        r"(?:冷暴力|故意不回|已读不回)[^。；]{0,6}(?:试|看|治|拿捏)",
+        r"(?:PUA|拿捏)(?:他|她|对方)",
+    ],
+}
+
+_SCENE_COMPILED = {s: [re.compile(p) for p in pats] for s, pats in SCENE_PATTERNS.items()}
+
+SCENE_FLAGS: Dict[str, str] = {
+    "care": "care_overreach",
+    "study": "study_academic",
+    "workplace": "workplace_legal",
+    "relation": "relation_manipulation",
+}
+
 _COMPILED = {
     "crisis": [re.compile(p) for p in CRISIS_PATTERNS],
     "medical": [re.compile(p) for p in MEDICAL_PATTERNS],
@@ -80,6 +114,32 @@ SAFETY_NORMAL = (
     "遇到伤害自己或他人的表达时，先给出 120 / 110 与心理援助热线 12356 等求助路径。"
 )
 
+# 场景专属边界：跟在通用边界之后一起注入 system_prompt。
+# 写成"这个场景不该做什么"，而不是复述人设——护栏要能独立判断，不靠模型自觉。
+SCENE_CLAUSES: Dict[str, str] = {
+    "care": (
+        "本场景是陪伴位：不评估病情、不解释症状成因、不替代医生解读检查单；"
+        "不催对方振作，也不承诺「会好起来」。"
+    ),
+    "study": (
+        "本场景守原创边界：不代写作业、论文与成篇代码，只给思路、结构与自检点；"
+        "不承诺分数，不预测考试结果。"
+    ),
+    "workplace": (
+        "本场景只做表达演练：不提供法律、仲裁或人力资源结论，"
+        "涉及合同、赔偿、时效时建议咨询当地劳动保障部门或执业律师；"
+        "不煽动对抗，也不替用户决定去留。"
+    ),
+    "relation": (
+        "本场景只做沟通翻译：不替用户判定关系去留，不提供操控、试探、冷处理话术；"
+        "不站队评价对方家人；出现伤害自己或他人的表达时先给求助资源。"
+    ),
+}
+
+
+def scene_clause(scene_id: str | None) -> str:
+    return SCENE_CLAUSES.get(scene_id or "", "")
+
 
 @dataclass
 class GuardReport:
@@ -105,8 +165,8 @@ def redact_pii(text: str):
     return out, hits
 
 
-def scan(text: str, level: str = "normal") -> GuardReport:
-    """扫描任意文本（用户输入 / 生成的人设 / 聊天回复）。"""
+def scan(text: str, level: str = "normal", scene_id: str | None = None) -> GuardReport:
+    """扫描任意文本（用户输入 / 生成的人设 / 聊天回复）；scene_id 启用场景专属红线。"""
     s = text or ""
     flags: List[str] = []
     for kind, pats in _COMPILED.items():
@@ -116,12 +176,15 @@ def scan(text: str, level: str = "normal") -> GuardReport:
     flags.extend(f"pii_{p}" for p in pii)
     redacted, _ = redact_pii(s)
 
+    scene_pats = _SCENE_COMPILED.get(scene_id or "")
+    if scene_pats and _pattern_hit(scene_pats, s):
+        flags.append(SCENE_FLAGS.get(scene_id, "scene_boundary"))
+
     crisis = "crisis_expression" in flags
     # 被拦的是"我们生成的内容"越界，不是用户说话；用户输入永远不 blocked
-    blocked = level == "strict" and (
-        "medical_expression" in flags or "toxic_expression" in flags
-    )
-    report = GuardReport(
+    blocking = {"medical_expression", "toxic_expression"} | set(SCENE_FLAGS.values())
+    blocked = level == "strict" and any(f in blocking for f in flags)
+    return GuardReport(
         level=level,
         flags=flags,
         blocked=blocked,
@@ -129,7 +192,6 @@ def scan(text: str, level: str = "normal") -> GuardReport:
         resources=list(CRISIS_RESOURCES) if crisis else [],
         summary=_summarize(flags, blocked),
     )
-    return report
 
 
 def _summarize(flags: List[str], blocked: bool) -> str:
@@ -139,6 +201,10 @@ def _summarize(flags: List[str], blocked: bool) -> str:
         "crisis_expression": "危机表达",
         "medical_expression": "医疗越界",
         "toxic_expression": "否定感受措辞",
+        "care_overreach": "陪伴场景越界（诊断/替人下结论）",
+        "study_academic": "学习场景越界（代写）",
+        "workplace_legal": "职场场景越界（法律结论）",
+        "relation_manipulation": "关系场景越界（操控话术）",
     }
     labels = [names.get(f, f) for f in flags if not f.startswith("pii_")]
     pii = [f for f in flags if f.startswith("pii_")]
@@ -160,20 +226,24 @@ def spec_text(spec: Any) -> str:
     )
 
 
-def guard_spec(spec: Any, level: str = "normal") -> GuardReport:
-    return scan(spec_text(spec), level=level)
+def guard_spec(spec: Any, level: str = "normal", scene_id: str | None = None) -> GuardReport:
+    return scan(spec_text(spec), level=level, scene_id=scene_id)
 
 
-def inject_safety(spec: Any, level: str = "normal"):
+def inject_safety(spec: Any, level: str = "normal", scene_id: str | None = None):
     """确定性把边界写进 system_prompt，返回新的 SpecModel。
 
     不依赖模型是否听话：即使 LLM 忘了约束，落库的人设也一定带护栏。
-    幂等——重复调用不会把边界叠好几遍。
+    幂等——重复调用不会把边界叠好几遍（以 SAFETY_MARK 为准）；
+    场景专属边界与通用边界一起写入，因此换场景 = 换一套红线。
     """
     prompt = spec.system_prompt or ""
     if SAFETY_MARK in prompt:
         return spec
     clause = SAFETY_STRICT if level == "strict" else SAFETY_NORMAL
+    extra = scene_clause(scene_id)
+    if extra:
+        clause = clause + extra
     budget = 1500 - len(SAFETY_MARK) - len(clause) - 1
     prompt = prompt[: max(0, budget)].rstrip()
     updated = prompt + "\n" + SAFETY_MARK + clause
@@ -182,12 +252,17 @@ def inject_safety(spec: Any, level: str = "normal"):
 
 SAFETY_TOOL = {
     "name": "screen_text",
-    "description": "扫描文本的危机表达、医疗越界、否定感受措辞与可识别信息，返回护栏报告与求助资源。",
+    "description": "扫描文本的危机表达、医疗越界、否定感受措辞、场景专属红线与可识别信息，返回护栏报告与求助资源。",
     "inputSchema": {
         "type": "object",
         "properties": {
             "text": {"type": "string", "description": "待扫描文本"},
             "level": {"type": "string", "enum": ["normal", "strict"], "default": "normal"},
+            "scene": {
+                "type": "string",
+                "enum": ["care", "study", "workplace", "relation"],
+                "description": "场景 id，用于追加该场景的专属红线",
+            },
         },
         "required": ["text"],
     },
