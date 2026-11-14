@@ -110,6 +110,51 @@ body {
   margin-bottom: 4px !important;
 }
 
+/* 演示 / 评审账号：账号密码可见 + 一键填充，评委不必先走注册（注册有 IP 限流） */
+.pf-demo-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 8px 10px;
+  border: 1px dashed #d7dbe8;
+  border-radius: 10px;
+  background: #fafbff;
+}
+
+.pf-demo-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pf-demo-label {
+  font-size: 12px;
+  color: #8a90a6;
+}
+
+.pf-demo-cred {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.pf-demo-cred code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #eef1fb;
+  color: #4f46e5;
+}
+
+.pf-demo-sep {
+  color: #b9bfd0;
+}
+
 /* ---------- 输入向导 ---------- */
 
 .pf-wizard {

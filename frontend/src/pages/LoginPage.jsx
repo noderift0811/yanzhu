@@ -6,18 +6,30 @@ import { authStore, bootstrapAuth, request } from "../lib/api.js";
 // 登录 / 注册（成功即发双令牌：access 内存 + refresh localStorage）
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [form] = Form.useForm();
   const [tab, setTab] = useState("login");
   const [loading, setLoading] = useState(false);
+  const [demo, setDemo] = useState(null);
 
   useEffect(() => {
     let live = true;
     bootstrapAuth().then((ok) => {
       if (ok && live) navigate("/", { replace: true });
     });
+    // 演示账号由后端下发（DEMO_USER_ENABLED=false 时 enabled=false，入口自动隐藏）
+    request("/meta/demo-account", { auth: false })
+      .then((data) => live && setDemo(data))
+      .catch(() => live && setDemo({ enabled: false }));
     return () => {
       live = false;
     };
   }, [navigate]);
+
+  const fillDemo = () => {
+    setTab("login");
+    form.setFieldsValue({ username: demo.username, password: demo.password });
+    message.success("已填入演示账号");
+  };
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -53,7 +65,12 @@ export default function LoginPage() {
             { key: "register", label: "注册" },
           ]}
         />
-        <Form layout="vertical" onFinish={onFinish} initialValues={{ username: "", password: "" }}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{ username: "", password: "" }}
+        >
           <Form.Item
             name="username"
             label="用户名"
@@ -78,6 +95,21 @@ export default function LoginPage() {
             {tab === "login" ? "登录" : "注册并进入"}
           </Button>
         </Form>
+        {demo?.enabled ? (
+          <div className="pf-demo-account">
+            <div className="pf-demo-text">
+              <span className="pf-demo-label">演示账号</span>
+              <span className="pf-demo-cred">
+                <code>{demo.username}</code>
+                <span className="pf-demo-sep">/</span>
+                <code>{demo.password}</code>
+              </span>
+            </div>
+            <Button size="small" onClick={fillDemo}>
+              一键填充
+            </Button>
+          </div>
+        ) : null}
       </Card>
     </div>
   );
