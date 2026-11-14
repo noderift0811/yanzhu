@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Space, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import { authStore, request } from "../lib/api.js";
+import { resetMe } from "../lib/me.js";
 
 // 非聊天页的公共头部：品牌 + 配额 + 人格库 + 退出
 export default function AppHeader({ right }) {
@@ -28,6 +29,7 @@ export default function AppHeader({ right }) {
 
   const logout = () => {
     authStore.clear();
+    resetMe(); // 不清缓存的话，换账号进来会先闪一下上一个人的场景
     location.hash = "#/login";
   };
 

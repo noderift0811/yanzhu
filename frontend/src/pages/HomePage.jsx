@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Button, Card, Input, Space, Steps, Typography, message } from "antd";
+import { Button, Card, Input, Space, Steps, Tag, Typography, message } from "antd";
+import { useNavigate } from "react-router-dom";
 import { request } from "../lib/api.js";
+import { useMe } from "../lib/me.js";
 import AppHeader from "../components/AppHeader.jsx";
 import TagEditor from "../components/TagEditor.jsx";
 import NameField from "../components/NameField.jsx";
 import BuildReveal from "../components/BuildReveal.jsx";
 import ChatView from "../components/ChatView.jsx";
-import PresetPicker from "../components/PresetPicker.jsx";
 import AgentBuildView from "../components/AgentBuildView.jsx";
 import { EXAMPLES } from "../data/tagGroups.js";
 
@@ -14,9 +15,11 @@ const EMPTY = { tags: [], free_text: "", name: "" };
 
 // 首页 = 工位：三态原地切换（输入向导态 → 建造中态 → 人格聊天态），不跳路由、不刷新页面
 export default function HomePage() {
+  const navigate = useNavigate();
+  const me = useMe();
   const [mode, setMode] = useState("wizard"); // wizard | building | agent | chat
   const [persona, setPersona] = useState(null);
-  const [preset, setPreset] = useState(null); // 选中的场景预设；null = 走原自由生成路径
+  const [preset, setPreset] = useState(null); // 账号主场景；null = 自由创作（无场景注入）
   const [agentBody, setAgentBody] = useState(null);
   const [agentQuery, setAgentQuery] = useState(""); // 演示输入：驱动检索与输入护栏
   const [creating, setCreating] = useState(false);
@@ -25,6 +28,26 @@ export default function HomePage() {
   const [brief, setBrief] = useState(EMPTY);
 
   const valid = brief.tags.length > 0 || brief.free_text.trim().length > 0;
+
+  // 场景来自账号，不来自这一页的选择器：进页面就按账号场景预置好标签与演示输入，
+  // 用户只能在 /scene 改，改完回到这里就是新场景的预设。
+  useEffect(() => {
+    if (!me) return;
+    request("/meta/presets", { auth: false })
+      .then((d) => {
+        const p = (d.items || []).find((x) => x.id === me.scene_id);
+        if (!p || p.id === "free") {
+          setPreset(null);
+          return;
+        }
+        setPreset(p);
+        setBrief((b) =>
+          b.tags.length || b.free_text.trim() ? b : { tags: [...p.tags], free_text: p.free_text, name: "" }
+        );
+        setAgentQuery((q) => q || p.sample_prompt || "");
+      })
+      .catch(() => {});
+  }, [me?.scene_id]);
 
   // 工程师 AI 是推理模型，首次生成约 30 秒：给用户一个会走字的施工状态，而不是干等的按钮
   useEffect(() => {
@@ -37,22 +60,8 @@ export default function HomePage() {
   }, [creating]);
 
   const applyExample = (example) => {
-    setPreset(null); // 示例与场景预设互斥：混用会得到一组互相打架的限定词
+    // 只换限定词，不动场景：场景是账号级的，不能在一个示例按钮里被改掉
     setBrief({ tags: example.tags, free_text: example.free_text, name: "" });
-    setStep(1);
-  };
-
-  const applyPreset = (p) => {
-    if (!p || p.id === "free") {
-      setPreset(null);
-      setBrief(EMPTY);
-      setAgentQuery("");
-      setStep(0);
-      return;
-    }
-    setPreset(p);
-    setBrief({ tags: [...p.tags], free_text: p.free_text, name: "" });
-    setAgentQuery(p.sample_prompt || "");
     setStep(1);
   };
 
@@ -88,7 +97,18 @@ export default function HomePage() {
 
       {mode === "wizard" && (
         <Card className="pf-wizard">
-          <PresetPicker value={preset} onChange={applyPreset} />
+          <div className="pf-scene-banner">
+            <div className="pf-scene-banner-main">
+              <span className="pf-scene-banner-label">当前场景</span>
+              <span className="pf-scene-banner-name">{me?.scene_name || "加载中…"}</span>
+              {preset?.subtitle && <span className="pf-scene-banner-sub">{preset.subtitle}</span>}
+              {preset && <Tag color="geekblue">检索语料 · 安全边界 · 默认骨架都按它来</Tag>}
+              {!preset && <Tag>无场景注入（对照基线）</Tag>}
+            </div>
+            <Button size="small" onClick={() => navigate("/scene")}>
+              换场景
+            </Button>
+          </div>
           <Steps
             current={step}
             items={[{ title: "选择标签" }, { title: "补充描述" }, { title: "生成人格" }]}

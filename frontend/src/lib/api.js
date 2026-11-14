@@ -80,6 +80,12 @@ async function tryRefresh() {
 }
 
 export async function request(path, opts = {}, retried = false) {
+  // 冷启动（刚刷新页面）时 access 只在内存里、已经丢了：先换一次再发，
+  // 否则每条请求都要先吃一个 401 再重试——浏览器控制台会记一堆红色错误，
+  // 多个请求同时 401 时还可能把刷新令牌的轮换挤掉。
+  if (opts.auth !== false && !accessToken && refreshToken) {
+    await tryRefresh();
+  }
   try {
     return await raw(path, opts);
   } catch (e) {
@@ -95,6 +101,7 @@ export async function request(path, opts = {}, retried = false) {
 // SSE 流式请求：POST + fetch ReadableStream（EventSource 只支持 GET）。
 // onEvent(event, data) 逐事件回调；HTTP 层错误（含 401 刷新重试一次）抛 ApiError。
 export async function streamSSE(path, { method = "POST", body, onEvent }) {
+  if (!accessToken && refreshToken) await tryRefresh();
   const doFetch = async (retried) => {
     const headers = { "Content-Type": "application/json" };
     if (authStore.access) headers[TOKEN_HEADER] = authStore.access;
