@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Dropdown, Segmented, Space, Tooltip, Typography, message } from "antd";
 import {
+  ArrowLeftOutlined,
   BgColorsOutlined,
   DownloadOutlined,
   FullscreenExitOutlined,
   FullscreenOutlined,
   PlusOutlined,
+  SkinOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
 import { request } from "../lib/api.js";
@@ -32,6 +34,12 @@ const SAVE_ITEMS = [
   { type: "divider" },
   { key: "html", label: "网页存为单文件 HTML" },
   { key: "spec", label: "配置存为 JSON" },
+];
+
+// 外观菜单：换骨架与调配色同属「视觉调整」，收进一个入口减少头部噪音
+const LOOK_ITEMS = [
+  { key: "skeleton", icon: <SwapOutlined />, label: "换一套风格（骨架）" },
+  { key: "theme", icon: <BgColorsOutlined />, label: "调整配色" },
 ];
 
 // 聊天视图：共用 chrome（头部 + 会话切换）+ 骨架组件（视觉人格）
@@ -192,6 +200,11 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
     >
       <header className="pf-chat-header">
         <div className="pf-chat-title">
+          {onBack && (
+            <Tooltip title="返回">
+              <Button size="small" type="text" icon={<ArrowLeftOutlined />} onClick={onBack} />
+            </Tooltip>
+          )}
           <Avatar name={spec.name} theme={activeTheme} size={40} />
           <div>
             <Typography.Text strong className="pf-chat-name">
@@ -203,16 +216,21 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
             </div>
           </div>
         </div>
-        <Space wrap>
+        <Space wrap size={4}>
           <Button size="small" type="text" onClick={newConversation} icon={<PlusOutlined />}>
             新会话
           </Button>
-          <Button size="small" type="text" icon={<SwapOutlined />} onClick={() => setPickOpen(true)}>
-            换风格
-          </Button>
-          <Button size="small" type="text" icon={<BgColorsOutlined />} onClick={() => setThemeOpen(true)}>
-            配色
-          </Button>
+          <Dropdown
+            trigger={["click"]}
+            menu={{
+              items: LOOK_ITEMS,
+              onClick: ({ key }) => (key === "skeleton" ? setPickOpen(true) : setThemeOpen(true)),
+            }}
+          >
+            <Button size="small" type="text" icon={<SkinOutlined />}>
+              外观
+            </Button>
+          </Dropdown>
           <Dropdown
             trigger={["click"]}
             menu={{ items: SAVE_ITEMS, onClick: ({ key }) => save(key) }}
@@ -228,16 +246,9 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
               type="text"
               icon={immersive ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
               onClick={toggleImmersive}
-            >
-              {immersive ? "退出" : "全屏"}
-            </Button>
+            />
           </Tooltip>
           {headerExtra}
-          {onBack && (
-            <Button size="small" type="text" onClick={onBack}>
-              返回
-            </Button>
-          )}
         </Space>
       </header>
 
