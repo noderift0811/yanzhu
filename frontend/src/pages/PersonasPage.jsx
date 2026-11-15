@@ -107,14 +107,14 @@ export default function PersonasPage() {
 
   return (
     <div className="pf-home">
-      <AppHeader right={<Button size="small" type="text" onClick={() => navigate("/")}>新建人格</Button>} />
+      <AppHeader right={<Button size="small" type="text" onClick={() => navigate("/new")}>新建人格</Button>} />
       <div className="pf-page">
         <Typography.Title level={4}>人格库</Typography.Title>
         {loading ? (
           <div className="pf-chat-loading">正在加载…</div>
         ) : items.length === 0 ? (
           <Empty description="还没有人格，去创建一个吧">
-            <Button type="primary" onClick={() => navigate("/")}>
+            <Button type="primary" onClick={() => navigate("/new")}>
               新建人格
             </Button>
           </Empty>

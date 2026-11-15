@@ -7,10 +7,13 @@ import LoginPage from "./pages/LoginPage.jsx";
 import AssistantFab from "./components/AssistantFab.jsx";
 
 // 路由级代码分割：登录页为首屏保持直载，其余页面按需加载
+// HomePage 是「新建人格」的旧首页向导（三态原地切换），专属网站模式下挂到 /new，
+// 只作为临时新建入口；块 2 会把它重构成弹窗 + /build 五步链路。
 const HomePage = lazy(() => import("./pages/HomePage.jsx"));
 const PersonasPage = lazy(() => import("./pages/PersonasPage.jsx"));
 const ChatPage = lazy(() => import("./pages/ChatPage.jsx"));
 const ScenePage = lazy(() => import("./pages/ScenePage.jsx"));
+const StartPage = lazy(() => import("./pages/StartPage.jsx"));
 // 骨架画廊：纯 mock 数据、不请求后端，用于随时比对 16 套骨架
 const SkeletonGalleryPage = lazy(() => import("./pages/SkeletonGalleryPage.jsx"));
 
@@ -22,6 +25,41 @@ function Boot() {
       </Spin>
     </div>
   );
+}
+
+// 专属网站模式的登录落点：只做一次分流，不渲染任何外壳。
+// 有主页面 → 直接进 /chat/:id；还没建过人格 → /start 开站页；没选场景 → /scene。
+function Landing() {
+  const [state, setState] = useState({ ready: false, me: null });
+
+  useEffect(() => {
+    let live = true;
+    bootstrapAuth()
+      .then(async (ok) => {
+        if (!ok) {
+          if (live) setState({ ready: true, me: null });
+          return;
+        }
+        try {
+          const me = await loadMe(true);
+          if (live) setState({ ready: true, me });
+        } catch {
+          if (live) setState({ ready: true, me: null });
+        }
+      })
+      .catch(() => live && setState({ ready: true, me: null }));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  if (!state.ready) return <Boot />;
+  if (!state.me) return <Navigate to="/login" replace />;
+  if (state.me.scene_chosen === false) return <Navigate to="/scene" replace />;
+  if (state.me.primary_persona_id) {
+    return <Navigate to={`/chat/${state.me.primary_persona_id}`} replace />;
+  }
+  return <Navigate to="/start" replace />;
 }
 
 // allowNoScene：只有 /scene 自己要用，否则「还没选场景」会被自己无限重定向
@@ -70,7 +108,9 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/gallery" element={<SkeletonGalleryPage />} />
             <Route path="/scene" element={<Guard allowNoScene><ScenePage /></Guard>} />
-            <Route path="/" element={<Guard><HomePage /></Guard>} />
+            <Route path="/start" element={<Guard><StartPage /></Guard>} />
+            <Route path="/new" element={<Guard><HomePage /></Guard>} />
+            <Route path="/" element={<Landing />} />
             <Route path="/personas" element={<Guard><PersonasPage /></Guard>} />
             <Route path="/chat/:id" element={<Guard><ChatPage /></Guard>} />
             <Route path="*" element={<Navigate to="/" replace />} />

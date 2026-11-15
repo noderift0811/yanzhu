@@ -1,0 +1,67 @@
+/* 开站页：专属网站模式的「空地」落点，纸感手作风格 */
+.pf-start {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--yz-paper, #f7f2e9);
+  background-image: radial-gradient(circle at 1px 1px, var(--yz-line, #e6dccc) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+.pf-start-inner {
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+  background: var(--yz-card, #fffdf8);
+  border: 1px solid var(--yz-line, #e6dccc);
+  border-radius: 16px;
+  box-shadow: 0 1px 0 rgba(46, 42, 37, 0.04), 0 12px 32px rgba(88, 63, 42, 0.08);
+  padding: 48px 40px;
+}
+
+.pf-start-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.pf-start-brand-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--yz-ink, #2e2a25);
+  font-family: var(--yz-font-serif, "Songti SC", "STSong", serif);
+}
+
+.pf-start-title {
+  margin-bottom: 8px !important;
+  color: var(--yz-ink, #2e2a25) !important;
+  font-family: var(--yz-font-serif, "Songti SC", "STSong", serif);
+}
+
+.pf-start-lede {
+  margin: 20px 0 28px;
+  color: var(--yz-ink-2, #5f6b7a);
+  line-height: 2;
+}
+
+.pf-start-lede p {
+  margin: 0;
+}
+
+.pf-start-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .pf-start-inner {
+    padding: 36px 22px;
+  }
+}
