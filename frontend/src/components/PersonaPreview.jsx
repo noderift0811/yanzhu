@@ -4,6 +4,7 @@ import "../styles/persona-preview.css";
 
 // 预览用的三句样例对话：足够让骨架的消息区 / 输入区摆出真实排版，
 // 又不至于在小图里挤成一团。内容刻意中性，不与任何场景绑定。
+// 试过五句：多出来的会顶到输入条上被裁半行，比留白更像 bug，故保持三句。
 const MOCK_MESSAGES = [
   { id: "pv-a1", role: "assistant", content: "你来得正好，先坐吧。" },
   { id: "pv-u1", role: "user", content: "今天有点累。" },
