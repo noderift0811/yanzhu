@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Dropdown, Segmented, Space, Tooltip, Typography, message } from "antd";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeftOutlined,
   BgColorsOutlined,
@@ -7,6 +8,7 @@ import {
   FullscreenExitOutlined,
   FullscreenOutlined,
   PlusOutlined,
+  ReloadOutlined,
   SkinOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
@@ -26,6 +28,7 @@ import { getSkeleton, SKELETON_NAMES } from "./skeletons/index.js";
 import Avatar from "./Avatar.jsx";
 import SkeletonPicker from "./SkeletonPicker.jsx";
 import ThemePanel from "./ThemePanel.jsx";
+import PersonaBriefModal from "./PersonaBriefModal.jsx";
 
 const SAVE_ITEMS = [
   { key: "md", label: "对话存为 Markdown" },
@@ -44,10 +47,14 @@ const LOOK_ITEMS = [
 
 // 聊天视图：共用 chrome（头部 + 会话切换）+ 骨架组件（视觉人格）
 export default function ChatView({ persona, onBack, headerExtra, onPersonaChange }) {
+  const navigate = useNavigate();
   // 换骨架就地生效：不动会话、不重放建造、不重载消息
   const [current, setCurrent] = useState(persona);
   const [pickOpen, setPickOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  // 重建：改限定词后重跑五步链路（覆盖当前 / 另建），入口在头部
+  const [rebuildOpen, setRebuildOpen] = useState(false);
+  const goBuild = ({ body, preset }) => navigate("/build", { state: { body, preset } });
   // 全屏沉浸：优先用浏览器全屏 API，被拒（iframe / 权限策略）时退化为 CSS 全屏覆盖
   const [immersive, setImmersive] = useState(false);
   const rootRef = useRef(null);
@@ -220,6 +227,11 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
           <Button size="small" type="text" onClick={newConversation} icon={<PlusOutlined />}>
             新会话
           </Button>
+          <Tooltip title="改限定词，重跑五步 Agent 链路（覆盖当前或另建一个）">
+            <Button size="small" type="text" icon={<ReloadOutlined />} onClick={() => setRebuildOpen(true)}>
+              重建
+            </Button>
+          </Tooltip>
           <Dropdown
             trigger={["click"]}
             menu={{
@@ -298,6 +310,20 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
           onPersonaChange?.(updated);
           setThemeOpen(false);
         }}
+      />
+
+      <PersonaBriefModal
+        open={rebuildOpen}
+        mode="rebuild"
+        initial={{
+          tags: current?.keywords?.tags || [],
+          free_text: current?.keywords?.free_text || "",
+          name: current?.name || "",
+        }}
+        rebuildTargetId={current?.id}
+        rebuildName={current?.name}
+        onCancel={() => setRebuildOpen(false)}
+        onConfirm={goBuild}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import Avatar from "../components/Avatar.jsx";
 import SkeletonPicker from "../components/SkeletonPicker.jsx";
 import ThemePanel from "../components/ThemePanel.jsx";
 import PersonaPreview from "../components/PersonaPreview.jsx";
+import PersonaBriefModal from "../components/PersonaBriefModal.jsx";
 import { SKELETON_NAMES } from "../components/skeletons/index.js";
 
 // 人格库：卡片网格 + 进入 / 改名 / 换骨架 / 重新生成 / 删除
@@ -24,6 +25,9 @@ export default function PersonasPage() {
   const [renameTarget, setRenameTarget] = useState(null); // 改名目标人格
   const [renameValue, setRenameValue] = useState("");
   const [renaming, setRenaming] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const goBuild = ({ body, preset }) => navigate("/build", { state: { body, preset } });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -107,14 +111,14 @@ export default function PersonasPage() {
 
   return (
     <div className="pf-home">
-      <AppHeader right={<Button size="small" type="text" onClick={() => navigate("/new")}>新建人格</Button>} />
+      <AppHeader right={<Button size="small" type="text" onClick={() => setCreateOpen(true)}>新建人格</Button>} />
       <div className="pf-page">
         <Typography.Title level={4}>人格库</Typography.Title>
         {loading ? (
           <div className="pf-chat-loading">正在加载…</div>
         ) : items.length === 0 ? (
           <Empty description="还没有人格，去创建一个吧">
-            <Button type="primary" onClick={() => navigate("/new")}>
+            <Button type="primary" onClick={() => setCreateOpen(true)}>
               新建人格
             </Button>
           </Empty>
@@ -272,6 +276,13 @@ export default function PersonasPage() {
           setItems((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
           setThemeTarget(null);
         }}
+      />
+
+      <PersonaBriefModal
+        open={createOpen}
+        mode="create"
+        onCancel={() => setCreateOpen(false)}
+        onConfirm={goBuild}
       />
     </div>
   );

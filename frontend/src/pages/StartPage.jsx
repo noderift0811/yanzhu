@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Button, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useMe } from "../lib/me.js";
+import PersonaBriefModal from "../components/PersonaBriefModal.jsx";
 import "../styles/start.css";
 
 // 开站页：登录后还没有主页面（人格）时的落点。
@@ -9,6 +11,9 @@ export default function StartPage() {
   const navigate = useNavigate();
   const me = useMe();
   const needScene = me?.scene_chosen === false;
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const goBuild = ({ body, preset }) => navigate("/build", { state: { body, preset } });
 
   return (
     <div className="pf-start">
@@ -32,7 +37,7 @@ export default function StartPage() {
           <Button
             type="primary"
             size="large"
-            onClick={() => navigate(needScene ? "/scene" : "/new")}
+            onClick={() => (needScene ? navigate("/scene") : setCreateOpen(true))}
           >
             {needScene ? "选择场景开始搭建" : "开始搭建"}
           </Button>
@@ -43,6 +48,13 @@ export default function StartPage() {
           )}
         </div>
       </div>
+
+      <PersonaBriefModal
+        open={createOpen}
+        mode="create"
+        onCancel={() => setCreateOpen(false)}
+        onConfirm={goBuild}
+      />
     </div>
   );
 }

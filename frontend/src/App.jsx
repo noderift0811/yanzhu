@@ -6,12 +6,11 @@ import { loadMe, useMe } from "./lib/me.js";
 import LoginPage from "./pages/LoginPage.jsx";
 import AssistantFab from "./components/AssistantFab.jsx";
 
-// 路由级代码分割：登录页为首屏保持直载，其余页面按需加载
-// HomePage 是「新建人格」的旧首页向导（三态原地切换），专属网站模式下挂到 /new，
-// 只作为临时新建入口；块 2 会把它重构成弹窗 + /build 五步链路。
-const HomePage = lazy(() => import("./pages/HomePage.jsx"));
+// 路由级代码分割：登录页为首屏保持直载，其余页面按需加载。
+// 专属网站模式：新建/重建都走「弹窗输入 → /build 五步施工」，首页三态向导已拆掉。
 const PersonasPage = lazy(() => import("./pages/PersonasPage.jsx"));
 const ChatPage = lazy(() => import("./pages/ChatPage.jsx"));
+const BuildPage = lazy(() => import("./pages/BuildPage.jsx"));
 const ScenePage = lazy(() => import("./pages/ScenePage.jsx"));
 const StartPage = lazy(() => import("./pages/StartPage.jsx"));
 // 骨架画廊：纯 mock 数据、不请求后端，用于随时比对 16 套骨架
@@ -109,7 +108,7 @@ export default function App() {
             <Route path="/gallery" element={<SkeletonGalleryPage />} />
             <Route path="/scene" element={<Guard allowNoScene><ScenePage /></Guard>} />
             <Route path="/start" element={<Guard><StartPage /></Guard>} />
-            <Route path="/new" element={<Guard><HomePage /></Guard>} />
+            <Route path="/build" element={<Guard><BuildPage /></Guard>} />
             <Route path="/" element={<Landing />} />
             <Route path="/personas" element={<Guard><PersonasPage /></Guard>} />
             <Route path="/chat/:id" element={<Guard><ChatPage /></Guard>} />
