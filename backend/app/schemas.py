@@ -127,6 +127,8 @@ class PersonaPatchIn(BaseModel):
     theme: Optional[ThemeModel] = None
     # 换骨架不调 LLM、不耗生成配额；不传 theme 时自动套用该骨架的成套主题预设
     skeleton_id: Optional[str] = None
+    # 专属网站模式：把这个人格设为登录落点（主页面）。星标切换，不调 LLM、不耗配额。
+    set_primary: Optional[bool] = None
 
     @field_validator("skeleton_id")
     @classmethod

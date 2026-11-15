@@ -16,7 +16,8 @@ SCHEMA_SQL = [
         created_at TEXT NOT NULL,
         primary_scene TEXT,
         scene_changed_at TEXT,
-        tone_json TEXT NOT NULL DEFAULT '{}'
+        tone_json TEXT NOT NULL DEFAULT '{}',
+        primary_persona_id TEXT
     )""",
     """CREATE TABLE IF NOT EXISTS refresh_tokens (
         jti TEXT PRIMARY KEY,
@@ -101,6 +102,8 @@ _MIGRATIONS = {
         ("primary_scene", "TEXT", _backfill_legacy_scene),
         ("scene_changed_at", "TEXT", None),
         ("tone_json", "TEXT NOT NULL DEFAULT '{}'", None),
+        # 专属网站模式：登录后的落点人格。空 = 还没建过人格 → 落开站页。
+        ("primary_persona_id", "TEXT", None),
     ],
     "personas": [
         ("scene_id", "TEXT NOT NULL DEFAULT 'free'", None),

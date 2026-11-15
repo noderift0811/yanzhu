@@ -12,7 +12,7 @@ from ..db import get_db
 from ..deps import get_current_user
 from ..errors import ApiError
 from ..ratelimit import LOGIN_LIMIT, REGISTER_LIMIT, check_limit_if_enabled
-from ..scenes import choose_scene, scene_profile, tone_of, update_tone
+from ..scenes import choose_scene, ensure_primary_persona, scene_profile, tone_of, update_tone
 from ..schemas import LoginIn, RefreshIn, RegisterIn, SceneIn, TokenOut, ToneIn
 from ..security import (
     create_access_token,
@@ -90,7 +90,10 @@ def refresh(body: RefreshIn, conn: sqlite3.Connection = Depends(get_db)) -> Toke
 
 
 @router.get("/me")
-def me(user: sqlite3.Row = Depends(get_current_user)) -> dict:
+def me(
+    user: sqlite3.Row = Depends(get_current_user),
+    conn: sqlite3.Connection = Depends(get_db),
+) -> dict:
     return {
         "id": user["id"],
         "username": user["username"],
@@ -103,6 +106,8 @@ def me(user: sqlite3.Row = Depends(get_current_user)) -> dict:
         # 场景与语气：前端据此决定是否强制进引导页、悬浮球显示什么状态
         **scene_profile(user),
         "tone": tone_of(user),
+        # 登录落点：有主页面则直接进 /chat/:id，否则进开站页
+        "primary_persona_id": ensure_primary_persona(conn, user),
     }
 
 

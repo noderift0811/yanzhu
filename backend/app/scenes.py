@@ -120,6 +120,10 @@ def choose_scene(conn: sqlite3.Connection, user: sqlite3.Row, scene: str, confir
             (_iso(_now()), user["id"]),
         )
         archived = cur.rowcount or 0
+        # 旧主页面已归档，落点随之失效；登录后由 ensure_primary_persona 重新指到最早一个
+        conn.execute(
+            "UPDATE users SET primary_persona_id=NULL WHERE id=?", (user["id"],)
+        )
 
     if current != scene:
         conn.execute(
@@ -132,6 +136,28 @@ def choose_scene(conn: sqlite3.Connection, user: sqlite3.Row, scene: str, confir
     out["switched"] = bool(current) and current != scene
     out["archived_personas"] = archived
     return out
+
+
+def ensure_primary_persona(conn: sqlite3.Connection, user: sqlite3.Row) -> Optional[str]:
+    """返回账号的登录落点人格 id；空则把最早建的那个人格设为落点。
+
+   专属网站模式：登录后直接进「搭建完成的页面」。老用户升级前已经建过人格
+   但没有 primary_persona_id，这里做一次幂等回填——默认第一个（最早创建）。
+   之后用户在人格库卡片上改星标、或删掉主页面，都由 personas 路由维护这列。
+    """
+    if user["primary_persona_id"]:
+        return user["primary_persona_id"]
+    row = conn.execute(
+        "SELECT id FROM personas WHERE user_id=? AND status!='archived'"
+        " ORDER BY created_at ASC LIMIT 1",
+        (user["id"],),
+    ).fetchone()
+    if row is None:
+        return None
+    conn.execute(
+        "UPDATE users SET primary_persona_id=? WHERE id=?", (row["id"], user["id"])
+    )
+    return row["id"]
 
 
 def tone_of(user: sqlite3.Row) -> Dict[str, bool]:

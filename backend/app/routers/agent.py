@@ -149,6 +149,11 @@ async def build_with_agent(
                 ),
             )
             consume_quota(conn, user["id"], "gen")
+            # 专属网站模式：第一个生成的人格默认成为登录落点（主页面）
+            if not user["primary_persona_id"]:
+                conn.execute(
+                    "UPDATE users SET primary_persona_id=? WHERE id=?", (pid, user["id"])
+                )
             log_llm_call(
                 conn, user["id"], "engineer", engineer.name, engineer.cfg.model,
                 int((time.monotonic() - started) * 1000),

@@ -63,4 +63,23 @@ def ensure_demo_user() -> bool:
                 "UPDATE users SET primary_scene=?, scene_changed_at=? WHERE id=?",
                 (s.demo_scene, _now(), row["id"]),
             )
+            scene = s.demo_scene
+        else:
+            scene = row["primary_scene"]
+
+        # 专属网站模式：demo 登录要「直接进专属页面」，至少得有一个 active 人格。
+        # scene_lock_test 会把 demo 的场景来回切、人格归档干净（且不恢复），
+        # 这里做幂等兜底：没有 active 人格时，恢复当前场景下最早的一个归档人格。
+        has_active = conn.execute(
+            "SELECT 1 FROM personas WHERE user_id=? AND status!='archived' LIMIT 1",
+            (row["id"],),
+        ).fetchone()
+        if has_active is None:
+            cand = conn.execute(
+                "SELECT id FROM personas WHERE user_id=? AND scene_id=? AND status='archived'"
+                " ORDER BY created_at ASC LIMIT 1",
+                (row["id"], scene),
+            ).fetchone()
+            if cand:
+                conn.execute("UPDATE personas SET status='active' WHERE id=?", (cand["id"],))
         return False

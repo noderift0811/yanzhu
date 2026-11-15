@@ -142,7 +142,11 @@ def list_personas(
     archived = conn.execute(
         "SELECT COUNT(*) c FROM personas WHERE user_id=? AND status='archived'", (user["id"],)
     ).fetchone()["c"]
-    return {"items": [_summary(r) for r in rows], "archived_count": archived}
+    primary = user["primary_persona_id"]
+    items = [_summary(r) for r in rows]
+    for it in items:
+        it["is_primary"] = it["id"] == primary
+    return {"items": items, "primary_persona_id": primary, "archived_count": archived}
 
 
 @router.post("", status_code=201)
@@ -168,6 +172,11 @@ async def create_persona(
         ),
     )
     consume_quota(conn, user["id"], "gen")
+    # 专属网站模式：第一个生成的人格默认成为登录落点（主页面）
+    if not user["primary_persona_id"]:
+        conn.execute(
+            "UPDATE users SET primary_persona_id=? WHERE id=?", (pid, user["id"])
+        )
     return _detail(conn, pid, user["id"])
 
 
@@ -239,6 +248,12 @@ def patch_persona(
             f"UPDATE personas SET {sets} WHERE id=?",
             (*updates.values(), persona_id),
         )
+
+    # 星标切换：把这个人格设为登录落点（主页面）。不调 LLM、不耗配额。
+    if body.set_primary:
+        conn.execute(
+            "UPDATE users SET primary_persona_id=? WHERE id=?", (persona_id, user["id"])
+        )
     return _detail(conn, persona_id, user["id"])
 
 
@@ -256,6 +271,17 @@ def delete_persona(
     )
     conn.execute("DELETE FROM conversations WHERE persona_id=?", (persona_id,))
     conn.execute("DELETE FROM personas WHERE id=?", (persona_id,))
+    # 删的是主页面：落点顺延到最早剩下的那个人格，没有则清空（下次登录落开站页）
+    if user["primary_persona_id"] == persona_id:
+        nxt = conn.execute(
+            "SELECT id FROM personas WHERE user_id=? AND status!='archived'"
+            " ORDER BY created_at ASC LIMIT 1",
+            (user["id"],),
+        ).fetchone()
+        conn.execute(
+            "UPDATE users SET primary_persona_id=? WHERE id=?",
+            (nxt["id"] if nxt else None, user["id"]),
+        )
 
 
 @router.post("/{persona_id}/regenerate")
