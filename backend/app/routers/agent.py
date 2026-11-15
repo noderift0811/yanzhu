@@ -28,7 +28,7 @@ from ..pipeline.presets import enrich_brief, scene_of
 from ..quota import check_quota, consume_quota, log_llm_call
 from ..scenes import scene_of as account_scene
 from ..schemas import AgentBuildIn, SpecModel
-from .personas import _detail, _utcnow
+from .personas import _detail, _owned, _utcnow
 
 router = APIRouter(prefix="/agent", tags=["agent"], dependencies=[Depends(get_current_user)])
 
@@ -137,23 +137,36 @@ async def build_with_agent(
             from ..pipeline.assemble import spec_columns
 
             row.update(spec_columns(spec))
-            pid, now = str(uuid.uuid4()), _utcnow()
-            conn.execute(
-                "INSERT INTO personas (id, user_id, name, keywords_json, brief_json, spec_json,"
-                " skeleton_id, theme_json, status, scene_id, created_at, updated_at)"
-                " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                (
-                    pid, user["id"], row["name"], row["keywords_json"], row["brief_json"],
-                    row["spec_json"], row["skeleton_id"], row["theme_json"], row["status"],
-                    scene_id, now, now,
-                ),
-            )
-            consume_quota(conn, user["id"], "gen")
-            # 专属网站模式：第一个生成的人格默认成为登录落点（主页面）
-            if not user["primary_persona_id"]:
+            now = _utcnow()
+            target = body.target_persona_id
+            if target:
+                # 覆盖重建：先校验归属（非本人 404），再只换规格/限定词/状态，
+                # 保留 id、scene_id、created_at、会话与消息。主页面落点不变。
+                _owned(conn, target, user["id"])
+                pid = target
+                row["updated_at"] = now
+                sets = ", ".join(f"{k}=?" for k in row)
                 conn.execute(
-                    "UPDATE users SET primary_persona_id=? WHERE id=?", (pid, user["id"])
+                    f"UPDATE personas SET {sets} WHERE id=?", (*row.values(), pid)
                 )
+            else:
+                pid = str(uuid.uuid4())
+                conn.execute(
+                    "INSERT INTO personas (id, user_id, name, keywords_json, brief_json, spec_json,"
+                    " skeleton_id, theme_json, status, scene_id, created_at, updated_at)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        pid, user["id"], row["name"], row["keywords_json"], row["brief_json"],
+                        row["spec_json"], row["skeleton_id"], row["theme_json"], row["status"],
+                        scene_id, now, now,
+                    ),
+                )
+                # 专属网站模式：第一个生成的人格默认成为登录落点（主页面）
+                if not user["primary_persona_id"]:
+                    conn.execute(
+                        "UPDATE users SET primary_persona_id=? WHERE id=?", (pid, user["id"])
+                    )
+            consume_quota(conn, user["id"], "gen")
             log_llm_call(
                 conn, user["id"], "engineer", engineer.name, engineer.cfg.model,
                 int((time.monotonic() - started) * 1000),

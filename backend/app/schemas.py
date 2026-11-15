@@ -120,6 +120,9 @@ class AgentBuildIn(PersonaCreateIn):
 
     preset_id: Optional[str] = Field(default=None, max_length=20)
     user_query: str = Field(default="", max_length=200)
+    # 专属网站模式「重建」：传了就是覆盖这个已有的人格（保留 id/会话/created_at，只换规格与限定词），
+    # 不传就是新建。归属校验在路由层做，前端改参数绕不过去。
+    target_persona_id: Optional[str] = Field(default=None, max_length=36)
 
 
 class PersonaPatchIn(BaseModel):
