@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, Col, Empty, Modal, Popconfirm, Row, Space, Typography, message } from "antd";
-import { BgColorsOutlined, EditOutlined, ReloadOutlined, SwapOutlined } from "@ant-design/icons";
+import { Button, Card, Col, Empty, Modal, Popconfirm, Row, Space, Tooltip, Typography, message } from "antd";
+import { BgColorsOutlined, EditOutlined, ReloadOutlined, StarFilled, StarOutlined, SwapOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { request } from "../lib/api.js";
 import AppHeader from "../components/AppHeader.jsx";
@@ -49,6 +49,18 @@ export default function PersonasPage() {
     try {
       await request(`/personas/${id}`, { method: "DELETE" });
       message.success("已删除");
+      load();
+    } catch (e) {
+      message.error(e.message);
+    }
+  };
+
+  // 设为主页面：登录后直达这个人格。不耗配额、不调 LLM。
+  const setPrimary = async (p) => {
+    if (p.is_primary) return;
+    try {
+      await request(`/personas/${p.id}`, { method: "PATCH", body: { set_primary: true } });
+      message.success(`已把「${p.name}」设为登录后的主页面`);
       load();
     } catch (e) {
       message.error(e.message);
@@ -172,8 +184,20 @@ export default function PersonasPage() {
                 >
                   <div className="pf-persona-head">
                     <Avatar name={p.name} theme={p.theme} size={48} />
-                    <div>
-                      <Typography.Text strong>{p.name}</Typography.Text>
+                    <div className="pf-persona-meta">
+                      <div className="pf-persona-name-row">
+                        <Typography.Text strong>{p.name}</Typography.Text>
+                        <Tooltip title={p.is_primary ? "登录后直达的主页面" : "设为登录后的主页面"}>
+                          <button
+                            type="button"
+                            className={`pf-primary-star${p.is_primary ? " is-on" : ""}`}
+                            onClick={() => setPrimary(p)}
+                            aria-label={p.is_primary ? "当前主页面" : "设为主页面"}
+                          >
+                            {p.is_primary ? <StarFilled /> : <StarOutlined />}
+                          </button>
+                        </Tooltip>
+                      </div>
                       <div className="pf-persona-sub">
                         <button
                           type="button"

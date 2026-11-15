@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Dropdown, Segmented, Space, Tooltip, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
+  AppstoreOutlined,
   ArrowLeftOutlined,
   BgColorsOutlined,
+  BookOutlined,
   DownloadOutlined,
   FullscreenExitOutlined,
   FullscreenOutlined,
@@ -13,6 +15,7 @@ import {
   SwapOutlined,
 } from "@ant-design/icons";
 import { request } from "../lib/api.js";
+import { useMe } from "../lib/me.js";
 import { useChat } from "../hooks/useChat.js";
 import { useThemeVars } from "../hooks/useThemeVars.js";
 import {
@@ -54,7 +57,33 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   const [themeOpen, setThemeOpen] = useState(false);
   // 重建：改限定词后重跑五步链路（覆盖当前 / 另建），入口在头部
   const [rebuildOpen, setRebuildOpen] = useState(false);
+  // 新建：站点下拉里直接打开轻弹窗（与重建共用 PersonaBriefModal）
+  const [createOpen, setCreateOpen] = useState(false);
   const goBuild = ({ body, preset }) => navigate("/build", { state: { body, preset } });
+  // 站点下拉：全局导航（新建 / 人格库 / 换场景）+ 今日配额展示
+  const me = useMe();
+  const genLeft = me ? me.quota_gen_daily - me.quota_gen_used : null;
+  const chatLeft = me ? me.quota_chat_daily - me.quota_chat_used : null;
+  const siteItems = [
+    { key: "create", icon: <PlusOutlined />, label: "新建人格" },
+    { key: "personas", icon: <BookOutlined />, label: "人格库" },
+    { key: "scene", icon: <SwapOutlined />, label: "换场景" },
+    { type: "divider" },
+    {
+      key: "quota",
+      disabled: true,
+      label: (
+        <span className="pf-quota-menu">
+          今日配额 · 生成 {genLeft ?? "…"} · 对话 {chatLeft ?? "…"}
+        </span>
+      ),
+    },
+  ];
+  const onSite = ({ key }) => {
+    if (key === "create") setCreateOpen(true);
+    else if (key === "personas") navigate("/personas");
+    else if (key === "scene") navigate("/scene");
+  };
   // 全屏沉浸：优先用浏览器全屏 API，被拒（iframe / 权限策略）时退化为 CSS 全屏覆盖
   const [immersive, setImmersive] = useState(false);
   const rootRef = useRef(null);
@@ -224,6 +253,11 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
           </div>
         </div>
         <Space wrap size={4}>
+          <Dropdown trigger={["click"]} menu={{ items: siteItems, onClick: onSite }}>
+            <Button size="small" type="text" icon={<AppstoreOutlined />}>
+              站点
+            </Button>
+          </Dropdown>
           <Button size="small" type="text" onClick={newConversation} icon={<PlusOutlined />}>
             新会话
           </Button>
@@ -323,6 +357,13 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
         rebuildTargetId={current?.id}
         rebuildName={current?.name}
         onCancel={() => setRebuildOpen(false)}
+        onConfirm={goBuild}
+      />
+
+      <PersonaBriefModal
+        open={createOpen}
+        mode="create"
+        onCancel={() => setCreateOpen(false)}
         onConfirm={goBuild}
       />
     </div>

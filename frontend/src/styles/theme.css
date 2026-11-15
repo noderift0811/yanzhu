@@ -665,6 +665,50 @@ body {
   gap: 6px;
 }
 
+/* 人格卡：名字 + 主页面星标；meta 列让名字行与副标行纵向排布 */
+.pf-persona-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pf-persona-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pf-primary-star {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  color: var(--yz-ink-3);
+  transition: color 0.15s;
+}
+
+.pf-primary-star:hover {
+  color: var(--yz-brand);
+}
+
+.pf-primary-star.is-on {
+  color: var(--yz-brand);
+}
+
+/* 站点下拉里的配额展示项（disabled，只读） */
+.pf-quota-menu {
+  font-size: 12.5px;
+  color: var(--yz-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
 .pf-persona-tags {
   margin-top: 12px;
 }
