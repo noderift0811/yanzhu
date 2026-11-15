@@ -1,4 +1,4 @@
-/* 换骨架选择器 + 骨架 chip：浅色面板，与人格库卡片同一套边框与主色 */
+/* 换骨架选择器 + 骨架 chip：纸感面板，与人格库卡片同一套边框与主色 */
 
 .pf-pick-hint {
   font-size: 12.5px !important;
@@ -15,43 +15,45 @@
   padding: 2px 4px 4px 2px;
 }
 
+/* 骨架卡片是一张张小纸签：细边 + 暖投影，选中时盖赤陶色 */
 .pf-sk-card {
   position: relative;
   display: block;
   width: 100%;
   padding: 11px 12px 12px;
   text-align: left;
-  background: #fff;
-  border: 1px solid #dfe2ec;
-  border-radius: 10px;
+  background: var(--yz-card);
+  border: 1px solid var(--yz-line);
+  border-radius: var(--yz-r-md);
   cursor: pointer;
   font: inherit;
+  box-shadow: 0 1px 0 rgba(84, 62, 44, 0.04);
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
 .pf-sk-card:hover {
-  border-color: #a9aee0;
+  border-color: var(--yz-brand);
 }
 
 .pf-sk-card:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--yz-brand);
   outline-offset: 1px;
 }
 
 .pf-sk-card-on {
-  background: #f6f7ff;
+  background: var(--yz-brand-soft);
 }
 
 .pf-sk-card-sel {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  border-color: var(--yz-brand);
+  box-shadow: 0 0 0 3px rgba(176, 86, 58, 0.14);
 }
 
 .pf-sk-name {
   display: block;
   font-size: 13.5px;
   font-weight: 600;
-  color: #23262f;
+  color: var(--yz-ink);
 }
 
 .pf-sk-visual {
@@ -59,14 +61,14 @@
   margin-top: 3px;
   font-size: 12px;
   line-height: 1.55;
-  color: #6b7280;
+  color: var(--yz-ink-2);
 }
 
 .pf-sk-fit {
   display: block;
   margin-top: 5px;
   font-size: 11.5px;
-  color: #9aa0ad;
+  color: var(--yz-ink-3);
 }
 
 .pf-sk-flag {
@@ -76,8 +78,8 @@
   padding: 0 6px;
   font-size: 10.5px;
   line-height: 16px;
-  color: #4f46e5;
-  background: #eef0fe;
+  color: var(--yz-brand-deep);
+  background: rgba(176, 86, 58, 0.14);
   border-radius: 8px;
 }
 
@@ -86,7 +88,7 @@
   top: 8px;
   right: 9px;
   font-size: 13px;
-  color: #4f46e5;
+  color: var(--yz-brand);
 }
 
 /* 手机上两列，比单列少滑一半；卡片文字各收一档字号 */
@@ -123,21 +125,21 @@
   padding: 0;
   font: inherit;
   font-size: 12.5px;
-  color: #4f46e5;
+  color: var(--yz-brand);
   background: none;
   border: none;
-  border-bottom: 1px dashed rgba(79, 70, 229, 0.45);
+  border-bottom: 1px dashed rgba(176, 86, 58, 0.45);
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
 }
 
 .pf-skeleton-chip:hover {
-  color: #3530b8;
-  border-bottom-color: #3530b8;
+  color: var(--yz-brand-deep);
+  border-bottom-color: var(--yz-brand-deep);
 }
 
 .pf-skeleton-chip:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--yz-brand);
   outline-offset: 2px;
 }
 
@@ -155,9 +157,9 @@
   margin-left: 6px;
   padding: 0;
   font-size: 13px;
-  color: #55606f;
-  background: #f4f5f9;
-  border: 1px solid #e2e5ee;
+  color: var(--yz-ink-2);
+  background: var(--yz-paper-deep);
+  border: 1px solid var(--yz-line);
   border-radius: 6px;
   cursor: pointer;
   vertical-align: middle;
@@ -165,12 +167,12 @@
 }
 
 .pf-theme-chip:hover {
-  color: #4f46e5;
-  background: #f6f7ff;
-  border-color: #b3b8e8;
+  color: var(--yz-brand);
+  background: var(--yz-brand-soft);
+  border-color: var(--yz-brand);
 }
 
 .pf-theme-chip:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--yz-brand);
   outline-offset: 2px;
 }

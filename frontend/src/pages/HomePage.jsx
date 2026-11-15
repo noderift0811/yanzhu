@@ -102,7 +102,7 @@ export default function HomePage() {
               <span className="pf-scene-banner-label">当前场景</span>
               <span className="pf-scene-banner-name">{me?.scene_name || "加载中…"}</span>
               {preset?.subtitle && <span className="pf-scene-banner-sub">{preset.subtitle}</span>}
-              {preset && <Tag color="geekblue">检索语料 · 安全边界 · 默认骨架都按它来</Tag>}
+              {preset && <Tag className="yz-tag-brand">检索语料 · 安全边界 · 默认骨架都按它来</Tag>}
               {!preset && <Tag>无场景注入（对照基线）</Tag>}
             </div>
             <Button size="small" onClick={() => navigate("/scene")}>

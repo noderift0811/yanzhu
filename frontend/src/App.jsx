@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
-import { ConfigProvider, Spin } from "antd";
-import zhCN from "antd/locale/zh_CN";
+import { Spin } from "antd";
 import { bootstrapAuth } from "./lib/api.js";
 import { loadMe, useMe } from "./lib/me.js";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -62,12 +61,10 @@ function Guard({ children, allowNoScene = false }) {
 }
 
 export default function App() {
+  // antd 主题统一在 main.jsx 的 ConfigProvider（纸感 --yz-* 同源）；
+  // 这里原来还有一层 colorPrimary 靛蓝的旧 Provider，会把外壳又刷回默认蓝，已删。
   return (
-    <ConfigProvider
-      locale={zhCN}
-      theme={{ token: { colorPrimary: "#4f46e5", borderRadius: 8 } }}
-    >
-      <HashRouter>
+    <HashRouter>
         <Suspense fallback={<Boot />}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
@@ -80,6 +77,5 @@ export default function App() {
           </Routes>
         </Suspense>
       </HashRouter>
-    </ConfigProvider>
   );
 }
