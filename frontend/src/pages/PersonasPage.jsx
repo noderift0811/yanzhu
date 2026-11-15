@@ -9,6 +9,7 @@ import NameField from "../components/NameField.jsx";
 import Avatar from "../components/Avatar.jsx";
 import SkeletonPicker from "../components/SkeletonPicker.jsx";
 import ThemePanel from "../components/ThemePanel.jsx";
+import PersonaPreview from "../components/PersonaPreview.jsx";
 import { SKELETON_NAMES } from "../components/skeletons/index.js";
 
 // 人格库：卡片网格 + 进入 / 改名 / 换骨架 / 重新生成 / 删除
@@ -123,6 +124,8 @@ export default function PersonasPage() {
               <Col key={p.id} xs={24} sm={12} md={8}>
                 <Card
                   className="pf-persona-card"
+                  /* 封面即这套骨架的实时渲染：一眼看到界面长什么样，而不是读一行字 */
+                  cover={<PersonaPreview persona={p} />}
                   actions={[
                     <Button key="open" type="link" size="small" onClick={() => navigate(`/chat/${p.id}`)}>
                       进入聊天

@@ -1,0 +1,49 @@
+/* 人格库卡片上的界面预览缩略图：骨架本体缩放渲染，零图片 */
+
+.pv-frame {
+  position: relative;
+  height: 168px;
+  overflow: hidden;
+  background: var(--pf-bg, #f6f7fb);
+  border-bottom: 1px solid var(--yz-line);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 骨架按 0.42 缩进小图：舞台给足设计稿尺寸，缩完正好填满 168px 高的窗口。
+   宽度略大于卡片（缩完约 336px），超出部分裁掉即可，消息区居中不受影响。 */
+.pv-stage {
+  width: 800px;
+  height: 400px;
+  zoom: 0.42;
+}
+
+/* 缩略骨架的骨架根需要撑满舞台 */
+.pv-stage > div {
+  height: 100%;
+}
+
+/* 角标：说明这是实时渲染的界面预览，而不是宣传图 */
+.pv-tag {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  background: rgba(20, 16, 12, 0.42);
+  color: rgba(255, 252, 246, 0.92);
+  backdrop-filter: blur(2px);
+}
+
+/* 深色骨架上角标保持原样；浅色骨架上略加深描边保证可读 */
+.pv-frame:not([style*="--pf-bg"]) .pv-tag {
+  background: rgba(46, 42, 37, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-stage * {
+    animation: none !important;
+  }
+}
