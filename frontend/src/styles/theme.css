@@ -1,14 +1,78 @@
 /* 言筑 YanZhu 全局样式：零外部资源，主题由 CSS 自定义属性驱动 */
 
+/* ============================================================
+   设计 token ·「纸感手作」
+   外壳（登录 / 选场景 / 工坊 / 人格库 / 工作台）统一用 --yz-*；
+   16 套骨架仍由各自的 --pf-* 主题驱动，两套互不覆盖——
+   外壳是装作品的纸匣，作品本身保留 AI 生成的风格。
+   ============================================================ */
+:root {
+  /* 纸与墨 */
+  --yz-paper: #f6f1e8;
+  --yz-paper-deep: #efe7d9;
+  --yz-card: #fffdf8;
+  --yz-ink: #2e2a25;
+  --yz-ink-2: #6f6459;
+  --yz-ink-3: #9b8e7f;
+
+  /* 线 */
+  --yz-line: #e6dccc;
+  --yz-line-strong: #d5c7b2;
+
+  /* 赤陶主色 + 墨青辅色 + 印章红 */
+  --yz-brand: #b0563a;
+  --yz-brand-deep: #93452e;
+  --yz-brand-soft: #f7e9df;
+  --yz-pine: #3f5d54;
+  --yz-pine-soft: #e8efe9;
+  --yz-seal: #b3402f;
+
+  /* 字 */
+  --yz-font-serif: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  --yz-font-body: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  /* 形 */
+  --yz-r-sm: 6px;
+  --yz-r-md: 10px;
+  --yz-r-lg: 16px;
+
+  /* 暖色投影：冷灰投影会让纸面发脏 */
+  --yz-shadow-1: 0 1px 2px rgba(84, 62, 44, 0.05), 0 3px 10px rgba(84, 62, 44, 0.05);
+  --yz-shadow-2: 0 2px 4px rgba(84, 62, 44, 0.06), 0 12px 30px rgba(84, 62, 44, 0.09);
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: #f6f7fb;
-  color: #1f2328;
-  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--yz-paper);
+  color: var(--yz-ink);
+  font-family: var(--yz-font-body);
+  /* 极淡的横向纸纹，肉眼几乎不可见，但大面积底色不再是死平一块 */
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(120, 96, 70, 0.018) 0 1px,
+    transparent 1px 4px
+  );
+}
+
+/* 标题用衬线：人格/书信/陪伴的温度主要靠字腔，不靠插画 */
+.pf-home .ant-typography h1,
+.pf-home h1.ant-typography,
+.pf-home h2.ant-typography,
+.pf-home h3.ant-typography,
+.pf-home h4.ant-typography,
+.pf-auth-title,
+.pf-scene-title {
+  font-family: var(--yz-font-serif);
+  letter-spacing: 0.01em;
+}
+
+::selection {
+  background: var(--yz-brand-soft);
+  color: var(--yz-brand-deep);
 }
 
 #root {
@@ -29,49 +93,66 @@ body {
 /* ---------- 布局与头部 ---------- */
 
 .pf-home {
-  max-width: 1080px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 0 16px 48px;
+  padding: 0 20px 56px;
 }
 
 .pf-page {
-  padding-top: 8px;
+  padding-top: 14px;
 }
 
+/* 公共头部：一道墨线 + 品牌印章，不再是一条几乎看不见的灰线 */
 .pf-app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 0;
-  margin-bottom: 12px;
-  border-bottom: 1px solid #e4e7ee;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 0 14px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--yz-line-strong);
 }
 
 .pf-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
+}
+
+.pf-brand .ant-typography {
+  font-family: var(--yz-font-serif);
+  font-size: 19px;
+  letter-spacing: 0.06em;
+  color: var(--yz-ink);
 }
 
 .pf-quota {
   font-size: 12px;
-  color: #5f6b7a;
+  color: var(--yz-ink-2);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  padding: 3px 10px;
+  border: 1px solid var(--yz-line);
+  border-radius: 999px;
+  background: var(--yz-card);
 }
 
+/* 品牌标记做成一方印章：圆角小、带内框，是这套暖色体系的记忆点 */
 .pf-brand-mark {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: #4f46e5;
-  color: #fff;
-  font-size: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: var(--yz-brand);
+  color: #fdf6ee;
+  font-family: var(--yz-font-serif);
+  font-size: 16px;
   font-weight: 600;
+  box-shadow: inset 0 0 0 1.5px rgba(253, 246, 238, 0.45);
 }
 
 /* ---------- 登录 / 注册 ---------- */
@@ -82,32 +163,184 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #f6f7fb;
+  padding: 40px 24px;
+  background: var(--yz-paper);
   overflow: hidden;
 }
 
-/* 蓝图虚框：登录页就预告产品的核心动作——你将看着一页被搭出来 */
+/* 背景里一张旋转的虚线大纸：不抢眼，只交代「这里在搭东西」 */
 .pf-auth::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(452px, calc(100vw - 44px));
-  height: min(544px, calc(100vh - 72px));
-  transform: translate(-50%, -50%) rotate(-1.4deg);
-  border: 1.5px dashed #c9cede;
-  border-radius: 18px;
+  top: -14%;
+  right: -8%;
+  width: 460px;
+  height: 620px;
+  transform: rotate(12deg);
+  border: 1.5px dashed var(--yz-line-strong);
+  border-radius: 22px;
+  opacity: 0.55;
   pointer-events: none;
 }
 
+.pf-auth-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) 400px;
+  gap: 56px;
+  align-items: center;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.pf-auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.pf-auth-brand .pf-brand-mark {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+}
+
+.pf-auth-brand-name {
+  font-family: var(--yz-font-serif);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.pf-auth-brand-en {
+  padding-left: 10px;
+  border-left: 1px solid var(--yz-line-strong);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--yz-ink-3);
+}
+
+.pf-auth-headline {
+  margin: 0 0 16px;
+  font-family: var(--yz-font-serif);
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 600;
+  line-height: 1.42;
+  letter-spacing: 0.02em;
+  color: var(--yz-ink);
+}
+
+.pf-auth-lede {
+  max-width: 430px;
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.95;
+  color: var(--yz-ink-2);
+}
+
+.pf-auth-points {
+  margin: 0 0 26px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 2.15;
+  color: var(--yz-ink-2);
+}
+
+/* 不用图标库：一枚小方印当作列表记号，和印章品牌同一个语言 */
+.pf-auth-points li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.pf-auth-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.82em;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--yz-brand);
+  opacity: 0.75;
+}
+
+.pf-auth-sketch {
+  display: inline-block;
+  padding: 12px 16px 16px;
+  border: 1px solid var(--yz-line);
+  border-radius: var(--yz-r-md);
+  background: var(--yz-card);
+  box-shadow: var(--yz-shadow-1);
+  transform: rotate(-1.1deg);
+}
+
+.pf-sketch-label {
+  display: block;
+  margin-bottom: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--yz-ink-3);
+}
+
+.pf-sketch-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 208px;
+  padding: 12px;
+  border: 1.5px dashed var(--yz-line-strong);
+  border-radius: 8px;
+}
+
+.pf-sketch-line {
+  display: block;
+  height: 7px;
+  border-radius: 3px;
+  background: var(--yz-paper-deep);
+}
+
+.pf-sketch-line.w60 { width: 60%; }
+.pf-sketch-line.w90 { width: 90%; }
+.pf-sketch-line.w75 { width: 75%; }
+
+.pf-sketch-swatches {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.pf-sketch-swatches b {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--yz-brand);
+}
+
+.pf-sketch-swatches b:nth-child(2) { background: var(--yz-pine); }
+.pf-sketch-swatches b:nth-child(3) { background: #d9a441; }
+
 .pf-auth-card {
-  width: 380px;
-  max-width: calc(100vw - 32px);
-  border-radius: 14px;
+  width: 100%;
+  border: 1px solid var(--yz-line);
+  border-radius: var(--yz-r-lg);
+  background: var(--yz-card);
+  box-shadow: var(--yz-shadow-2);
+}
+
+.pf-auth-card .ant-card-body {
+  padding: 26px 26px 22px;
 }
 
 .pf-auth-title {
   margin-bottom: 4px !important;
+}
+
+.pf-auth-sub {
+  font-size: 12.5px;
 }
 
 /* 演示 / 评审账号：账号密码可见 + 一键填充，评委不必先走注册（注册有 IP 限流） */
@@ -119,9 +352,9 @@ body {
   flex-wrap: wrap;
   margin-top: 14px;
   padding: 8px 10px;
-  border: 1px dashed #d7dbe8;
+  border: 1px dashed var(--yz-line);
   border-radius: 10px;
-  background: #fafbff;
+  background: var(--yz-card);
 }
 
 .pf-demo-text {
@@ -133,7 +366,7 @@ body {
 
 .pf-demo-label {
   font-size: 12px;
-  color: #8a90a6;
+  color: var(--yz-ink-3);
 }
 
 .pf-demo-cred {
@@ -147,18 +380,72 @@ body {
 .pf-demo-cred code {
   padding: 1px 5px;
   border-radius: 4px;
-  background: #eef1fb;
-  color: #4f46e5;
+  background: var(--yz-brand-soft);
+  color: var(--yz-brand);
 }
 
 .pf-demo-sep {
   color: #b9bfd0;
 }
 
+@media (max-width: 900px) {
+  .pf-auth-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    max-width: 420px;
+  }
+
+  /* 手机上品牌区收成一小段，别把表单挤到一屏之外 */
+  .pf-auth-intro {
+    text-align: left;
+  }
+
+  .pf-auth-brand {
+    margin-bottom: 14px;
+  }
+
+  .pf-auth-headline {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .pf-auth-headline br {
+    display: none;
+  }
+
+  .pf-auth-lede {
+    font-size: 13px;
+    margin-bottom: 0;
+  }
+
+  .pf-auth-points,
+  .pf-auth-sketch {
+    display: none;
+  }
+
+  .pf-auth::before {
+    display: none;
+  }
+}
+
+/* 品牌印章色 Tag：纸感外壳里不再用 antd 预设彩色（geekblue 等与暖纸打架） */
+.yz-tag-brand {
+  background: var(--yz-brand-soft);
+  border-color: rgba(176, 86, 58, 0.35);
+  color: var(--yz-brand-deep);
+}
+
 /* ---------- 输入向导 ---------- */
 
 .pf-wizard {
-  border-radius: 14px;
+  border: 1px solid var(--yz-line);
+  border-radius: var(--yz-r-lg);
+  background: var(--yz-card);
+  box-shadow: var(--yz-shadow-1);
+}
+
+.pf-wizard .ant-card-body {
+  padding: 26px 28px;
 }
 
 .pf-steps {
@@ -181,26 +468,29 @@ body {
   gap: 8px;
 }
 
+/* 标签是一枚枚小纸签：小圆角、细边、一点厚度，选中时盖上赤陶色 */
 .pf-tag {
-  border: 1px solid #d8dbe6;
-  background: #fff;
-  color: #3a4152;
-  border-radius: 16px;
-  padding: 3px 13px;
+  border: 1px solid var(--yz-line-strong);
+  background: var(--yz-card);
+  color: var(--yz-ink-2);
+  border-radius: 7px;
+  padding: 4px 12px;
   font-size: 13px;
   cursor: pointer;
   transition: all 0.15s;
+  box-shadow: 0 1px 0 rgba(84, 62, 44, 0.05);
 }
 
 .pf-tag:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--yz-brand);
+  background: var(--yz-brand-soft);
+  color: var(--yz-brand-deep);
 }
 
 .pf-tag-on {
-  background: #eef0fe;
-  border-color: #4f46e5;
-  color: #3b3f8c;
+  background: var(--yz-brand-soft);
+  border-color: var(--yz-brand);
+  color: var(--yz-brand-deep);
   font-weight: 600;
 }
 
@@ -222,11 +512,11 @@ body {
 .pf-tag-total {
   margin-bottom: 10px;
   font-size: 12px;
-  color: #8a90a2;
+  color: var(--yz-ink-3);
 }
 
 .pf-tag-total b {
-  color: #4f46e5;
+  color: var(--yz-brand);
 }
 
 .pf-tag-total-hint {
@@ -277,7 +567,7 @@ body {
 .pf-build-hint {
   margin-top: 12px;
   font-size: 13px;
-  color: #5f6b7a;
+  color: var(--yz-ink-2);
   font-variant-numeric: tabular-nums;
 }
 
@@ -290,16 +580,44 @@ body {
 
 /* ---------- 人格库 ---------- */
 
+/* 卡片是一张贴在纸面上的作品卡：纸色底、暖线描边、轻投影，悬停时轻轻抬起 */
 .pf-persona-card {
-  border-radius: 12px;
+  border: 1px solid var(--yz-line);
+  border-radius: var(--yz-r-md);
+  background: var(--yz-card);
+  box-shadow: var(--yz-shadow-1);
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
 }
 
-/* 同一行的卡片内容多少不一（标签数不同），让操作条统一下沉到底部 */
+.pf-persona-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--yz-line-strong);
+  box-shadow: var(--yz-shadow-2);
+}
+
+/* 封面预览与卡片同圆角、无内边距 */
+.pf-persona-card .ant-card-cover {
+  margin: 0;
+}
+
 .pf-persona-card .ant-card-body {
   flex: 1;
+  padding: 16px 18px;
+}
+
+/* 操作条：一条细墨线分隔，不再用 antd 默认灰底 */
+.pf-persona-card .ant-card-actions {
+  background: transparent;
+  border-top: 1px solid var(--yz-line);
+}
+
+.pf-persona-card .ant-card-actions > li {
+  border-inline-end: 1px solid var(--yz-line);
+  margin: 5px 0;
 }
 
 .pf-persona-head {
@@ -310,7 +628,7 @@ body {
 
 .pf-persona-sub {
   font-size: 12.5px;
-  color: #5f6b7a;
+  color: var(--yz-ink-2);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -353,7 +671,7 @@ body {
   display: block;
   font-size: 13px;
   letter-spacing: 1px;
-  color: #5f6b7a;
+  color: var(--yz-ink-2);
   margin-bottom: 18px;
 }
 
@@ -367,12 +685,12 @@ body {
   flex-direction: column;
   gap: 10px;
   padding: 18px;
-  border: 1.5px dashed #c9cede;
+  border: 1.5px dashed var(--yz-line-strong);
   border-radius: 12px;
 }
 
 .pf-wire {
-  background: #eceef5;
+  background: var(--yz-paper-deep);
   border-radius: 6px;
   animation: pf-pulse 1.1s ease-in-out infinite;
 }
@@ -431,7 +749,7 @@ body {
 
 .pf-build-note {
   font-size: 12.5px;
-  color: #5f6b7a;
+  color: var(--yz-ink-2);
   margin-top: 4px;
 }
 
@@ -439,7 +757,7 @@ body {
   display: inline-block;
   max-width: 100%;
   background: var(--pf-surface, #fff);
-  border: 1px solid #e4e7ee;
+  border: 1px solid var(--yz-line);
   border-radius: 12px;
   padding: 10px 16px;
   text-align: left;
@@ -465,7 +783,7 @@ body {
 
 .pf-build-skip {
   margin-top: 6px;
-  color: #8a93a6 !important;
+  color: var(--yz-ink-3) !important;
 }
 
 /* ---------- 聊天页 ---------- */
@@ -555,7 +873,7 @@ body {
   justify-content: center;
   align-items: center;
   padding: 60px 0;
-  color: #5f6b7a;
+  color: var(--yz-ink-2);
 }
 
 /* ---------- 极简骨架（消息区 + 输入区） ---------- */

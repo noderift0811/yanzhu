@@ -1,11 +1,11 @@
-/* 场景选择页 + 首页场景条 + 悬浮球工作台：沿用 theme.css 的浅色体系 */
+/* 场景选择页 + 首页场景条 + 悬浮球工作台：与 theme.css 共用 --yz-* 纸感 token */
 
 /* ---------- 选场景页 ---------- */
 
 .pf-scene {
   min-height: 100vh;
   padding: 48px 20px 64px;
-  background: #f6f7fb;
+  background: var(--yz-paper);
 }
 
 .pf-scene-inner {
@@ -25,11 +25,11 @@
 .pf-scene-demo {
   margin-bottom: 16px;
   padding: 10px 12px;
-  border: 1px dashed #b9c4e8;
+  border: 1px dashed var(--yz-line-strong);
   border-radius: 10px;
-  background: #f3f6ff;
+  background: var(--yz-brand-soft);
   font-size: 13px;
-  color: #3f4c78;
+  color: var(--yz-brand-deep);
 }
 
 .pf-scene-grid {
@@ -38,10 +38,14 @@
   gap: 14px;
 }
 
+/* 场景卡 = 一张样本卡：顶部色带交代场景气质，卡面是纸，hover 时轻轻抬起 */
 .pf-scene-card {
   position: relative;
   overflow: hidden;
-  border-radius: 14px;
+  border: 1px solid var(--yz-line);
+  border-radius: var(--yz-r-md);
+  background: var(--yz-card);
+  box-shadow: var(--yz-shadow-1);
   cursor: pointer;
   transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
 }
@@ -50,18 +54,19 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px 16px 16px 20px;
+  padding: 20px 18px 18px;
 }
 
 .pf-scene-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(31, 35, 40, 0.08);
+  transform: translateY(-3px);
+  border-color: var(--yz-line-strong);
+  box-shadow: var(--yz-shadow-2);
 }
 
 .pf-scene-card.is-on {
-  border-color: #4f46e5;
-  box-shadow: inset 0 0 0 1px #4f46e5;
-  background: #fafaff;
+  border-color: var(--yz-brand);
+  box-shadow: inset 0 0 0 1px var(--yz-brand), var(--yz-shadow-1);
+  background: var(--yz-brand-soft);
 }
 
 .pf-scene-card.is-locked {
@@ -73,11 +78,10 @@
 
 .pf-scene-bar {
   position: absolute;
-  top: 16px;
-  bottom: 16px;
+  top: 0;
   left: 0;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
+  right: 0;
+  height: 5px;
 }
 
 .pf-scene-head {
@@ -88,15 +92,17 @@
 }
 
 .pf-scene-name {
-  font-size: 16px;
+  font-family: var(--yz-font-serif);
+  font-size: 18px;
   font-weight: 600;
-  color: #1f2328;
+  letter-spacing: 0.02em;
+  color: var(--yz-ink);
 }
 
 .pf-scene-subtitle {
   font-size: 12px;
   line-height: 1.6;
-  color: #5f6b7a;
+  color: var(--yz-ink-2);
 }
 
 .pf-scene-points {
@@ -104,7 +110,7 @@
   padding-left: 16px;
   font-size: 12px;
   line-height: 1.9;
-  color: #3d4356;
+  color: var(--yz-ink-2);
 }
 
 .pf-scene-tags {
@@ -121,7 +127,7 @@
 
 .pf-scene-empty {
   font-size: 12px;
-  color: #8a90a6;
+  color: var(--yz-ink-3);
 }
 
 .pf-scene-foot {
@@ -147,9 +153,9 @@
   flex-wrap: wrap;
   margin-bottom: 18px;
   padding: 12px 14px;
-  border: 1px solid #e4e7ee;
+  border: 1px solid var(--yz-line);
   border-radius: 12px;
-  background: #fafbff;
+  background: var(--yz-card);
 }
 
 .pf-scene-banner-main {
@@ -161,18 +167,18 @@
 
 .pf-scene-banner-label {
   font-size: 12px;
-  color: #8a90a6;
+  color: var(--yz-ink-3);
 }
 
 .pf-scene-banner-name {
   font-size: 15px;
   font-weight: 600;
-  color: #1f2328;
+  color: var(--yz-ink);
 }
 
 .pf-scene-banner-sub {
   font-size: 12px;
-  color: #5f6b7a;
+  color: var(--yz-ink-2);
 }
 
 /* ---------- 悬浮球工作台 ---------- */
@@ -190,20 +196,20 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #4f46e5;
+  background: var(--yz-brand);
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.32);
+  box-shadow: 0 8px 20px rgba(176, 86, 58, 0.28);
   transition: transform 0.18s, box-shadow 0.18s;
 }
 
 .pf-fab:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 10px 24px rgba(176, 86, 58, 0.36);
 }
 
 .pf-fab:focus-visible {
-  outline: 2px solid #a5b4fc;
+  outline: 2px solid var(--yz-brand);
   outline-offset: 3px;
 }
 
@@ -214,9 +220,9 @@
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
-  border: 2px solid #fff;
+  border: 2px solid var(--yz-card);
   border-radius: 9px;
-  background: #ef4444;
+  background: var(--yz-seal);
   color: #fff;
   font-size: 11px;
   line-height: 14px;
@@ -226,7 +232,7 @@
 .pf-fab-section {
   padding-bottom: 18px;
   margin-bottom: 18px;
-  border-bottom: 1px solid #eef0f5;
+  border-bottom: 1px solid var(--yz-line);
 }
 
 .pf-fab-section:last-child {
@@ -251,7 +257,7 @@
 .pf-fab-scene-name {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2328;
+  color: var(--yz-ink);
 }
 
 .pf-fab-hint {
@@ -266,7 +272,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px dashed #eef0f5;
+  border-bottom: 1px dashed var(--yz-line);
 }
 
 .pf-fab-row:last-of-type {
@@ -275,13 +281,13 @@
 
 .pf-fab-row-title {
   font-size: 13px;
-  color: #1f2328;
+  color: var(--yz-ink);
 }
 
 .pf-fab-row-hint {
   font-size: 11px;
   line-height: 1.6;
-  color: #8a90a6;
+  color: var(--yz-ink-3);
 }
 
 @media (max-width: 980px) {
@@ -318,5 +324,5 @@
 .pf-scene-brand-name {
   font-size: 15px;
   font-weight: 600;
-  color: #1f2328;
+  color: var(--yz-ink);
 }
