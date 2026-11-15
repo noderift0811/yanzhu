@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>言筑 YanZhu · 提交说明</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  :root {
+    --paper: #fbf8f2;
+    --paper-deep: #f4eee3;
+    --card: #fffdf8;
+    --ink: #2b2622;
+    --ink-2: #5f574d;
+    --ink-3: #8a7f72;
+    --line: #e4d9c8;
+    --brand: #b0563a;
+    --brand-deep: #8f442c;
+    --pine: #3f5d54;
+  }
+  html, body { margin: 0; padding: 0; background: var(--paper); }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+    color: var(--ink);
+    font-size: 9.6pt;
+    line-height: 1.72;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page {
+    width: 210mm;
+    height: 297mm;
+    padding: 15mm 16mm 13mm;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    background: var(--paper);
+  }
+  .page:last-child { page-break-after: auto; }
+  .pnum {
+    position: absolute; right: 16mm; bottom: 7mm;
+    font-size: 8pt; color: var(--ink-3); letter-spacing: .08em;
+  }
+  .runhead {
+    position: absolute; left: 16mm; right: 16mm; top: 7mm;
+    display: flex; justify-content: space-between;
+    font-size: 7.6pt; color: var(--ink-3); letter-spacing: .06em;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 3mm;
+  }
+
+  h1, h2, h3 { font-family: "SimSun", "Songti SC", serif; font-weight: 700; margin: 0; }
+  h2 {
+    font-size: 15pt; letter-spacing: .02em;
+    padding-left: 7mm; position: relative; margin: 0 0 4mm;
+  }
+  h2::before {
+    content: ""; position: absolute; left: 0; top: 1.4mm;
+    width: 2.4mm; height: 6.4mm; background: var(--brand); border-radius: .6mm;
+  }
+  h2 small { font-family: inherit; font-size: 8.5pt; color: var(--ink-3); margin-left: 3mm; font-weight: 400; }
+  h3 {
+    font-size: 10.8pt; margin: 5mm 0 2mm; color: var(--brand-deep);
+    border-left: 2px solid var(--brand); padding-left: 2.5mm;
+  }
+  p { margin: 0 0 2.6mm; color: var(--ink-2); }
+  p.lead { color: var(--ink); font-size: 10pt; }
+  strong { color: var(--ink); }
+  em { font-style: normal; color: var(--brand-deep); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 3mm; font-size: 8.4pt; }
+  th, td { border: 1px solid var(--line); padding: 1.6mm 2mm; text-align: left; vertical-align: top; }
+  th { background: var(--paper-deep); color: var(--ink); font-weight: 700; }
+  td { color: var(--ink-2); background: var(--card); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.total td { background: var(--paper-deep); font-weight: 700; color: var(--ink); }
+  code, .mono {
+    font-family: Consolas, "Cascadia Mono", monospace;
+    font-size: 8.2pt; background: var(--paper-deep);
+    padding: .3mm 1.2mm; border-radius: .8mm; color: var(--brand-deep);
+  }
+
+  .note {
+    background: var(--card); border: 1px solid var(--line);
+    border-left: 2.6px solid var(--brand);
+    padding: 2.6mm 3.4mm; margin: 2.6mm 0 3mm; font-size: 8.6pt;
+  }
+  .note b { color: var(--brand-deep); }
+
+  .shot { border: 1px solid var(--line); background: var(--card); padding: 2mm; }
+  .shot img { width: 100%; display: block; }
+  .cap { font-size: 7.8pt; color: var(--ink-3); margin-top: 1.4mm; letter-spacing: .02em; }
+  .figs { display: flex; gap: 4mm; }
+  .figs > div { flex: 1; }
+
+  pre.json {
+    background: var(--paper-deep); border: 1px solid var(--line);
+    padding: 2.6mm 3mm; font-family: Consolas, monospace; font-size: 7.9pt;
+    line-height: 1.6; color: var(--ink-2); margin: 2mm 0 3mm;
+    white-space: pre-wrap;
+  }
+  pre.json b { color: var(--brand-deep); }
+
+  ul, ol { margin: 0 0 2.6mm; padding-left: 5mm; color: var(--ink-2); }
+  li { margin-bottom: 1.2mm; }
+
+  /* ---------- 封面 ---------- */
+  .cover { display: flex; flex-direction: column; justify-content: space-between; }
+  .cover-top { margin-top: 26mm; }
+  .seal {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15mm; height: 15mm; background: var(--brand); color: #fffaf3;
+    font-family: "SimSun", serif; font-size: 20pt; border-radius: 2mm;
+    margin-bottom: 8mm;
+  }
+  .cover h1 { font-size: 42pt; letter-spacing: .06em; line-height: 1.1; }
+  .cover .en { font-family: Georgia, serif; font-size: 12pt; color: var(--ink-3); letter-spacing: .28em; margin-top: 3mm; }
+  .cover .tagline {
+    font-family: "SimSun", serif; font-size: 14pt; color: var(--brand-deep);
+    margin-top: 10mm; padding-left: 5mm; border-left: 3px solid var(--brand); line-height: 1.7;
+  }
+  .cover-meta { border-top: 1px solid var(--line); padding-top: 5mm; font-size: 9pt; }
+  .cover-meta table { font-size: 9pt; margin: 0; }
+  .cover-meta th { width: 26mm; background: transparent; border: none; border-bottom: 1px solid var(--line); color: var(--ink-3); font-weight: 400; padding: 2mm 0; }
+  .cover-meta td { background: transparent; border: none; border-bottom: 1px solid var(--line); color: var(--ink); padding: 2mm 0; }
+
+  /* ---------- 目录 ---------- */
+  .toc { margin-top: 2mm; }
+  .toc div { display: flex; align-items: baseline; gap: 2mm; padding: 1.7mm 0; border-bottom: 1px dotted var(--line); }
+  .toc span.t { font-size: 9.6pt; color: var(--ink); }
+  .toc span.d { flex: 1; border-bottom: 1px dotted var(--line); height: 0; transform: translateY(-1mm); }
+  .toc span.p { font-size: 8.6pt; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .toc div.sub span.t { padding-left: 6mm; font-size: 9pt; color: var(--ink-2); }
+
+  .kpis { display: flex; gap: 3mm; margin: 3mm 0 4mm; }
+  .kpi {
+    flex: 1; background: var(--card); border: 1px solid var(--line);
+    border-top: 2.4px solid var(--brand); padding: 3mm; text-align: center;
+  }
+  .kpi b { display: block; font-family: Georgia, serif; font-size: 17pt; color: var(--brand-deep); line-height: 1.2; }
+  .kpi span { font-size: 7.8pt; color: var(--ink-3); }
+
+  .flow { display: flex; align-items: stretch; gap: 0; margin: 3mm 0 4mm; }
+  .flow .node {
+    flex: 1; background: var(--card); border: 1px solid var(--line);
+    padding: 2.4mm 2mm; text-align: center; font-size: 8.2pt;
+  }
+  .flow .node b { display: block; font-size: 8.8pt; color: var(--brand-deep); margin-bottom: .8mm; }
+  .flow .arrow { display: flex; align-items: center; padding: 0 1.4mm; color: var(--brand); font-size: 10pt; }
+</style>
+</head>
+<body>
+
+<!-- ===================== 1 封面 ===================== -->
+<section class="page cover">
+  <div class="cover-top">
+    <div class="seal">言</div>
+    <h1>言筑</h1>
+    <div class="en">YANZHU</div>
+    <div class="tagline">输入几个人格限定词，<br />AI 交付的不是一段文字，<br />而是一整个可以住进去的网站。</div>
+    <p style="margin-top:14mm;max-width:118mm;font-size:9pt;line-height:1.9;color:#5f574d">
+      言筑是一个把 LLM 的结构化输出装配成可交互界面的生成器：它把「生成」拆成五步并实时展示，
+      把「场景」做成服务端强制的约束，把「安全」做成确定性的边界注入。
+      这份文档说明它为什么这样设计、如何验证，以及边界在哪里。
+    </p>
+  </div>
+  <div class="cover-meta">
+    <table>
+      <tr><th>参赛赛项</th><td>第九届传智杯 · 全国大学生计算机应用能力与数字素养大赛 ｜ AI WEB 网页开发挑战赛</td></tr>
+      <tr><th>队名</th><td>未命名者</td></tr>
+      <tr><th>团队成员</th><td>郭毅豪 · 罗尉 · 蒙睿曦</td></tr>
+      <tr><th>指导老师</th><td>魏阳</td></tr>
+      <tr><th>院校</th><td>绵阳城市学院</td></tr>
+      <tr><th>选题归类</th><td>自拟选题（主贴方向 3 多模态 AI 创意平台，横跨 4、10）</td></tr>
+      <tr><th>作品仓库</th><td>github.com/noderift0811/yanzhu</td></tr>
+      <tr><th>文档版本</th><td>提交说明 v1.0 · 2026-11-16</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 2 目录 + 速览 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>目录</span></div>
+  <h2>目录<small>Contents</small></h2>
+
+  <div class="kpis">
+    <div class="kpi"><b>16</b><span>手写骨架</span></div>
+    <div class="kpi"><b>5</b><span>约束场景</span></div>
+    <div class="kpi"><b>42</b><span>场景语料</span></div>
+    <div class="kpi"><b>7</b><span>Agent 工具</span></div>
+    <div class="kpi"><b>5</b><span>Agent 步骤</span></div>
+  </div>
+
+  <div class="toc">
+    <div><span class="t">一、作品定位：为什么是「AI 生成界面」</span><span class="d"></span><span class="p">03</span></div>
+    <div><span class="t">二、产品形态：专属网站模式</span><span class="d"></span><span class="p">04</span></div>
+    <div><span class="t">三、AI 技术深度（35% 评分对照）</span><span class="d"></span><span class="p">05</span></div>
+    <div class="sub"><span class="t">3.1 LLM 与结构化 spec</span><span class="d"></span><span class="p">06</span></div>
+    <div class="sub"><span class="t">3.2 五步 Agent 主链路</span><span class="d"></span><span class="p">07</span></div>
+    <div class="sub"><span class="t">3.3 RAG：分场景检索与查询改写</span><span class="d"></span><span class="p">09</span></div>
+    <div class="sub"><span class="t">3.4 AI 安全：四级护栏与边界注入</span><span class="d"></span><span class="p">10</span></div>
+    <div class="sub"><span class="t">3.5 MCP 风格工具层</span><span class="d"></span><span class="p">11</span></div>
+    <div class="sub"><span class="t">3.6 多模态：文本到界面的最小验证</span><span class="d"></span><span class="p">12</span></div>
+    <div><span class="t">四、场景制与账号级锁定</span><span class="d"></span><span class="p">14</span></div>
+    <div><span class="t">五、技术架构与数据模型</span><span class="d"></span><span class="p">15</span></div>
+    <div><span class="t">六、产品细节：看得见的 AI 过程</span><span class="d"></span><span class="p">16</span></div>
+    <div><span class="t">七、验收基线与复现方式</span><span class="d"></span><span class="p">17</span></div>
+    <div><span class="t">八、工程规范、安全与配置</span><span class="d"></span><span class="p">18</span></div>
+    <div><span class="t">九、已知限制与路线图</span><span class="d"></span><span class="p">19</span></div>
+    <div><span class="t">十、团队分工与原创声明</span><span class="d"></span><span class="p">20</span></div>
+  </div>
+
+  <h3>一句话速览</h3>
+  <p class="lead">言筑是一个<strong>人格页面生成器</strong>：用户给出几个标签和一段描述，工程师 AI 把它扩写成一份结构化 <code>spec JSON</code>（人设提示词 + 骨架 id + 主题 token + 界面文案），前端据此装配出一套完整可交互的人格聊天页；此后人格 AI 以 SSE 流式驱动对话。</p>
+  <p>生成过程不是一次黑盒调用，而是一条<strong>可见的五步 Agent 链路</strong>：检索 → 规划 → 生成 → 校验 → 兜底。每一步调用的工具、参数、检索证据与护栏判定，都通过 SSE 实时推到页面。用户可以看着自己的页面被"施工"出来。</p>
+  <div class="note">
+    <b>一句话区分同类作品：</b>大多数 AI 应用把模型塞进一个固定对话框里；言筑把模型的产物做成了<em>界面本身</em>。移除 AI，这个作品既不剩场景约束，也不剩任何页面。
+  </div>
+
+  <div class="pnum">02</div>
+</section>
+
+<!-- ===================== 3 作品定位 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>一、作品定位</span></div>
+  <h2>一、作品定位<small>为什么是「AI 生成界面」</small></h2>
+
+  <h3>1.1 观察到的空缺</h3>
+  <p>AI 应用在 2025—2026 年的主流形态，仍然是把模型能力塞进一个固定的聊天框：侧边栏选角色，中间气泡对话，右侧可能挂一个文档面板。产品差异被压缩到"角色提示词写得好不好"这一层，界面本身是常量。</p>
+  <p>但用户对"陪伴"这类需求的真实期待，往往包含<strong>空间感</strong>：有人想要手账的私密与缓慢，有人想要终端窗口的干净利落，有人想要电台夜话的氛围。同一句"我有点累"，在三种界面里的感受完全不同。<strong>界面是语义的一部分，不是包装。</strong></p>
+
+  <h3>1.2 我们的回答：把界面变成模型的输出</h3>
+  <p>言筑让 LLM 产出的不是一句话，而是一份可校验的结构化规格。这份规格里没有任何代码——只有一个受约束的 <code>skeleton_id</code>、一套主题 token、一段人设提示词和若干界面文案。前端拿到规格后，用预置的骨架把它装配成一个真实可用的页面。</p>
+  <div class="flow">
+    <div class="node"><b>限定词</b>标签 + 描述</div>
+    <div class="arrow">→</div>
+    <div class="node"><b>工程师 AI</b>结构化 spec JSON</div>
+    <div class="arrow">→</div>
+    <div class="node"><b>校验层</b>schema / 护栏 / 边界</div>
+    <div class="arrow">→</div>
+    <div class="node"><b>装配</b>16 骨架 × 主题 token</div>
+    <div class="arrow">→</div>
+    <div class="node"><b>人格 AI</b>SSE 流式对话</div>
+  </div>
+  <p>这条设计有一个关键的工程后果：<strong>AI 的自由度被限制在"选择与填充"，而不是"发明"</strong>。骨架是人工设计的 16 套，主题 token 有明暗成套约束，文案有长度与禁区校验。因此产出稳定、可预期、不会生成半截坏页面——这是把生成式能力做成产品的前提。</p>
+
+  <h3>1.3 与三类常见做法的差异</h3>
+  <table>
+    <tr><th style="width:30mm">做法</th><th>典型形态</th><th>局限</th><th style="width:44mm">言筑的选择</th></tr>
+    <tr><td>提示词市场</td><td>选一个角色，复制提示词进通用客户端</td><td>界面完全不参与表达</td><td>界面即产物，每个角色有自己的骨架与配色</td></tr>
+    <tr><td>AI 建站工具</td><td>生成整页 HTML/React 代码</td><td>结构不可控、样式易崩、难以校验</td><td>LLM 只产 JSON，禁止产代码；骨架预置</td></tr>
+    <tr><td>固定聊天套壳</td><td>多角色共用一个对话框皮肤</td><td>人格差异只剩气泡文案</td><td>16 套骨架承载不同的空间隐喻</td></tr>
+  </table>
+
+  <h3>1.4 诚实边界</h3>
+  <ul>
+    <li>多模态只做<strong>文本到界面视觉</strong>的最小验证，未接入图像 / 语音生成。</li>
+    <li>端云协同（WebGPU / ONNX Runtime Web）在 8 天窗口内不可行，明确放弃，不写进路线图承诺。</li>
+    <li>心理陪伴场景的语料是人工整理的公开科普与沟通共识，<strong>不是临床诊疗指南</strong>，产品不提供诊断、评估或干预建议。</li>
+  </ul>
+
+  <div class="pnum">03</div>
+</section>
+
+<!-- ===================== 4 专属网站模式 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>二、产品形态</span></div>
+  <h2>二、产品形态<small>专属网站模式：言筑是脚手架，产物是用户的站点</small></h2>
+
+  <p class="lead">很多生成式产品死在"第二次打开"上：用户辛苦生成的东西，被产品自己的首页、引导、功能介绍埋在下面。言筑的做法是——<strong>言筑自己的页面只出现一次</strong>。用户第一次把限定词交给 AI 之后，生成出的人格页就是他的网站；此后每次登录，直接落在自己搭好的页面上。</p>
+
+  <h3>2.1 三条登录落点</h3>
+  <table>
+    <tr><th style="width:42mm">账号状态</th><th style="width:38mm">落点</th><th>说明</th></tr>
+    <tr><td>已有主页面</td><td><code>/chat/:id</code></td><td>直接进入自己的站点，不经过任何引导页</td></tr>
+    <tr><td>已选场景、还没有人格</td><td><code>/start</code> 开站页</td><td>品牌 + 三句话 +「开始搭建」，是唯一的"空地"状态</td></tr>
+    <tr><td>还没选场景</td><td><code>/scene</code></td><td>先完成账号级场景选择，再回开站页</td></tr>
+  </table>
+  <p>主页面记录在 <code>users.primary_persona_id</code>，生成第一个页面时自动设为落点；人格库卡片名字旁的星标可随时改（不调 LLM、不耗生成配额）。删除主页面会自动顺延到剩余最早的人格，换场景归档后清空落点——<strong>任何一条路径都不会把用户扔回引导页。</strong></p>
+
+  <h3>2.2 建站四步</h3>
+  <div class="flow">
+    <div class="node"><b>① 选场景</b>账号级唯一</div>
+    <div class="arrow">→</div>
+    <div class="node"><b>② 填限定词</b>轻弹窗：标签 + 描述 + 名字</div>
+    <div class="arrow">→</div>
+    <div class="node"><b>③ 看施工</b><code>/build</code> 五步实时</div>
+    <div class="arrow">→</div>
+    <div class="node"><b>④ 入住</b>自动落聊天页并设为主页面</div>
+  </div>
+
+  <div class="figs" style="margin-top:4mm">
+    <div class="shot">
+      <img src="screenshots/02-start.png" alt="开站页" />
+      <div class="cap">图 1　开站页：还没有站点时的唯一落点，三句话讲清"会把第一个页面当作你的站点"</div>
+    </div>
+    <div class="shot">
+      <img src="screenshots/01-login.png" alt="登录页" />
+      <div class="cap">图 2　登录页：左侧品牌叙事，右侧登录卡；评委可点「一键填充」直接进入演示账号</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>为什么这个取舍值得：</b>它把"产品自证"的负担从首页转移到产物本身。用户不需要读懂功能介绍，他登录后看到的第一屏就是自己做出来的东西——这比任何 onboarding 都有说服力。
+  </div>
+
+  <div class="pnum">04</div>
+</section>
+
+<!-- ===================== 5 AI 技术深度总表 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>三、AI 技术深度</span></div>
+  <h2>三、AI 技术深度<small>35% 评分项的逐条落点</small></h2>
+
+  <p>下面每一项都可以在仓库里指到具体文件，也可以在产品里点到具体入口。我们尽量避免"用了 RAG"这类无法验证的表述，而是给出可现场复现的验证路径。</p>
+
+  <table>
+    <tr>
+      <th style="width:26mm">评分项</th><th style="width:13mm">权重</th>
+      <th>本作品落点</th><th style="width:44mm">可验证入口</th>
+    </tr>
+    <tr>
+      <td><b>LLM</b></td><td class="num">8</td>
+      <td>双模型分工：工程师模型产出结构化 spec JSON（质量优先），人格模型驱动实时对话（首 token 优先）。模型只产数据不产代码，输出经 Pydantic schema 校验后才可装配。</td>
+      <td><code>POST /api/personas</code><br /><code>POST /api/agent/build</code><br />16 套骨架画廊</td>
+    </tr>
+    <tr>
+      <td><b>Agent</b></td><td class="num">8</td>
+      <td>五步显式编排 retrieve → plan → generate → validate → fallback；每步的工具调用、参数与结论通过 SSE 推送；规划优先 LLM，超时 12 秒降级确定性规则。</td>
+      <td><code>/build</code> 页面时间线<br />工具调用面板<br />规划决策面板</td>
+    </tr>
+    <tr>
+      <td><b>RAG</b></td><td class="num">6</td>
+      <td>42 条人工整理语料按 4 个场景分库（care 18 / study 8 / workplace 8 / relation 8）；中文单字 + bigram 的 BM25-lite；只在本场景索引内检索；口语危机表达做查询改写；命中证据注入提示词。</td>
+      <td><code>GET /api/meta/knowledge?q=…&amp;preset_id=care</code><br />时间线「检索证据」面板</td>
+    </tr>
+    <tr>
+      <td><b>多模态</b></td><td class="num">5</td>
+      <td>文本语义到视觉的最小闭环：标签与描述决定骨架选择、主题 token（五色 + 字体 + 装饰）与界面文案，产出的是可交互界面而非图片。</td>
+      <td>同一段描述换标签<br />→ 骨架与配色改变</td>
+    </tr>
+    <tr>
+      <td><b>AI 安全</b></td><td class="num">4</td>
+      <td>危机识别、医疗越界、否定感受措辞、场景专属红线、PII 脱敏；按场景分级 strict / normal / loose；有否定语境豁免；安全边界确定性写入 <code>system_prompt</code>；越界转确定性兜底并标记待复核。</td>
+      <td>把描述改成危机表达<br />→ 护栏给出求助资源</td>
+    </tr>
+    <tr>
+      <td><b>MCP</b></td><td class="num">4</td>
+      <td>7 个工具以 name / description / inputSchema 三件套注册，统一 <code>call_tool</code> 调度；工具清单对外可查，Agent 不硬编码工具名。</td>
+      <td><code>GET /api/meta/tools</code></td>
+    </tr>
+  </table>
+
+  <h3>3.0 为什么拆成两个模型</h3>
+  <table>
+    <tr><th style="width:26mm">维度</th><th>工程师 AI（生成）</th><th>人格 AI（聊天）</th></tr>
+    <tr><td>调用频次</td><td>低频：一个账号一天个位数</td><td>高频：一次对话数十轮</td></tr>
+    <tr><td>延迟容忍</td><td>高：实测 30–38 秒可接受，因为过程可见</td><td>低：首 token 约 2 秒，超过 3 秒用户就走神</td></tr>
+    <tr><td>失败代价</td><td>高：页面错了要重来</td><td>低：重发一句即可</td></tr>
+    <tr><td>选型</td><td>强模型（deepseek-v4-pro）</td><td>轻量模型（deepseek-flash）</td></tr>
+    <tr><td>降级</td><td>校验失败 → 确定性兜底 spec + 待复核</td><td>无密钥 → MockAdapter，链路与 UI 照常可跑</td></tr>
+  </table>
+  <p>换句话说：<strong>把延迟预算花在用户看得见的地方</strong>。生成慢但有五步直播，用户是在"看施工"；聊天慢则是纯粹的空转。</p>
+
+  <div class="pnum">05</div>
+</section>
+
+<!-- ===================== 6 LLM + spec ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>3.1 LLM 与结构化 spec</span></div>
+  <h2>3.1 LLM 与结构化 spec<small>让模型只做它擅长的事</small></h2>
+
+  <h3>3.1.1 契约先行：SpecModel 是唯一合法产出</h3>
+  <p>工程师 AI 的输出被 Pydantic 模型严格约束。任何字段越界（骨架 id 不在目录里、提示词过短、文案超长）都会在校验步骤被打回，转入兜底而不是把坏数据写进库。</p>
+
+  <pre class="json">{
+  "name": "苏桃",
+  "system_prompt": "你是苏桃，一个……（20–1500 字，含场景边界与禁区）",
+  "skeleton_id": "diary",            // 必须在 16 套目录内
+  "theme": {                          // 五色 + 字体 + 装饰，明暗成套
+    "primary": "#b0563a", "bg": "#fbf6ec", "fg": "#3a322a",
+    "accent": "#8b9d83", "muted": "#b9ab96",
+    "font": "serif", "decor": "tape"
+  },
+  "page_copy": { "title": "…", "subtitle": "…", "placeholder": "…", "…": "…" },
+  "opening_message": "……你好……我是苏桃……请，请多关照……"
+}</pre>
+
+  <h3>3.1.2 为什么禁止模型生成代码</h3>
+  <p>我们做过对照：让模型直接产出 React 组件，能得到"看起来对"的页面，但存在三类不可控——结构漂移（同一提示词两次产出不同的 DOM 层级）、样式塌陷（深色骨架配浅色文字）、以及无法校验（没有 schema 可依）。对一个要在评委面前现场演示的产品，这三类问题都是致命的。</p>
+  <p>改成"选骨架 + 填 token"之后，模型的能力被用在真正需要它的地方：<strong>理解标签之间的语义张力，把矛盾的人格描述调和成一段自洽的提示词，并为这套人格选一个视觉隐喻</strong>。这些恰是规则写不出来的部分。</p>
+
+  <h3>3.1.3 标签用「轴」建模，而不是两两互斥</h3>
+  <table>
+    <tr><th style="width:30mm">轴</th><th>成员</th><th style="width:62mm">设计意图</th></tr>
+    <tr><td>社交向</td><td>内向 / 外向</td><td rowspan="4">四条轴覆盖了原本九组两两冲突。新标签挂到轴上自动生效，不必维护组合表。</td></tr>
+    <tr><td>判断式</td><td>理性 / 感性</td></tr>
+    <tr><td>能量</td><td>活泼 / 安静 / 沉稳 / 冷淡</td></tr>
+    <tr><td>分寸</td><td>严肃 / 俏皮 / 撒娇</td></tr>
+  </table>
+  <p>「关系定位」不进轴，用配额（最多 1 个）约束——因为"青梅竹马 + 同桌"这类组合需要额外说明，应该被配额挡住而不是被写死在规则里。对于"毒舌 + 温柔"这类<em>反差张力</em>，我们不禁止，只在描述为空时提醒一句：写清什么时候会软下来就行。</p>
+
+  <div class="note">
+    <b>前后端规则一致性：</b>标签轴与配额在前端 <code>data/tagGroups.js</code> 与后端校验里各有一份。我们用 <code>tag_test.py</code> 以正则解析前端 JS 常量，与后端规则逐条比对，锁死两份配置不会漂移——这条测试目前 33/33。
+  </div>
+
+  <div class="pnum">06</div>
+</section>
+
+<!-- ===================== 7 五步 Agent ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>3.2 五步 Agent</span></div>
+  <h2>3.2 五步 Agent 主链路<small>retrieve → plan → generate → validate → fallback</small></h2>
+
+  <p class="lead">这是本作品技术叙事的主干。它解决一个具体问题：<strong>生成式产品的中间过程通常是黑盒</strong>，用户只看到 loading。言筑把这条链路拆成五个可观测步骤，每步都有明确的输入、工具、失败语义与 SSE 事件。</p>
+
+  <table>
+    <tr>
+      <th style="width:22mm">步骤</th><th style="width:34mm">工具</th>
+      <th>职责与判定</th><th style="width:34mm">失败语义</th>
+    </tr>
+    <tr>
+      <td><b>① 检索</b></td><td><code>retrieve_scene_knowledge</code></td>
+      <td>在<em>当前场景</em>的语料索引里做 BM25-lite 检索；同时扫描输入护栏。返回带分数与场景标记的证据条目。</td>
+      <td>无命中 → 空证据，不阻断</td>
+    </tr>
+    <tr>
+      <td><b>② 规划</b></td><td><code>plan_generation</code><br /><code>pick_skeleton</code></td>
+      <td>依据场景、证据与护栏报告，决定语气策略、骨架倾向与安全策略。优先由 LLM 决策；超时 12 秒或失败则降级为确定性规则（按标签与场景查表）。</td>
+      <td>LLM 失败 → 规则规划，标记来源 <code>plan_source=rule</code></td>
+    </tr>
+    <tr>
+      <td><b>③ 生成</b></td><td><code>generate_spec</code></td>
+      <td>调用工程师 LLM 产出结构化 spec JSON。LLM 只产数据，不产代码。</td>
+      <td>解析失败 → 进入兜底</td>
+    </tr>
+    <tr>
+      <td><b>④ 校验</b></td><td><code>validate_spec</code></td>
+      <td>按 SpecModel 校验结构；扫描医疗越界、否定感受措辞；把安全边界<em>确定性注入</em> system_prompt（这部分不交给模型自由发挥）。</td>
+      <td>越界 → 进入兜底并标记待复核</td>
+    </tr>
+    <tr>
+      <td><b>⑤ 兜底</b></td><td><code>fallback_spec</code></td>
+      <td>构造确定性 spec（场景默认骨架 + 安全提示词），保证链路永不空手而归；人格状态置 <code>needs_review</code>，页面上给出「待重生成」标记。</td>
+      <td>兜底本身不失败</td>
+    </tr>
+  </table>
+
+  <h3>3.2.1 SSE 事件</h3>
+  <p>后端以 <code>text/event-stream</code> 逐步推送：<code>step</code>（步骤状态变化）、<code>tool</code>（工具名、入参摘要、耗时、结论）、<code>evidence</code>（检索命中的证据 id 与标题）、<code>guard</code>（护栏判定与是否注入边界）、<code>plan</code>（规划结论与来源）、<code>done</code> / <code>error</code>。前端 <code>AgentTimeline</code> 消费这些事件，实时点亮步骤、追加工具卡片。</p>
+
+  <div class="note">
+    <b>设计取舍：</b>五步不是五个串行的模型调用（那样成本与延迟都不可接受）。只有 ② 与 ③ 可能触达模型，① 是本地索引、④ 是纯确定性校验、⑤ 是兜底分支。这样既保留了"过程可见"的叙事，又控制了成本与延迟。
+  </div>
+
+  <div class="pnum">07</div>
+</section>
+
+<!-- ===================== 8 五步截图 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>3.2 五步 Agent · 现场</span></div>
+  <h2>3.2.2 施工直播现场<small>五步完成态：工具、护栏、决策、证据同屏可查</small></h2>
+
+  <div class="shot">
+    <img src="screenshots/04-agent-steps.png" alt="五步 Agent 施工页" />
+    <div class="cap">图 3　<code>/build</code> 页面：左列为五步状态（每步耗时可见，合计约 60ms 为 Mock 适配器；真实模型下③生成占绝大部分），右列为工具调用、安全护栏、规划决策与检索证据</div>
+  </div>
+
+  <table style="margin-top:3mm">
+    <tr><th style="width:34mm">界面区域</th><th>这张图里能验证什么</th></tr>
+    <tr><td>五步状态列</td><td>检索 44ms / 规划 6ms / 生成 16ms / 校验 2ms / 兜底 0ms，第五步显示「未触发（五步链路完整走通）」——兜底是分支，不是必经</td></tr>
+    <tr><td>工具调用</td><td>7 个工具依次出现，每个带结论摘要：检索命中 3 条证据、护栏未发现风险、骨架倾向 <code>garden</code></td></tr>
+    <tr><td>安全护栏</td><td>输入 / 输出两次判定，「未发现风险，护栏待命」——护栏不阻断用户说话，只约束我们生成的内容</td></tr>
+    <tr><td>规划决策</td><td>语气「短句、留白、不追问」、骨架倾向 <code>radio</code>、安全策略「不做诊断、不收集隐私」、避免「想开点 / 别矫情 / 至少你还」</td></tr>
+    <tr><td>检索证据</td><td>三条命中条目的标题，可点开看原文——这是 RAG 在做事的直接证据</td></tr>
+  </table>
+
+  <div class="note">
+    <b>关于截图里的 model 标识：</b>本图取自 MockAdapter（无密钥离线模式），顶栏标注 <code>model mock</code>。这是有意保留的能力证明——<strong>两组密钥留空时，五步链路与界面仍可完整跑通</strong>，方便评审在无网络环境验收。正式演示视频使用真实模型录制。
+  </div>
+
+  <div class="pnum">08</div>
+</section>
+
+<!-- ===================== 9 RAG ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>3.3 RAG</span></div>
+  <h2>3.3 RAG<small>分场景语料、BM25-lite 与查询改写</small></h2>
+
+  <h3>3.3.1 语料分布</h3>
+  <table>
+    <tr><th style="width:34mm">场景</th><th class="num" style="width:22mm">条目</th><th>语料主题</th></tr>
+    <tr><td>心理陪伴 care</td><td class="num">18</td><td>情绪倾听、照护者疲惫与内疚、危机表达应对、避免毒性积极</td></tr>
+    <tr><td>学习搭子 study</td><td class="num">8</td><td>拖延拆解、番茄节奏、复盘方法、考试焦虑</td></tr>
+    <tr><td>职场沟通 workplace</td><td class="num">8</td><td>拒绝加班三段式、向上反馈、冲突对齐事实、边界表达</td></tr>
+    <tr><td>亲密关系 relation</td><td class="num">8</td><td>需求表达、冲突降温、修复性对话</td></tr>
+    <tr><td>自由创作 free</td><td class="num">0</td><td><em>对照组</em>：不注入任何场景语料，等价于改造前的自由生成路径</td></tr>
+    <tr class="total"><td>合计</td><td class="num">42</td><td>检索器：bm25-lite / 中文 unigram+bigram / 每场景独立索引</td></tr>
+  </table>
+
+  <h3>3.3.2 检索隔离的现场证据</h3>
+  <p>同一句「领导让我加班到十一点，我想拒绝」，在三个场景下的返回完全不同。下面是对 <code>GET /api/meta/knowledge</code> 的真实调用结果（2026-11-16 实测）：</p>
+  <table>
+    <tr><th style="width:24mm">场景</th><th style="width:12mm">得分</th><th style="width:24mm">证据所属</th><th>命中标题</th></tr>
+    <tr><td rowspan="2"><code>preset_id=care</code></td><td class="num">21.01</td><td>care</td><td>照护者的内疚不是错</td></tr>
+    <tr><td class="num">20.83</td><td>care</td><td>不评判、不比较</td></tr>
+    <tr><td rowspan="2"><code>preset_id=workplace</code></td><td class="num">31.89</td><td>workplace</td><td>拒绝加班用三段式，不用道歉开场</td></tr>
+    <tr><td class="num">27.28</td><td>workplace</td><td>向上反馈只讲事实与影响</td></tr>
+    <tr><td rowspan="2"><code>preset_id=free</code></td><td class="num">30.76</td><td>workplace</td><td>拒绝加班用三段式，不用道歉开场</td></tr>
+    <tr><td class="num">13.31</td><td>care</td><td>避开「想开点」式的毒性积极</td></tr>
+  </table>
+  <p><strong>care 场景下不会出现职场条目</strong>，反之亦然；free 是全局检索的对照基线。这条隔离不是靠提示词"请只使用…"实现的，而是<em>物理上的索引隔离</em>——检索函数只拿到本场景的倒排表。</p>
+
+  <h3>3.3.3 口语危机的查询改写</h3>
+  <p>真实用户的求助表达往往不含术语。「不想活了」「撑不下去了」「没意义了」这类句子，直接检索 BM25 几乎命不中资源条目。我们在检索前做一次轻量改写：把口语危机表达映射到语料里的规范表述（如"危机表达 / 求助资源"），再取并集检索。这条改写规则是确定性的，不经模型，避免"改写也失灵"的二次故障。</p>
+
+  <div class="note">
+    <b>为什么不用向量库：</b>42 条语料的规模下，向量检索的召回优势不明显，但引入 embedding 服务会把"离线可跑"这条硬约束打掉。BM25-lite 纯本地、零依赖、可解释（能说清为什么这条命中），更符合当前阶段的取舍。语料量级上升（约 500 条以上）后应换向量检索，已列入路线图。
+  </div>
+
+  <div class="pnum">09</div>
+</section>
+
+<!-- ===================== 10 AI 安全 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>3.4 AI 安全</span></div>
+  <h2>3.4 AI 安全<small>四级护栏、否定语境豁免与边界注入</small></h2>
+
+  <p class="lead">护栏要解决的不是"拦截用户"，而是"约束我们生成的内容"。用户说"我不想活了"，产品绝不能因此拒绝服务或锁死输入——那是最糟的体验。正确做法是：<strong>照常接住情绪，同时把求助资源递过去。</strong></p>
+
+  <h3>3.4.1 判定类别</h3>
+  <table>
+    <tr><th style="width:30mm">类别</th><th>判定内容</th><th style="width:56mm">处置</th></tr>
+    <tr><td>危机表达</td><td>自伤 / 自杀 / 极端绝望的口语与书面表达</td><td>注入 3 条求助资源 + 明确"不替代专业帮助"，回到陪伴语气</td></tr>
+    <tr><td>医疗越界</td><td>诊断、用药、剂量、病情评估</td><td>拦截该段生成内容，改为"建议就医"的边界表述</td></tr>
+    <tr><td>否定感受措辞</td><td>「想开点」「别矫情」「至少你还…」</td><td>写入 system_prompt 禁区 + 生成后扫描</td></tr>
+    <tr><td>场景专属红线</td><td>职场场景的 PUA 话术、亲密关系场景的控制性语言</td><td>场景级追加禁区</td></tr>
+    <tr><td>PII</td><td>手机号、身份证、详细住址</td><td>脱敏后再进入提示词与日志</td></tr>
+  </table>
+
+  <h3>3.4.2 按场景分级</h3>
+  <table>
+    <tr><th style="width:26mm">级别</th><th style="width:30mm">场景</th><th>策略差异</th></tr>
+    <tr><td><b>strict</b></td><td>心理陪伴、亲密关系</td><td>危机与医疗双向扫描；边界段落逐字注入；越界即转兜底</td></tr>
+    <tr><td><b>normal</b></td><td>学习搭子、职场沟通</td><td>危机扫描保留，医疗越界按需；禁区以提示词为主</td></tr>
+    <tr><td><b>loose</b></td><td>自由创作</td><td>仅保留通用危机兜底，作为对照基线</td></tr>
+  </table>
+
+  <h3>3.4.3 否定语境豁免（我们认为这是最难的一处细节）</h3>
+  <p>禁用语扫描有个天然的假阳性：用户在跟 AI 讨论这些话本身时，也会命中规则。比如用户写「我不需要别人跟我说想开点」，或产物提示词里写「不要说想开点、别矫情」。如果直接判定违规，产物会被无谓打回。</p>
+  <p>实现上是<strong>否定语境窗口</strong>：命中禁用词时回看固定窗口内的否定词（不、别、不要、无需、避免、禁止…）与引用标记（「」、""、"说…这类话"）。若处于否定或引用语境，则不判违规，但仍记录到报告里供人工复核。这条规则让护栏从"能拦住"进化到"不乱拦"，<code>agent_test.py</code> 里为此单独写了用例。</p>
+
+  <h3>3.4.4 边界确定性注入</h3>
+  <p>安全边界不交给模型自由发挥。校验步骤会把场景级边界段落<em>原文追加</em>到 system_prompt 末尾，并标注这是系统注入而非人设的一部分。这样即便模型在生成时"忘了"，最终提示词里也一定带着边界。</p>
+
+  <div class="note">
+    <b>现场复现方式：</b>新建人格时把描述改成「他说不想活了，我该怎么回应」，提交生成——五步链路会在「校验」步骤判定危机，检索面板出现求助资源条目，产物提示词里带上资源与"不替代专业帮助"的表述。演示账号可直接验证，无需注册。
+  </div>
+
+  <div class="pnum">10</div>
+</section>
+
+<!-- ===================== 11 MCP 工具层 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>3.5 MCP 工具层</span></div>
+  <h2>3.5 MCP 风格工具层<small>7 个工具的契约与统一调度</small></h2>
+
+  <p class="lead">Agent 的每一步不是硬编码的函数调用，而是通过工具注册表调度。每个工具都以 MCP 风格三件套声明：<code>name</code> / <code>description</code> / <code>inputSchema</code>。好处有两个：Agent 编排代码不依赖具体实现，工具可独立测试；对外可查，评审能看清"每一步到底调了什么"。</p>
+
+  <table>
+    <tr><th style="width:40mm">工具名</th><th style="width:22mm">所属步骤</th><th>职责</th></tr>
+    <tr><td><code>retrieve_scene_knowledge</code></td><td>① 检索</td><td>在当前场景的本地语料里做 BM25-lite 检索，返回带分数与场景标记的证据条目，用于约束生成边界。</td></tr>
+    <tr><td><code>screen_text</code></td><td>① / ④</td><td>扫描文本的危机表达、医疗越界、否定感受措辞、场景专属红线与可识别信息，返回护栏报告与求助资源。</td></tr>
+    <tr><td><code>pick_skeleton</code></td><td>② 规划</td><td>按标签与场景，从 16 套骨架目录里挑视觉隐喻最贴切的一套，供规划步骤参考。</td></tr>
+    <tr><td><code>plan_generation</code></td><td>② 规划</td><td>依据场景、证据与护栏报告，规划语气、骨架倾向与安全策略。优先 LLM 决策，失败降级确定性规则。</td></tr>
+    <tr><td><code>generate_spec</code></td><td>③ 生成</td><td>调用工程师 LLM 产出结构化 spec JSON（人设 + 骨架 + 主题 + 文案），只产数据不产代码。</td></tr>
+    <tr><td><code>validate_spec</code></td><td>④ 校验</td><td>按 SpecModel 校验结构，扫描医疗越界与否定感受措辞，并把安全边界确定性注入 system_prompt。</td></tr>
+    <tr><td><code>fallback_spec</code></td><td>⑤ 兜底</td><td>生成失败或校验越界时，构造确定性兜底 spec 并标记 <code>needs_review</code>，保证链路永不空手而归。</td></tr>
+  </table>
+
+  <h3>3.5.1 调度约定</h3>
+  <ul>
+    <li>所有工具通过统一的 <code>call_tool(name, **params)</code> 进入，参数按各自 inputSchema 校验；未知工具名直接报错，不做静默降级。</li>
+    <li>每次调用都记录耗时与结论摘要，这些记录同时是 SSE <code>tool</code> 事件的数据源与排障日志。</li>
+    <li>工具清单可查：<code>GET /api/meta/tools</code> 返回全部 name / description / inputSchema，评审可直接对照界面上的调用记录。</li>
+  </ul>
+
+  <h3>3.5.2 与真实 MCP 的关系（说明边界，不夸大）</h3>
+  <p>当前实现是<strong>MCP 风格的本地工具注册表</strong>，不是接入外部 MCP Server 的客户端。我们没有宣称"支持 MCP 协议"，而是采用了 MCP 的契约形状：工具自描述、参数用 JSON Schema、统一调度入口。这样后续要换成真正的 MCP Server（把工具暴露给外部编排器）时，只需替换调度层的传输方式，工具定义不用改。</p>
+
+  <div class="note">
+    <b>为什么值得单独做一层：</b>如果把七件事写成七个 if 分支，五步链路就退化成一段两百行的过程式代码，既无法测试单步，也无法在界面上按步展示。工具层是"过程可见"这个产品目标在代码结构上的对应物。
+  </div>
+
+  <div class="pnum">11</div>
+</section>
+
+<!-- ===================== 12 多模态 + 骨架 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>3.6 多模态</span></div>
+  <h2>3.6 多模态<small>文本语义到界面视觉的最小验证</small></h2>
+
+  <p class="lead">我们不把"多模态"理解成必须生成图片。这里的跨模态是：<strong>自然语言里的性格与氛围描述，被翻译成一整套视觉参数</strong>——骨架（空间结构）、色彩（情绪基调）、字体（语速）、装饰（质感）。产物不是一张图，是一个能用的界面。</p>
+
+  <h3>3.6.1 映射链路</h3>
+  <table>
+    <tr><th style="width:32mm">语义输入</th><th style="width:40mm">中间表示</th><th>视觉产出</th></tr>
+    <tr><td>「温柔 / 安静 / 树洞」</td><td>语气策略：短句、留白、不追问</td><td>夜间电台或植物标本类骨架，低饱和暖色，衬线字</td></tr>
+    <tr><td>「理性 / 沉稳 / 前辈」</td><td>语气策略：先结论后解释、少寒暄</td><td>终端或档案卷宗类骨架，等宽字，冷调高对比</td></tr>
+    <tr><td>「活泼 / 俏皮 / 同桌」</td><td>语气策略：短句 + 语气词、可用表情</td><td>便签或黑板类骨架，圆角、亮色块</td></tr>
+    <tr><td>「傲娇 / 毒舌 / 管家」</td><td>语气策略：口是心非、克制示好</td><td>收据或书信类骨架，纸感、印章、手写装饰</td></tr>
+  </table>
+
+  <h3>3.6.2 十六套骨架</h3>
+  <table>
+    <tr>
+      <th style="width:26mm">明色系（9）</th>
+      <td>手账书信 diary · 信笺 letter · 诊所 clinic · 收据 receipt · 图书馆 library · 药水铺 potion · 花园 garden · 教室 classroom · 论坛 bbs</td>
+    </tr>
+    <tr>
+      <th>深色系（7）</th>
+      <td>极简 minimal · 电台 radio · 终端 terminal · 塔罗 oracle · 星舰 starship · 霓虹 neon · 侦探卷宗 casefile</td>
+    </tr>
+  </table>
+  <p>每套骨架都是手工设计的独立组件，不是同一模板换皮：它们的消息区结构、输入区形态、装饰元素、字体族都不同。<strong>深色骨架上还会成套切换 antd 组件的按钮与占位符样式</strong>——这是最容易露馅的地方，我们在启动期用断言锁住"七套深底骨架必须带深色主题"，避免出现黑底黑字。</p>
+
+  <h3>3.6.3 为什么是"选择"而不是"生成"骨架</h3>
+  <p>如果让模型生成布局，我们无法保证响应式、无法保证可访问性、也无法保证深色下的对比度。<em>把自由度限制在"选一套 + 填主题"</em>，换来的是：每一套骨架都被人工调过移动端断点，每一套配色都经过对比度检查，产物永远是可交付的页面。这是产品化与"能生成"之间的分界线。</p>
+
+  <div class="note">
+    <b>界面缩略图也是实时渲染的：</b>人格库卡片的预览不是截图也不是宣传图，而是把骨架本体按 0.42 缩放真实渲染一遍，注入该人格的主题变量。骨架或配色一改，缩略图跟着变——这让"界面即产物"在列表页也成立。
+  </div>
+
+  <div class="pnum">12</div>
+</section>
+
+<!-- ===================== 13 画廊 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>3.6 骨架画廊</span></div>
+  <h2>3.6.4 骨架画廊<small>十六套并置时的差异度</small></h2>
+  <div class="figs" style="align-items:flex-start">
+    <div class="shot" style="flex:0 0 79mm">
+      <img src="screenshots/08-gallery-a.jpg" alt="16 套骨架画廊 · 上半" />
+      <div class="cap">图 4-1　骨架画廊（上）：极简 · 夜间电台 · 手账书信 · 终端 · 亲笔信 · 塔罗 · 门诊 · 滚筒收据 · 图书馆</div>
+    </div>
+    <div class="shot" style="flex:0 0 79mm">
+      <img src="screenshots/08-gallery-b.jpg" alt="16 套骨架画廊 · 下半" />
+      <div class="cap">图 4-2　骨架画廊（下）：其余骨架，含深色的星舰、霓虹与卷宗</div>
+    </div>
+  </div>
+  <p style="margin-top:2mm">同一段示例对话在 16 套骨架里的呈现。差异不止配色，还有消息结构、输入区形态与装饰语言——如果某两套放远看分不出来，就说明其中一套的隐喻没做透，需要重做而不是调色。</p>
+
+  <table style="font-size:7.5pt">
+    <tr><th style="width:22mm">骨架</th><th>空间隐喻</th><th style="width:22mm">骨架</th><th>空间隐喻</th></tr>
+    <tr><td>极简 minimal</td><td>留白即语气，能少一个字就少一个</td><td>电台 radio</td><td>深夜频率里的独白，有杂音才真实</td></tr>
+    <tr><td>手账 diary</td><td>贴在纸上的碎话，胶带与日期戳</td><td>终端 terminal</td><td>一行命令一句回答，克制到冷</td></tr>
+    <tr><td>亲笔信 letter</td><td>有抬头的长信，落款比正文重</td><td>塔罗 oracle</td><td>抽一张牌再说话，答案要自己解</td></tr>
+    <tr><td>门诊 clinic</td><td>问诊台式的克制：只问必要的</td><td>滚筒收据 receipt</td><td>逐条打印的记录，一行一件事</td></tr>
+    <tr><td>图书馆 library</td><td>索引卡与借阅单，知识要有出处</td><td>星舰 starship</td><td>舰桥面板上的对话，冷静而远</td></tr>
+    <tr><td>药水铺 potion</td><td>配方与剂量，治愈需要称量</td><td>霓虹 neon</td><td>街角灯牌的暧昧，说一半留一半</td></tr>
+    <tr><td>花园 garden</td><td>植物标本与节气，慢下来才看得见</td><td>教室 classroom</td><td>黑板与粉笔，讲台上下有距离</td></tr>
+    <tr><td>卷宗 casefile</td><td>案卷编号与线索，把话当证据</td><td>论坛 bbs</td><td>楼层与引用，七嘴八舌的现场感</td></tr>
+  </table>
+  <div class="pnum">13</div>
+</section>
+
+<!-- ===================== 14 场景制 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>四、场景制</span></div>
+  <h2>四、场景制与账号级锁定<small>用一个约束换可预期的质量</small></h2>
+
+  <p class="lead">完全自由的生成会导致"什么都行、什么都不精"。场景制是产品层面的减法：账号注册后选定一个主场景，之后所有生成都受它约束——检索语料、护栏级别、默认骨架、文案语气，全部随场景走。</p>
+
+  <table>
+    <tr><th style="width:34mm">场景</th><th style="width:20mm">护栏</th><th>定位</th><th style="width:36mm">骨架倾向</th></tr>
+    <tr><td>心理陪伴</td><td><b>strict</b></td><td>情绪倾听 · 照护者喘息 · 不诊断不给建议</td><td>radio / garden / diary</td></tr>
+    <tr><td>学习搭子</td><td>normal</td><td>拆任务、调节奏、陪复盘，不代替学习</td><td>library / classroom / bbs</td></tr>
+    <tr><td>职场沟通演练</td><td>normal</td><td>拒绝、反馈、冲突对齐的对话预演</td><td>terminal / receipt / casefile</td></tr>
+    <tr><td>亲密关系沟通</td><td><b>strict</b></td><td>需求表达与修复性对话，不做情感裁判</td><td>letter / potion / starship</td></tr>
+    <tr><td>自由创作</td><td>loose</td><td><em>对照组</em>：无场景注入的自由生成</td><td>由标签决定</td></tr>
+  </table>
+
+  <h3>4.1 锁定规则（服务端唯一判定）</h3>
+  <ul>
+    <li><b>强制首选</b>：未选场景时，除 <code>/scene</code> 外所有路由都重定向到场景页。</li>
+    <li><b>30 天冷却</b>：换场景需二次确认，且距上次切换满 30 天；未满返回 <code>409 SCENE_COOLDOWN</code> 并附下次可改时间。</li>
+    <li><b>参数不可绕过</b>：场景只从账号读取，请求体里塞别的场景 id 会被 <code>400 SCENE_MISMATCH</code> 拒绝。这条单独写了测试。</li>
+    <li><b>切换即归档</b>：旧场景下的人格置为 <code>archived</code>（只读保留，不删除），列表折叠并通过接口回传 <code>archived_count</code>。</li>
+    <li><b>演示账号豁免</b>：评审需要逐个验证五套场景，演示账号不受冷却限制。</li>
+  </ul>
+
+  <h3>4.2 运行时调参：不重生成也能改语气</h3>
+  <p>悬浮工作台提供三个语气开关（如「更沉稳」「多问一句」「少说教」）。它们不改 spec、不调生成模型，而是在对话请求时把一段运行时指令<strong>追加到 system_prompt 末尾</strong>。点一下即时生效、不消耗生成配额，也不会把用户的会话记录弄丢。</p>
+
+  <div class="note">
+    <b>为什么不重生成：</b>重生成要 30 秒且会换掉页面。用户调语气时想要的是"这个人在我心里更稳一点"，不是"换一个人"。运行时指令是这句话在工程上的正确形态。
+  </div>
+
+  <div class="pnum">14</div>
+</section>
+
+<!-- ===================== 15 架构与数据 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>五、架构与数据</span></div>
+  <h2>五、技术架构与数据模型<small>后端只做 AI 接入层</small></h2>
+
+  <pre class="json" style="font-size:7.5pt;line-height:1.48">React 18 + Vite 5 + Antd 5 + HashRouter
+  前端：场景选择 / 五步时间线 / 骨架装配 / SSE 流式渲染 / 悬浮工作台 / 人格库缩略图
+        │  X-Yanzhu-Token (JWT) + SSE
+FastAPI + SQLite WAL + PyJWT + bcrypt
+  后端：AI 接入层 + schema 校验 + 鉴权 + 配额 + 限流
+        │  OpenAI 兼容协议
+Engineer LLM（深层生成）  /  Persona LLM（实时对话）      留空即 MockAdapter
+生成主链路：
+  brief 归一化 + 场景 enrich（场景从账号读，请求参数会被 400 拒）
+    → retrieve 本地知识库 ─┐
+    → screen 输入护栏     ├→ plan（LLM 优先 / 规则降级）
+    → pick_skeleton       ─┘        ↓
+    → generate_spec（结构化 JSON，禁代码）
+    → validate_spec（schema + 护栏 + 边界注入）
+    → fallback_spec（越界或异常时确定性兜底 + needs_review）
+    → 落库 → SSE done → 前端进入聊天</pre>
+
+  <h3>5.1 数据模型</h3>
+  <table>
+    <tr><th style="width:30mm">表</th><th>关键字段</th><th style="width:44mm">说明</th></tr>
+    <tr><td><code>users</code></td><td>username / password_hash / primary_scene / scene_changed_at / primary_persona_id / tone_json / quota_*</td><td>账号级：场景、落点、语气偏好、配额</td></tr>
+    <tr><td><code>personas</code></td><td>name / spec_json / skeleton_id / theme_json / status / scene_id</td><td>站点本体：规格 + 骨架 + 主题 + 状态（active / archived / needs_review）</td></tr>
+    <tr><td><code>conversations</code> / <code>messages</code></td><td>persona_id / role / content / created_at</td><td>会话与消息，按人格隔离</td></tr>
+    <tr><td><code>llm_logs</code></td><td>model / latency_ms / tokens / ok</td><td>模型调用可观测性，排障与成本核算</td></tr>
+  </table>
+  <p>迁移采用<strong>幂等 PRAGMA 检查</strong>：启动时逐列比对，缺则 <code>ALTER TABLE</code>，老库可直接升级。这一设计让"新增字段"不需要额外迁移脚本，也避免我们反复重建演示库。</p>
+
+  <h3>5.2 若干工程决策</h3>
+  <table>
+    <tr><th style="width:34mm">问题</th><th>决策</th><th style="width:40mm">原因</th></tr>
+    <tr><td>JWT 放哪</td><td>自定义头 <code>X-Yanzhu-Token</code></td><td>内网穿透会占用 Authorization 做 HTTP Basic，两者不能共存</td></tr>
+    <tr><td>前端路由</td><td>HashRouter</td><td>静态托管与隧道环境不需要服务端 rewrite</td></tr>
+    <tr><td>数据库</td><td>SQLite + WAL</td><td>单机演示规模足够；多实例部署前需换 Postgres（已列路线图）</td></tr>
+    <tr><td>限流分桶</td><td>按类别分桶（注册 / 登录 / 写入 / 生成 / 对话）</td><td>曾因注册与登录共用 IP 队列导致误 429</td></tr>
+  </table>
+
+  <div class="pnum">15</div>
+</section>
+
+<!-- ===================== 16 产品细节 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>六、产品细节</span></div>
+  <h2>六、产品细节<small>把 AI 的能力翻译成可操作的东西</small></h2>
+
+  <div class="figs">
+    <div class="shot">
+      <img src="screenshots/05-personas.png" alt="人格库" />
+      <div class="cap">图 5　人格库：每张卡片顶部是该人格界面的实时渲染缩略图；名字旁星标即登录落点</div>
+    </div>
+    <div class="shot">
+      <img src="screenshots/07-site-menu.png" alt="站点菜单" />
+      <div class="cap">图 6　聊天页「站点」菜单：新建人格 / 人格库 / 换场景 / 今日配额</div>
+    </div>
+  </div>
+
+  <table style="margin-top:3mm">
+    <tr><th style="width:30mm">细节</th><th>设计意图</th></tr>
+    <tr><td>界面缩略图</td><td>列表页曾经只有一行标题，最值钱的差异（这个人的页面长什么样）完全看不见。改成实时渲染后，用户在列表页就能挑"今天想进哪个房间"。</td></tr>
+    <tr><td>主页面星标</td><td>把"登录落点"从一个隐藏在设置里的全局选项，变成每张卡片自己的属性——它本来就是"这个站点是不是我的主页"，属于卡片。</td></tr>
+    <tr><td>重建（覆盖 / 另建）</td><td>覆盖模式保留人格 id、会话记录与创建时间，只换规格与视觉。用户可以"同一个人，换个活法"，而不是从零开始。</td></tr>
+    <tr><td>配额可见</td><td>生成与对话配额直接挂在站点菜单里，避免用户在第五次生成时才发现没额度。</td></tr>
+    <tr><td>保存与导出</td><td>对话可导出 Markdown / 纯文本 / JSON；页面可导出单文件 HTML（DOM 快照复用线上样式，body 底色写死，脱离 CSS 变量也能看）。</td></tr>
+    <tr><td>建造揭晓</td><td>生成完成后不是直接跳转，而是一段从线框到成品的过渡——把"它刚刚为你搭了一个房间"这件事演出来。</td></tr>
+  </table>
+
+  <h3>6.1 纸感设计系统</h3>
+  <p>外壳统一在一套 <code>--yz-*</code> token 上：米白纸底、墨色三级字阶、暖灰线、赤陶主色。它解决了一个具体问题：16 套骨架深浅不一，如果外壳永远是冷灰靛蓝，用户会觉得"我的页面被嵌在别人的网站里"。现在外壳与骨架共享同一种材质语言，页面才像"自己的"。</p>
+  <p>顺带修掉一个隐蔽 bug：<code>App.jsx</code> 里曾残留第二层 <code>ConfigProvider</code>（靛蓝主色），把外层纸感主题整个盖掉——主按钮一直是蓝色的原因就在这里。这类"主题覆盖"问题不会报错，只会让设计系统悄悄失效，值得单独记一笔。</p>
+
+  <div class="pnum">16</div>
+</section>
+
+<!-- ===================== 17 验收 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>七、验收</span></div>
+  <h2>七、验收基线与复现方式<small>全部脚本可在本地重跑</small></h2>
+
+  <p>后端验收为独立 Python 脚本（<code>backend/*_test.py</code>），浏览器验收为 Playwright 脚本。下表为 2026-11-15 至 11-16 的实测结果，均为连跑通过。</p>
+
+  <table style="font-size:8.1pt">
+    <tr><th style="width:44mm">项目</th><th class="num" style="width:20mm">结果</th><th>覆盖内容</th></tr>
+    <tr><td>冒烟 <code>smoke_test</code></td><td class="num">14/14</td><td>注册、登录、生成、对话、列表、删除的主干路径</td></tr>
+    <tr><td>标签 / 命名</td><td class="num">33 + 25</td><td>前后端标签轴一致性、互斥与配额、名字校验与重名</td></tr>
+    <tr><td>换骨架 / 配色</td><td class="num">32 + 54</td><td>换骨架不调 LLM、不耗配额；主题成套约束；深色骨架对比度</td></tr>
+    <tr><td>场景预设与检索 <code>presets_test</code> <code>scene_test</code></td><td class="num">49 + 57</td><td>分场景不串味、场景红线、边界注入、查询改写</td></tr>
+    <tr><td>Agent / 护栏 / MCP <code>agent_test</code></td><td class="num">56/56</td><td>五步链路 SSE、工具契约、否定语境豁免、兜底分支、覆盖重建</td></tr>
+    <tr><td>场景锁定 <code>scene_lock_test</code></td><td class="num">41/41</td><td>强制首选、改参数绕过被 400、冷却 409、切换归档、演示账号豁免</td></tr>
+    <tr><td>演示账号 <code>demo_test</code></td><td class="num">14/14</td><td>幂等播种不重复建号、bcrypt 入库、配额档位、接口下发、错误密码 401</td></tr>
+    <tr><td>限流 <code>ratelimit_test</code></td><td class="num">17/17</td><td>按类别分桶、窗口重置、prod 强制启用</td></tr>
+    <tr><td>浏览器 · 主流程 <code>pf-e2e</code></td><td class="num">16/16</td><td>注册 → 选场景 → 开站页 → 弹窗 → <code>/build</code> 五步 → 聊天 → 刷新持久化</td></tr>
+    <tr><td>浏览器 · 重建 <code>pf-rebuild</code></td><td class="num">11/11</td><td>覆盖后 persona.id 不变、名字保留、标签回填</td></tr>
+    <tr><td>浏览器 · 站点与星标 <code>pf-star</code></td><td class="num">9/9</td><td>站点菜单跳转、星标往返切换、落点生效</td></tr>
+    <tr><td>浏览器 · 换骨架 / 深色</td><td class="num">12 + 8</td><td>换骨架就地生效、深色骨架头部可读性</td></tr>
+    <tr><td>保存导出 <code>pf-save</code></td><td class="num">35/35</td><td>六种导出格式、单文件 HTML 离线可开</td></tr>
+    <tr class="total"><td>前端构建</td><td class="num">通过</td><td><code>npm run build</code> 无错误；16 套骨架画廊零溢出；全仓密钥扫描无真实 key</td></tr>
+  </table>
+
+  <h3>7.1 复现方式</h3>
+  <pre class="json"># 后端（8100）
+cd backend
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements.txt
+RATE_LIMIT_DISABLED=true .venv/Scripts/python -m uvicorn app.main:app --host 127.0.0.1 --port 8100
+
+# 前端（预览 4180）
+cd frontend && npm install && npm run build && npm run preview
+
+# 验收
+backend/.venv/Scripts/python backend/smoke_test.py 77      # 77 为随机后缀，避免账号重名
+backend/.venv/Scripts/python backend/agent_test.py</pre>
+  <p><b>注意：</b>连跑多个验收脚本会打满注册限流桶，需以 <code>RATE_LIMIT_DISABLED=true</code> 启动后端；<code>ratelimit_test.py</code> 相反，须在限流开启且干净窗口下单独运行（重启后端清空进程内计数器）。</p>
+
+  <div class="pnum">17</div>
+</section>
+
+<!-- ===================== 18 工程规范 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>八、工程规范</span></div>
+  <h2>八、工程规范、安全与配置<small>能被别人接手的代码</small></h2>
+
+  <table>
+    <tr><th style="width:28mm">层</th><th style="width:46mm">约定</th><th>落地方式</th></tr>
+    <tr><td>后端 Python</td><td>PEP 8；模块级 docstring 写明职责与输入输出；类型注解齐全</td><td><code>pipeline/</code>、<code>routers/</code>、<code>llm/</code> 各模块首部均有 docstring</td></tr>
+    <tr><td>前端 JSX</td><td>2 空格缩进；函数组件 + hooks；按 pages / components / hooks / lib / styles 分层</td><td>目录结构即分层依据</td></tr>
+    <tr><td>注释</td><td>中文，只写「为什么」不写「做什么」；跨模块硬约束必须落注释</td><td>骨架明暗成套断言、限流按类别分桶、护栏不阻断用户说话</td></tr>
+    <tr><td>编辑器</td><td>UTF-8 / LF / 统一缩进 / 尾行</td><td>仓库根目录 <code>.editorconfig</code></td></tr>
+    <tr><td>敏感信息</td><td>密钥只进 <code>.env</code>，仓库仅保留 <code>.env.example</code></td><td><code>.gitignore</code> + 全仓密钥扫描</td></tr>
+  </table>
+
+  <h3>8.1 配置项</h3>
+  <table>
+    <tr><th style="width:42mm">变量</th><th style="width:26mm">默认</th><th>作用</th></tr>
+    <tr><td><code>ENGINEER_LLM_*</code></td><td>空 → Mock</td><td>生成模型：base_url / api_key / model</td></tr>
+    <tr><td><code>PERSONA_LLM_*</code></td><td>空 → Mock</td><td>聊天模型：同上</td></tr>
+    <tr><td><code>QUOTA_GEN_DAILY</code> / <code>QUOTA_CHAT_DAILY</code></td><td>20 / 100</td><td>普通账号日配额</td></tr>
+    <tr><td><code>DEMO_QUOTA_GEN</code> / <code>DEMO_QUOTA_CHAT</code></td><td>200 / 2000</td><td>演示账号配额（评委密集验证用）</td></tr>
+    <tr><td><code>DEMO_USER_ENABLED</code></td><td>true</td><td>关闭后不再建号，登录页「一键填充」入口自动隐藏</td></tr>
+    <tr><td><code>SCENE_SWITCH_COOLDOWN_DAYS</code></td><td>30</td><td>换场景冷却天数，设 0 等于不限</td></tr>
+    <tr><td><code>RATE_LIMIT_DISABLED</code></td><td>false</td><td>验收用开关；<code>APP_ENV=prod</code> 下强制失效</td></tr>
+  </table>
+
+  <h3>8.2 安全实践</h3>
+  <ul>
+    <li>密码 bcrypt 入库，登录失败不区分"用户不存在"与"密码错误"。</li>
+    <li>JWT 访问令牌 15 分钟、刷新令牌 7 天；刷新请求做去重，避免并发刷新互相顶掉。</li>
+    <li>越权访问人格返回 404 而非 403，避免通过状态码探测他人资源是否存在。</li>
+    <li>生产部署前必须替换 <code>JWT_SECRET</code>；该项已列为上线检查项。</li>
+    <li>护栏只约束生成内容，不阻断用户输入；危机表达仅触发资源注入。</li>
+  </ul>
+
+  <div class="note">
+    <b>已知的工程缺口（不藏）：</b>缺少 CI；Python 依赖未锁小版本；<code>x-forwarded-for</code> 未做可信代理校验；CORS 仍是宽松配置。这些都写进了路线图，而不是留到评审去发现。
+  </div>
+
+  <div class="pnum">18</div>
+</section>
+
+<!-- ===================== 19 限制与路线 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>九、限制与路线图</span></div>
+  <h2>九、已知限制与路线图<small>诚实的边界比漂亮的承诺有用</small></h2>
+
+  <table>
+    <tr><th style="width:38mm">问题</th><th style="width:58mm">现状</th><th>下一步</th></tr>
+    <tr><td>首次生成 30–38 秒</td><td>过程可见（五步直播），但仍长于常规交互的心理阈值</td><td>评估「flash 生成 + pro 修正」两阶段；或对常见标签组合做 spec 预热缓存</td></tr>
+    <tr><td>SQLite 单写者</td><td>单机演示规模足够；并发写会排队</td><td>多实例部署前评估 Postgres，仓储层已隔离</td></tr>
+    <tr><td>语料仅 42 条</td><td>覆盖面窄，长尾表达命中率有限</td><td>扩到 500 条量级后换向量检索；当前 BM25-lite 的优势是零依赖与可解释</td></tr>
+    <tr><td>无 CI、依赖未锁</td><td>靠本地脚本回归</td><td>补 GitHub Actions + constraints.txt</td></tr>
+    <tr><td>多模态深度</td><td>只做文本到界面视觉；图像 / 语音未接入</td><td>先在「人格头像」做图像生成的最小闭环，再做语音朗读</td></tr>
+    <tr><td>个性化推荐</td><td>尚无姊妹人格推荐</td><td>先做基于内容的相似度（标签 + 骨架 fit），不引入训练；有行为数据后再评估协同过滤</td></tr>
+    <tr><td>端云协同</td><td>未做</td><td><em>明确放弃</em>：8 天窗口内不可行，不写进承诺</td></tr>
+  </table>
+
+  <h3>9.1 如果再多一周</h3>
+  <p>优先级最高的不是加功能，而是<strong>把生成时间压到 10 秒内</strong>。当前五步直播消解了一部分等待焦虑，但"看着它施工 30 秒"仍然只能算及格。做法是把生成拆成两段：先用轻量模型产骨架与主题（快），再用强模型写 system_prompt（慢但可后置），用户在页面出现后 2 秒内就能开始说话。</p>
+  <p>其次是<strong>语料扩量与向量检索</strong>。42 条语料在演示时足够，但真实使用两天就会遇到"它没听懂我这句"的失望。这是 RAG 类产品最常见也最致命的体验断点。</p>
+
+  <h3>9.2 我们刻意没做的事</h3>
+  <ul>
+    <li><b>不做通用建站</b>：只做人格页面这一种形态。通用化会让骨架失去隐喻的锋利度。</li>
+    <li><b>不做社交广场</b>：没有公开的人格市场、没有排行榜。分享只到"发个链接给朋友"这一层。</li>
+    <li><b>不做模型微调</b>：当前规模下，提示词工程 + 结构化约束的性价比远高于训练。</li>
+  </ul>
+
+  <div class="pnum">19</div>
+</section>
+
+<!-- ===================== 20 团队 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>十、团队与声明</span></div>
+  <h2>十、团队分工与原创声明<small>Team &amp; Originality</small></h2>
+
+  <table>
+    <tr><th style="width:26mm">成员</th><th style="width:44mm">主要职责</th><th>具体工作</th></tr>
+    <tr><td>郭毅豪</td><td>后端与 AI 链路</td><td>五步 Agent 编排、工具层、护栏与校验、场景锁定判定、数据模型与迁移、验收脚本</td></tr>
+    <tr><td>罗尉</td><td>前端与设计系统</td><td>16 套骨架实现、纸感 token 层、人格库缩略图渲染、五步时间线可视化、移动端适配</td></tr>
+    <tr><td>蒙睿曦</td><td>语料、文案与验收</td><td>分场景语料整理与分级、场景预设文案、护栏措辞审查、浏览器端到端验收与截图</td></tr>
+  </table>
+  <p><b>指导老师：</b>魏阳（绵阳城市学院）　<b>院校：</b>绵阳城市学院　<b>队名：</b>未命名者</p>
+
+  <h3>10.1 原创声明</h3>
+  <ul>
+    <li>本作品为团队原创，未使用开源项目包装参赛，未复用往届获奖作品源码。</li>
+    <li>16 套骨架均为手工设计与实现，不使用第三方模板或 UI 套件皮肤。</li>
+    <li>场景语料为人工整理的公开科普共识与沟通方法，<strong>非临床诊疗指南</strong>；求助资源以当地公布为准。</li>
+    <li>AI 辅助生成的部分（骨架结构建议、部分文案草稿）均可逐段解释设计意图与人工修正过程。</li>
+  </ul>
+
+  <h3>10.2 交付物清单</h3>
+  <table>
+    <tr><th style="width:52mm">交付物</th><th>说明</th></tr>
+    <tr><td>源码仓库</td><td>github.com/noderift0811/yanzhu（public）</td></tr>
+    <tr><td>演示视频（1080p）</td><td>90 秒演示动线，见 <code>docs/言筑-90秒演示分镜.md</code></td></tr>
+    <tr><td>提交说明（本文档）</td><td>≤30 页，覆盖定位、技术深度、验收与边界</td></tr>
+    <tr><td>设计文档</td><td><code>docs/言筑-可实现方案-v1.4.html</code></td></tr>
+    <tr><td>演示账号</td><td><code>demo</code> / <code>yanzhu2026</code>（后端启动时幂等播种，配额 200 / 2000）</td></tr>
+    <tr><td>截图</td><td><code>docs/screenshots/</code>，共 9 张，含桌面与移动端</td></tr>
+  </table>
+
+  <div class="note" style="margin-top:6mm">
+    <b>给评审的一句话：</b>如果只有 90 秒，请登录演示账号，看它直接落在「苏桃」的页面上——那一屏就是全部主张：言筑是脚手架，产物是用户的站点。
+  </div>
+
+  <div class="pnum">20</div>
+</section>
+
+</body>
+</html>
