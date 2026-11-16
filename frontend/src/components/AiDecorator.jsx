@@ -18,6 +18,17 @@ const QUICK = [
   "粉粉的可爱风",
 ];
 
+// 思考过程的文案，对应后端 pipeline/decorate.py 的真实步骤：
+// prompt 构造 → 快模型生成 → 对比度护栏 → 兜底 → 产出预览。
+// 接口是一次性返回（非流式），这里用定时逐条点亮把等待过程可视化，不假装编造结果。
+const THINK_STEPS = [
+  "读懂你的描述与情绪",
+  "匹配当前骨架的气质",
+  "生成配色与字体方案",
+  "校验文字对比度",
+  "铺成可预览的页面",
+];
+
 // 结果卡内嵌的迷你预览：让用户在「采用」前就能看到这套配色套到气泡上的样子。
 function ResultPreview({ theme }) {
   const { style, className } = useThemeVars(theme);
@@ -47,16 +58,34 @@ export default function AiDecorator({ deco }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null); // { theme, note, model, mock }
+  const [thinkStep, setThinkStep] = useState(-1); // 当前思考步骤下标，-1 表示不在思考
   const inputRef = useRef(null);
+  const thinkTimer = useRef(null);
 
-  // 抽屉关闭/组件卸载时，若还有未采用的预览，撤销掉，避免草稿主题残留。
-  useEffect(() => () => { deco?.resetPreview?.(); }, [deco]);
+  // 抽屉关闭/组件卸载时，若还有未采用的预览，撤销掉，避免草稿主题残留；同时清掉思考计时器。
+  useEffect(() => () => {
+    if (thinkTimer.current) clearInterval(thinkTimer.current);
+    deco?.resetPreview?.();
+  }, [deco]);
+
+  const stopThinking = () => {
+    if (thinkTimer.current) {
+      clearInterval(thinkTimer.current);
+      thinkTimer.current = null;
+    }
+  };
 
   const submit = async (text) => {
     const want = (text ?? input).trim();
     if (!want || !deco?.persona) return;
     setLoading(true);
     setResult(null);
+    // 逐条点亮思考步骤：约每 0.7s 前进一步，停在最后一步等接口返回，绝不提前编造结果。
+    setThinkStep(0);
+    stopThinking();
+    thinkTimer.current = setInterval(() => {
+      setThinkStep((s) => Math.min(s + 1, THINK_STEPS.length - 1));
+    }, 700);
     try {
       const persona = deco.persona;
       const theme = persona?.spec?.theme || persona?.theme;
@@ -75,6 +104,8 @@ export default function AiDecorator({ deco }) {
     } catch (e) {
       message.error(e.message || "AI 装修失败，请重试");
     } finally {
+      stopThinking();
+      setThinkStep(-1);
       setLoading(false);
     }
   };
@@ -162,6 +193,28 @@ export default function AiDecorator({ deco }) {
           aria-label="让 AI 装修"
         />
       </div>
+
+      {loading && thinkStep >= 0 && (
+        <div className="ai-dec-thinking" aria-live="polite">
+          <div className="ai-dec-thinking-head">
+            <LoadingOutlined /> AI 正在思考…
+          </div>
+          <ol className="ai-dec-thinking-steps">
+            {THINK_STEPS.map((step, i) => (
+              <li
+                key={step}
+                className={i < thinkStep ? "done" : i === thinkStep ? "active" : ""}
+              >
+                <span className="ai-dec-step-dot">
+                  {i < thinkStep ? <CheckOutlined /> : i + 1}
+                </span>
+                {step}
+                {i === thinkStep && <span className="ai-dec-step-dots"><i /><i /><i /></span>}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {result && (
         <div className="ai-dec-result">

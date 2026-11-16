@@ -6,6 +6,7 @@ import {
   ArrowLeftOutlined,
   BgColorsOutlined,
   BookOutlined,
+  CloseOutlined,
   DownloadOutlined,
   FullscreenExitOutlined,
   FullscreenOutlined,
@@ -96,6 +97,14 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   };
   // 全屏沉浸：优先用浏览器全屏 API，被拒（iframe / 权限策略）时退化为 CSS 全屏覆盖
   const [immersive, setImmersive] = useState(false);
+  // 沉浸引导悬浮框：关闭后写入 localStorage，不再反复打扰；进入沉浸时自动隐藏。
+  const [immHintClosed, setImmHintClosed] = useState(() => {
+    try { return localStorage.getItem("yz-immersive-hint-closed") === "1"; } catch { return false; }
+  });
+  const closeImmHint = () => {
+    setImmHintClosed(true);
+    try { localStorage.setItem("yz-immersive-hint-closed", "1"); } catch { /* 隐私模式下忽略 */ }
+  };
   const rootRef = useRef(null);
   // 配色草稿：面板里改动时先落到这里实时预览，取消就丢弃，保存后由后端数据接管
   const [draftTheme, setDraftTheme] = useState(null);
@@ -335,11 +344,27 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
               type="text"
               icon={immersive ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
               onClick={toggleImmersive}
-            />
+            >
+              {immersive ? "退出沉浸" : "沉浸"}
+            </Button>
           </Tooltip>
           {headerExtra}
         </Space>
       </header>
+
+      {!immersive && !immHintClosed && (
+        <div className="pf-imm-hint" role="note">
+          <button className="pf-imm-hint-close" onClick={closeImmHint} aria-label="关闭沉浸提示">
+            <CloseOutlined />
+          </button>
+          <div className="pf-imm-hint-icon"><FullscreenOutlined /></div>
+          <div className="pf-imm-hint-body">
+            <div className="pf-imm-hint-title">想专心聊聊？</div>
+            <div className="pf-imm-hint-desc">进入沉浸模式，只留下这个页面，屏蔽一切打扰。</div>
+            <button className="pf-imm-hint-cta" onClick={toggleImmersive}>进入沉浸 →</button>
+          </div>
+        </div>
+      )}
 
       {conversations.length > 1 && (
         <div className="pf-conv-bar">

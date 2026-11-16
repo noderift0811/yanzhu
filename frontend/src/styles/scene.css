@@ -435,3 +435,102 @@
   .pf-fab-modal .ant-modal-content { padding: 18px; }
   .pf-fab-modal-sub { display: none; }
 }
+
+/* 沉浸引导悬浮框：固定在右侧、悬浮球上方，引导用户进入沉浸式模式；关闭后记住不再打扰 */
+.pf-imm-hint {
+  position: fixed;
+  right: 22px;
+  bottom: 84px;
+  z-index: 890;
+  width: 232px;
+  display: flex;
+  gap: 10px;
+  padding: 14px 14px 14px 12px;
+  background: var(--yz-card);
+  border: 1px solid var(--yz-line-strong);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(74, 63, 51, 0.16);
+  animation: pf-rise 0.4s ease both;
+}
+
+/* 指向下方悬浮球的小尖角 */
+.pf-imm-hint::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  background: var(--yz-card);
+  border-right: 1px solid var(--yz-line-strong);
+  border-bottom: 1px solid var(--yz-line-strong);
+  transform: rotate(45deg);
+}
+
+.pf-imm-hint-close {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--yz-ink-3);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pf-imm-hint-close:hover { color: var(--yz-seal); background: rgba(193, 90, 60, 0.08); }
+
+.pf-imm-hint-icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--yz-card);
+  background: var(--yz-seal);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.pf-imm-hint-body { min-width: 0; padding-right: 8px; }
+
+.pf-imm-hint-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yz-ink);
+  margin-bottom: 3px;
+}
+
+.pf-imm-hint-desc {
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--yz-ink-2);
+  margin-bottom: 9px;
+}
+
+.pf-imm-hint-cta {
+  padding: 5px 12px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--yz-card);
+  background: var(--yz-seal);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.pf-imm-hint-cta:hover { filter: brightness(1.1); }
+
+@media (max-width: 620px) {
+  .pf-imm-hint { right: 14px; bottom: 74px; width: 210px; }
+}

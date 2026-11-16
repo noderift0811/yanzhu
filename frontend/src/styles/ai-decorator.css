@@ -145,6 +145,109 @@
   filter: brightness(1.1);
 }
 
+/* AI 思考过程：等待接口时逐条点亮真实 pipeline 步骤，让"在思考"看得见 */
+.ai-dec-thinking {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--yz-card);
+  border: 1px solid var(--yz-line);
+  border-radius: 10px;
+  animation: ai-dec-in 0.28s ease;
+}
+
+.ai-dec-thinking-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yz-seal);
+  margin-bottom: 12px;
+}
+
+.ai-dec-thinking-head .anticon {
+  animation: ai-dec-spin 1.1s linear infinite;
+}
+
+@keyframes ai-dec-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-dec-thinking-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-dec-thinking-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--yz-ink-3);
+  transition: color 0.25s;
+}
+
+.ai-dec-step-dot {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  border: 1px solid var(--yz-line);
+  border-radius: 50%;
+  transition: all 0.25s;
+}
+
+.ai-dec-thinking-steps li.done {
+  color: var(--yz-ink-2);
+}
+
+.ai-dec-thinking-steps li.done .ai-dec-step-dot {
+  color: var(--yz-card);
+  background: var(--yz-seal);
+  border-color: var(--yz-seal);
+}
+
+.ai-dec-thinking-steps li.active {
+  color: var(--yz-ink);
+  font-weight: 600;
+}
+
+.ai-dec-thinking-steps li.active .ai-dec-step-dot {
+  color: var(--yz-card);
+  background: var(--yz-seal);
+  border-color: var(--yz-seal);
+}
+
+.ai-dec-step-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 2px;
+}
+
+.ai-dec-step-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--yz-seal);
+  animation: ai-dec-bounce 1s ease-in-out infinite;
+}
+
+.ai-dec-step-dots i:nth-child(2) { animation-delay: 0.15s; }
+.ai-dec-step-dots i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes ai-dec-bounce {
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
 /* AI 返回结果卡 */
 .ai-dec-result {
   margin-top: 18px;
