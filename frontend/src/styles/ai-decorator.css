@@ -1,16 +1,49 @@
-/* AI 装修师：纸感外壳内的 AI 交互区。沿用 --yz-* 平台 token，不跟随骨架主题变色。
-   交互语言参考风格画廊：快捷胶囊 + 搜索式输入 + 结果卡带五色色带。 */
+/* AI 装修师：居中大浮窗里的主区。沿用 --yz-* 平台 token，不跟随骨架主题变色。
+   交互语言参考风格画廊：醒目引导 + 快捷胶囊 + 搜索式输入 + 结果卡带五色色带。 */
 
-.ai-dec-section {
-  border-bottom: 1px solid var(--yz-line) !important;
-  padding-bottom: 18px !important;
-  margin-bottom: 18px !important;
+.ai-dec-wrap {
+  padding: 4px 0 2px;
+}
+
+/* 引导头：大图标 + 醒目标题 + 说明，解决「用户忽略这一块」 */
+.ai-dec-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  margin-bottom: 18px;
+  background: linear-gradient(120deg, var(--yz-card), rgba(193, 90, 60, 0.05));
+  border: 1px solid var(--yz-line);
+  border-radius: 10px;
+}
+
+.ai-dec-hero-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--yz-card);
+  background: var(--yz-seal);
+  border-radius: 10px;
+}
+
+.ai-dec-hero-text { min-width: 0; }
+
+.ai-dec-hero-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--yz-ink);
+  margin-bottom: 4px;
 }
 
 .ai-dec-badge {
   display: inline-block;
   margin-left: 8px;
-  padding: 1px 7px;
+  padding: 2px 8px;
   font-size: 10px;
   font-weight: 400;
   letter-spacing: 0;
@@ -20,46 +53,55 @@
   vertical-align: middle;
 }
 
-.ai-dec-lead {
-  margin: 2px 0 10px !important;
+.ai-dec-hero-desc {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.75 !important;
 }
 
-.ai-dec-off {
-  margin-bottom: 0 !important;
+.ai-dec-hero-off { align-items: center; }
+
+/* 分区小标题 */
+.ai-dec-block-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--yz-ink);
+  margin-bottom: 10px;
 }
 
-/* 快捷胶囊：参考风格画廊的 chip，做成纸感描边款 */
+/* 快捷胶囊：参考风格画廊的 chip，放大到浮窗尺度 */
 .ai-dec-quick {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 .ai-dec-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 9px;
+  gap: 5px;
+  padding: 8px 14px;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.4;
   color: var(--yz-ink);
   background: var(--yz-card);
   border: 1px solid var(--yz-line);
   border-radius: 999px;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.2s;
 }
 
 .ai-dec-chip .anticon {
   color: var(--yz-seal);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .ai-dec-chip:hover:not(:disabled) {
   color: var(--yz-brand);
   border-color: var(--yz-brand);
+  transform: translateY(-1px);
 }
 
 .ai-dec-chip:disabled {
@@ -67,15 +109,20 @@
   cursor: not-allowed;
 }
 
-/* 搜索式输入行 */
+/* 搜索式输入行：加高加大 */
 .ai-dec-input-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+}
+
+.ai-dec-input-row .ant-input,
+.ai-dec-input-row .ant-input-group-wrapper {
+  font-family: inherit;
 }
 
 .ai-dec-input-row .ant-input {
-  font-family: inherit;
-  font-size: 12px;
+  font-size: 14px;
+  padding: 10px 14px;
   background: var(--yz-card);
   border-color: var(--yz-line);
   color: var(--yz-ink);
@@ -87,6 +134,9 @@
 
 .ai-dec-input-row .ant-btn-primary {
   flex: none;
+  height: 46px;
+  min-width: 52px;
+  font-size: 16px;
   background: var(--yz-seal);
   border-color: var(--yz-seal);
 }
@@ -97,11 +147,11 @@
 
 /* AI 返回结果卡 */
 .ai-dec-result {
-  margin-top: 14px;
-  padding: 12px;
+  margin-top: 18px;
+  padding: 16px;
   background: var(--yz-card);
   border: 1px solid var(--yz-line);
-  border-radius: 8px;
+  border-radius: 10px;
   animation: ai-dec-in 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -111,56 +161,56 @@
 }
 
 .ai-dec-result-head {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.5;
   color: var(--yz-ink);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .ai-dec-result-head .anticon {
   color: var(--yz-seal);
-  margin-right: 4px;
+  margin-right: 6px;
 }
 
-/* 结果卡内的迷你预览：直接吃 AI 产出的主题变量 */
+/* 结果卡内的迷你预览：直接吃 AI 产出的主题变量，放大到浮窗尺度 */
 .ai-dec-preview {
-  padding: 10px;
-  border-radius: 6px;
+  padding: 14px;
+  border-radius: 8px;
   border: 1px solid var(--yz-line);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-family: var(--pf-font, inherit);
 }
 
 .ai-dec-prev-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  margin-bottom: 8px;
+  gap: 7px;
+  font-size: 11px;
+  margin-bottom: 10px;
   opacity: 0.85;
 }
 
 .ai-dec-prev-bar i {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
 }
 
 .ai-dec-prev-body {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-bottom: 9px;
+  gap: 7px;
+  margin-bottom: 12px;
 }
 
 .ai-dec-prev-a,
 .ai-dec-prev-u {
   margin: 0;
-  padding: 5px 8px;
-  font-size: 11px;
-  border-radius: 6px;
-  max-width: 86%;
+  padding: 7px 11px;
+  font-size: 12px;
+  border-radius: 7px;
+  max-width: 84%;
 }
 
 .ai-dec-prev-a { align-self: flex-start; }
@@ -168,20 +218,25 @@
 
 .ai-dec-prev-swatches {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .ai-dec-prev-swatches i {
   flex: 1;
-  height: 12px;
-  border-radius: 3px;
+  height: 16px;
+  border-radius: 4px;
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .ai-dec-result-foot {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
+}
+
+.ai-dec-result-foot .ant-btn {
+  height: 34px;
+  padding: 0 18px;
 }
 
 .ai-dec-result-foot .ant-btn-primary {
@@ -194,8 +249,8 @@
 }
 
 .ai-dec-result-meta {
-  margin-top: 8px;
-  font-size: 10px;
+  margin-top: 10px;
+  font-size: 11px;
   color: var(--yz-ink-3);
   text-align: right;
   word-break: break-all;

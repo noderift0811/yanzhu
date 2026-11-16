@@ -266,11 +266,14 @@
   line-height: 1.7;
 }
 
-/* 装修角标：聊天页把悬浮球变成装修台时用印章红底区别于语气计数 */
+/* 装修角标：聊天页把悬浮球变成 AI 装修台时用印章红底区别于语气计数 */
 .pf-fab-dot-deco {
   background: var(--yz-seal);
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 700;
   letter-spacing: 0;
+  min-width: 20px;
+  padding: 0 3px;
 }
 
 /* 装修台：当前页面 + 就地打开的两个面板入口 */
@@ -369,4 +372,66 @@
   font-size: 15px;
   font-weight: 600;
   color: var(--yz-ink);
+}
+
+/* AI 装修台浮窗（居中 Modal）：比右侧抽屉大，主区是 AI 装修师，语气开关三列收在下方 */
+.pf-fab-modal .ant-modal-content {
+  padding: 24px 28px 20px;
+  border-radius: 12px;
+}
+
+.pf-fab-modal .ant-modal-header {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--yz-line);
+}
+
+.pf-fab-modal-title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.pf-fab-modal-title .anticon {
+  color: var(--yz-seal);
+  font-size: 18px;
+}
+
+.pf-fab-modal-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--yz-ink-3);
+}
+
+/* 语气区：三列平铺，避免竖排占高。文案长的自动换行、行高拉齐 */
+.pf-fab-tone-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--yz-line);
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.pf-fab-tone-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pf-fab-tone-grid .pf-fab-row {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid var(--yz-line);
+  border-radius: 8px;
+  background: var(--yz-card);
+}
+
+.pf-fab-tone-grid .pf-fab-row .ant-switch {
+  margin-top: 8px;
+}
+
+@media (max-width: 620px) {
+  .pf-fab-tone-grid { grid-template-columns: 1fr; }
+  .pf-fab-modal .ant-modal-content { padding: 18px; }
+  .pf-fab-modal-sub { display: none; }
 }

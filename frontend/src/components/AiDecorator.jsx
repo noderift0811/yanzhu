@@ -101,27 +101,34 @@ export default function AiDecorator({ deco }) {
 
   if (!deco?.persona) {
     return (
-      <div className="pf-fab-section">
-        <Typography.Text type="secondary" className="pf-fab-label">
-          <RobotOutlined /> AI 装修师
-        </Typography.Text>
-        <Typography.Paragraph type="secondary" className="pf-fab-hint ai-dec-off">
-          进入某个专属页面后，用一句话告诉 AI 你想要的风格，它就地帮你改。现在先去人格库挑一个。
-        </Typography.Paragraph>
+      <div className="ai-dec-hero ai-dec-hero-off">
+        <div className="ai-dec-hero-icon"><RobotOutlined /></div>
+        <div>
+          <div className="ai-dec-hero-title">AI 装修师</div>
+          <Typography.Paragraph type="secondary" className="ai-dec-hero-desc">
+            进入某个专属页面后，用一句话告诉 AI 你想要的风格，它就地帮你改。现在先去人格库挑一个。
+          </Typography.Paragraph>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="pf-fab-section ai-dec-section">
-      <Typography.Text type="secondary" className="pf-fab-label">
-        <RobotOutlined /> AI 装修师
-        <span className="ai-dec-badge">一句话改界面</span>
-      </Typography.Text>
-      <Typography.Paragraph type="secondary" className="pf-fab-hint ai-dec-lead">
-        说说你想要的风格，AI 会当场改好配色与气质，满意再采用。不改人设与聊天记录，不消耗生成次数。
-      </Typography.Paragraph>
+    <div className="ai-dec-wrap">
+      <div className="ai-dec-hero">
+        <div className="ai-dec-hero-icon"><RobotOutlined /></div>
+        <div className="ai-dec-hero-text">
+          <div className="ai-dec-hero-title">
+            告诉 AI 你想要什么样的页面
+            <span className="ai-dec-badge">实时生效</span>
+          </div>
+          <Typography.Paragraph type="secondary" className="ai-dec-hero-desc">
+            用大白话描述气质或颜色，AI 当场改好配色与字体，页面立刻变给你看。满意再点采用——不改人设与聊天记录，不消耗生成次数。
+          </Typography.Paragraph>
+        </div>
+      </div>
 
+      <div className="ai-dec-block-label">试试这些，或自己写一句</div>
       <div className="ai-dec-quick">
         {QUICK.map((q) => (
           <button
