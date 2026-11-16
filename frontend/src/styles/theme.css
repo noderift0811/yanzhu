@@ -856,9 +856,16 @@ body {
   color: var(--pf-primary, #4f46e5);
 }
 
+/* 跳过键固定在浮层右上角，不随阶段内容增减上下跳动；描边按钮保证在任意 AI 主题底上都看得见 */
 .pf-build-skip {
-  margin-top: 6px;
-  color: var(--yz-ink-3) !important;
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
+  background: var(--pf-surface, #fff) !important;
+  color: var(--pf-text, var(--yz-ink)) !important;
+  border: 1px solid var(--yz-line-strong) !important;
+  box-shadow: 0 2px 12px rgba(31, 35, 40, 0.12);
 }
 
 /* ---------- 聊天页 ---------- */

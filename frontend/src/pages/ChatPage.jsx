@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Empty, Space, Spin, message } from "antd";
+import { Button, Empty, Spin, message } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import { request } from "../lib/api.js";
 import BuildReveal from "../components/BuildReveal.jsx";
@@ -64,13 +64,6 @@ export default function ChatPage() {
             persona={persona}
             onPersonaChange={setPersona}
             onBack={() => navigate("/personas")}
-            headerExtra={
-              <Space>
-                <Button size="small" type="text" onClick={() => setReplay(true)}>
-                  重看建造
-                </Button>
-              </Space>
-            }
           />
           <SiteFooter />
         </>

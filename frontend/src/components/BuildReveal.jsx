@@ -89,8 +89,8 @@ export default function BuildReveal({ persona, onDone }) {
 
         {stage >= 5 && <div className="pf-build-stage pf-build-ready">页面就绪，正在进入…</div>}
 
-        <Button type="link" size="small" onClick={skip} className="pf-build-skip">
-          跳过
+        <Button size="small" onClick={skip} className="pf-build-skip">
+          跳过动画
         </Button>
       </div>
     </div>
