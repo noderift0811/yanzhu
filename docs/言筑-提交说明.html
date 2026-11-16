@@ -463,20 +463,20 @@
 
   <div class="shot">
     <img src="screenshots/04-agent-steps.png" alt="五步 Agent 施工页" />
-    <div class="cap">图 3　<code>/build</code> 页面：左列为五步状态（每步耗时可见，合计约 60ms 为 Mock 适配器；真实模型下③生成占绝大部分），右列为工具调用、安全护栏、规划决策与检索证据</div>
+    <div class="cap">图 3　<code>/build</code> 页面（真实模型）：顶栏标注 <code>模型 doubao</code>；左列为五步状态与每步耗时（③生成占绝大部分），右列为工具调用、安全护栏、规划决策与检索证据</div>
   </div>
 
   <table style="margin-top:3mm">
     <tr><th style="width:34mm">界面区域</th><th>这张图里能验证什么</th></tr>
-    <tr><td>五步状态列</td><td>检索 44ms / 规划 6ms / 生成 16ms / 校验 2ms / 兜底 0ms，第五步显示「未触发（五步链路完整走通）」——兜底是分支，不是必经</td></tr>
-    <tr><td>工具调用</td><td>7 个工具依次出现，每个带结论摘要：检索命中 3 条证据、护栏未发现风险、骨架倾向 <code>garden</code></td></tr>
-    <tr><td>安全护栏</td><td>输入 / 输出两次判定，「未发现风险，护栏待命」——护栏不阻断用户说话，只约束我们生成的内容</td></tr>
-    <tr><td>规划决策</td><td>语气「短句、留白、不追问」、骨架倾向 <code>radio</code>、安全策略「不做诊断、不收集隐私」、避免「想开点 / 别矫情 / 至少你还」</td></tr>
-    <tr><td>检索证据</td><td>三条命中条目的标题，可点开看原文——这是 RAG 在做事的直接证据</td></tr>
+    <tr><td>五步状态列</td><td>检索 7ms / 规划 2053ms / 生成 9468ms / 校验 1ms / 兜底未触发，合计约 11.5 秒——③生成是唯一耗时大头，其余四步近乎瞬时</td></tr>
+    <tr><td>工具调用</td><td>7 个工具依次出现，每个带结论摘要：检索命中 3 条证据、护栏未发现风险、骨架倾向 <code>radio</code>、<code>validate_spec</code> 回 <code>valid=true</code></td></tr>
+    <tr><td>安全护栏</td><td>输入「未发现风险，护栏待命」；输出侧「危机表达：已记录」——护栏不阻断用户说话，只约束我们生成的内容，并在识别到危机表达时注入求助资源</td></tr>
+    <tr><td>规划决策</td><td>语气「温柔、安静、树洞、留白」、骨架倾向 <code>radio</code>、安全策略「不做诊断、不收集隐私」、避免「想开点 / 别矫情 / 至少你还」</td></tr>
+    <tr><td>检索证据</td><td>三条命中条目的标题（照护者疲惫 / 反弹边界 / 先接住），可点开看原文——这是场景语料 RAG 在做事的直接证据</td></tr>
   </table>
 
   <div class="note">
-    <b>关于截图里的 model 标识：</b>本图取自 MockAdapter（无密钥离线模式），顶栏标注 <code>model mock</code>。这是有意保留的能力证明——<strong>两组密钥留空时，五步链路与界面仍可完整跑通</strong>，方便评审在无网络环境验收。正式演示视频使用真实模型录制。
+    <b>关于密钥与降级：</b>本图取自<strong>真实模型</strong>（火山方舟 OpenAI 兼容端点，<code>doubao</code> 适配器，生成用 deepseek-v4-1-flash、对话用 economy 档），五步全程实跑。项目同时保留降级能力：<strong>两组密钥留空时自动走 MockAdapter，链路与界面仍可完整跑通</strong>，方便评审在无网络、无密钥环境下验收——这不是伪装，而是刻意保留的离线演示路径。
   </div>
 
   <div class="pnum">08</div>
@@ -704,13 +704,15 @@
   <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>五、架构与数据</span></div>
   <h2>五、技术架构与数据模型<small>后端只做 AI 接入层</small></h2>
 
-  <pre class="json" style="font-size:7.5pt;line-height:1.48">React 18 + Vite 5 + Antd 5 + HashRouter
+  <pre class="json" style="font-size:7pt;line-height:1.38">React 18 + Vite 5 + Antd 5 + HashRouter
   前端：场景选择 / 五步时间线 / 骨架装配 / SSE 流式渲染 / 悬浮工作台 / 人格库缩略图
         │  X-Yanzhu-Token (JWT) + SSE
 FastAPI + SQLite WAL + PyJWT + bcrypt
   后端：AI 接入层 + schema 校验 + 鉴权 + 配额 + 限流
         │  OpenAI 兼容协议
 Engineer LLM（深层生成）  /  Persona LLM（实时对话）      留空即 MockAdapter
+当前接线：火山方舟 OpenAI 兼容端点（ark.cn-beijing.volces.com/api/v3）
+  生成 deepseek-v4-1-flash-261017  /  对话 deepseek-v4-1-flash-economy-261017
 生成主链路：
   brief 归一化 + 场景 enrich（场景从账号读，请求参数会被 400 拒）
     → retrieve 本地知识库 ─┐
