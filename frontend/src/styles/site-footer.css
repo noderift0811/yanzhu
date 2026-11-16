@@ -1,0 +1,112 @@
+/* 专属网站页脚：平台信息沉到末尾，顶部只留用户自己的页面。
+   全部走纸感 token（--yz-*），不继承骨架的 --pf-* 主题。 */
+
+.pf-site-footer {
+  margin-top: 28px;
+  padding: 26px 0 0;
+  border-top: 1px solid var(--yz-line-strong);
+  color: var(--yz-ink-2);
+}
+
+.pf-site-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.pf-site-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pf-site-footer-brand .pf-brand-mark {
+  width: 34px;
+  height: 34px;
+  font-size: 17px;
+}
+
+.pf-site-footer-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf-site-footer-name {
+  font-family: var(--yz-font-serif);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--yz-ink);
+}
+
+.pf-site-footer-name em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--yz-ink-3);
+  margin-left: 4px;
+}
+
+.pf-site-footer-slogan {
+  font-family: var(--yz-font-serif);
+  font-size: 13px;
+  color: var(--yz-brand);
+  letter-spacing: 0.08em;
+}
+
+.pf-site-footer-sub {
+  font-size: 11px;
+  color: var(--yz-ink-3);
+  line-height: 1.6;
+}
+
+.pf-site-footer-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.pf-site-footer-qrbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border: 1px dashed var(--yz-line-strong);
+  border-radius: 6px;
+  background: var(--yz-card);
+  color: var(--yz-ink-3);
+  font-size: 34px;
+}
+
+.pf-site-footer-qrcap {
+  font-size: 11px;
+  color: var(--yz-ink-3);
+  letter-spacing: 0.04em;
+}
+
+.pf-site-footer-rule {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--yz-line);
+  font-size: 11px;
+  color: var(--yz-ink-3);
+  letter-spacing: 0.03em;
+}
+
+@media (max-width: 640px) {
+  .pf-site-footer-inner {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .pf-site-footer-brand {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}

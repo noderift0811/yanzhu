@@ -9,13 +9,14 @@ import {
   DownloadOutlined,
   FullscreenExitOutlined,
   FullscreenOutlined,
+  LogoutOutlined,
   PlusOutlined,
   ReloadOutlined,
   SkinOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
-import { request } from "../lib/api.js";
-import { useMe } from "../lib/me.js";
+import { authStore, request } from "../lib/api.js";
+import { resetMe, useMe } from "../lib/me.js";
 import { registerDecoration } from "../lib/decoration.js";
 import { useChat } from "../hooks/useChat.js";
 import { useThemeVars } from "../hooks/useThemeVars.js";
@@ -79,11 +80,19 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
         </span>
       ),
     },
+    { type: "divider" },
+    { key: "logout", icon: <LogoutOutlined />, label: "退出登录" },
   ];
+  const logout = () => {
+    authStore.clear();
+    resetMe(); // 不清缓存的话，换账号进来会先闪一下上一个人的场景
+    location.hash = "#/login";
+  };
   const onSite = ({ key }) => {
     if (key === "create") setCreateOpen(true);
     else if (key === "personas") navigate("/personas");
     else if (key === "scene") navigate("/scene");
+    else if (key === "logout") logout();
   };
   // 全屏沉浸：优先用浏览器全屏 API，被拒（iframe / 权限策略）时退化为 CSS 全屏覆盖
   const [immersive, setImmersive] = useState(false);
