@@ -143,6 +143,25 @@ class PersonaPatchIn(BaseModel):
         return v
 
 
+class DecorateIn(BaseModel):
+    """AI 装修：用户用自然语言描述想要的风格，AI 只产出主题参数（不写代码、不重写人设）。
+
+    带上当前 theme / skeleton_id 作为上下文，AI 在现有基础上调整而非凭空换一套；
+    骨架底色固定时提示 AI 注意明暗方向。装修不耗生成配额。
+    """
+
+    request: str = Field(min_length=2, max_length=200)
+    theme: ThemeModel
+    skeleton_id: Optional[str] = Field(default=None, max_length=36)
+
+
+class DecorateOut(BaseModel):
+    theme: ThemeModel
+    note: str
+    model: str
+    mock: bool = False
+
+
 class ConversationCreateIn(BaseModel):
     title: Optional[str] = Field(default=None, max_length=40)
 

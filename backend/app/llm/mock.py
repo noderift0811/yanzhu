@@ -131,10 +131,42 @@ class MockAdapter(BaseAdapter):
 
     # ---- 契约实现 ----
 
+    # ---- 装修 AI ----
+
+    def _decorate_result(self, messages: List[Dict[str, str]]) -> dict:
+        # 从 user 消息里抠出「用户想要的风格」那句，做关键词命中
+        user = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "")
+        m = re.search(r"用户想要的风格：(.*)", user)
+        want = m.group(1).strip() if m else ""
+        keyword_map = [
+            (("暗", "深夜", "夜", "酷", "黑", "咖啡", "酒", "霓虹"),
+             {"primary": "#d9a441", "bg": "#141821", "surface": "#1e2532", "text": "#f0e9dc", "accent": "#e0744f",
+              "font_style": "serif", "decoration": "stars"}, "换成深夜暖金的沉静质感"),
+            (("暖", "温柔", "米", "纸", "书卷", "复古", "奶茶", "秋"),
+             {"primary": "#8a6a3a", "bg": "#f6efe2", "surface": "#fffdf6", "text": "#3a2f22", "accent": "#ab7f48",
+              "font_style": "serif", "decoration": "paper"}, "换成暖纸书卷的质感"),
+            (("清爽", "冷", "蓝", "海", "薄荷", "干净", "极简", "科技"),
+             {"primary": "#0e7490", "bg": "#eefafb", "surface": "#ffffff", "text": "#12343b", "accent": "#3a9bac",
+              "font_style": "system", "decoration": "none"}, "换成清爽冷调的极简感"),
+            (("可爱", "粉", "甜", "花瓣", "少女", "圆润", "软"),
+             {"primary": "#d4738f", "bg": "#fdf3f5", "surface": "#fffafb", "text": "#4a2f38", "accent": "#e0a0b2",
+              "font_style": "rounded", "decoration": "petal"}, "换成柔和粉调的圆润感"),
+        ]
+        for keywords, theme, note in keyword_map:
+            if any(k in want for k in keywords):
+                return {"theme": theme, "note": note}
+        return {
+            "theme": {"primary": "#7c6cf0", "bg": "#f5f4fb", "surface": "#ffffff", "text": "#26233a",
+                      "accent": "#b48341", "font_style": "serif", "decoration": "stars"},
+            "note": "加了一点星点与书卷气",
+        }
+
     async def chat_json(self, messages: List[Dict[str, str]], *, temperature: float = 0.7) -> dict:
         if self.purpose == "engineer":
             return self._engineer_spec(self._extract_brief(messages))
-        raise ValueError("MockAdapter.chat_json 仅支持 engineer purpose")
+        if self.purpose == "decorate":
+            return self._decorate_result(messages)
+        raise ValueError(f"MockAdapter.chat_json 不支持 purpose: {self.purpose}")
 
     async def chat_text(self, messages: List[Dict[str, str]], *, temperature: float = 0.8) -> str:
         return self._persona_reply(messages)

@@ -17,8 +17,10 @@ function publish(next) {
   listeners.forEach((fn) => fn(next));
 }
 
-// 聊天页调用：登记当前人格与两个面板的打开函数。返回一个卸载清理函数。
-// handle = { persona, skeletonName, openTheme(), openSkeleton() }
+// 聊天页调用：登记当前人格、面板打开函数，以及 AI 装修的预览/保存通道。返回卸载清理函数。
+// handle = { persona, skeletonName, openTheme(), openSkeleton(),
+//            previewTheme(theme), resetPreview(), applyTheme(theme) }
+// AI 装修：悬浮球拿到 AI 产出的 theme → previewTheme 实时套用 → 用户点「采用」才 applyTheme 落库。
 export function registerDecoration(handle) {
   publish(handle);
   return () => {

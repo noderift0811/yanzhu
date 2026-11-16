@@ -11,7 +11,7 @@ from .errors import install_error_handlers
 from .models import init_db
 from .pipeline.knowledge import validate_knowledge
 from .pipeline.presets import validate_presets
-from .routers import agent, auth, chat, meta, personas
+from .routers import agent, auth, chat, decorate, meta, personas
 
 
 @asynccontextmanager
@@ -36,7 +36,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     install_error_handlers(app)
-    for r in (auth.router, personas.router, agent.router, chat.router, meta.router):
+    for r in (auth.router, personas.router, agent.router, chat.router, meta.router, decorate.router):
         app.include_router(r, prefix="/api")
 
     @app.get("/api/health")

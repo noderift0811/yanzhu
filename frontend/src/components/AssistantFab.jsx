@@ -4,11 +4,12 @@ import { BgColorsOutlined, SwapOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { formatSwitchAt, patchTone, useMe } from "../lib/me.js";
 import { useDecoration } from "../lib/decoration.js";
+import AiDecorator from "./AiDecorator.jsx";
 
-// 悬浮球 = 场景内的装修台。只放「点了立刻生效、不耗生成配额」的动作：
-// 语气开关（拼运行时指令）、换场景（受冷却约束的入口），
-// 以及在专属页面里就地换骨架/调配色——这两个面板由聊天页持有，悬浮球经 decoration
-// 桥接就地打开，实时预览与保存仍走聊天页原逻辑，不跳页、不重复实现。
+// 悬浮球 = 场景内的装修台。只放「不重写人设、不耗生成配额」的动作：
+// AI 装修师（一句话让 AI 改配色，实时预览后采用）、语气开关、换场景入口，
+// 以及在专属页面里就地换骨架/调配色。面板与预览/保存通道都由聊天页持有，
+// 悬浮球经 decoration 桥接就地调用，不跳页、不重复实现。
 // 重写人设要走工程师模型，那种动作放在人格详情页，不挂在这里。
 const TONES = [
   { key: "calm", label: "更沉稳", hint: "先承接再回应，不急着给方案" },
@@ -72,6 +73,8 @@ export default function AssistantFab() {
         width={340}
         className="pf-fab-drawer"
       >
+        <AiDecorator deco={deco} />
+
         <div className="pf-fab-section">
           <Typography.Text type="secondary" className="pf-fab-label">
             当前场景

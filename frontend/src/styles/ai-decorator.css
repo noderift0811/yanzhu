@@ -1,0 +1,202 @@
+/* AI 装修师：纸感外壳内的 AI 交互区。沿用 --yz-* 平台 token，不跟随骨架主题变色。
+   交互语言参考风格画廊：快捷胶囊 + 搜索式输入 + 结果卡带五色色带。 */
+
+.ai-dec-section {
+  border-bottom: 1px solid var(--yz-line) !important;
+  padding-bottom: 18px !important;
+  margin-bottom: 18px !important;
+}
+
+.ai-dec-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--yz-card);
+  background: var(--yz-seal);
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.ai-dec-lead {
+  margin: 2px 0 10px !important;
+}
+
+.ai-dec-off {
+  margin-bottom: 0 !important;
+}
+
+/* 快捷胶囊：参考风格画廊的 chip，做成纸感描边款 */
+.ai-dec-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ai-dec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--yz-ink);
+  background: var(--yz-card);
+  border: 1px solid var(--yz-line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.ai-dec-chip .anticon {
+  color: var(--yz-seal);
+  font-size: 10px;
+}
+
+.ai-dec-chip:hover:not(:disabled) {
+  color: var(--yz-brand);
+  border-color: var(--yz-brand);
+}
+
+.ai-dec-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 搜索式输入行 */
+.ai-dec-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ai-dec-input-row .ant-input {
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--yz-card);
+  border-color: var(--yz-line);
+  color: var(--yz-ink);
+}
+
+.ai-dec-input-row .ant-input::placeholder {
+  color: var(--yz-ink-3);
+}
+
+.ai-dec-input-row .ant-btn-primary {
+  flex: none;
+  background: var(--yz-seal);
+  border-color: var(--yz-seal);
+}
+
+.ai-dec-input-row .ant-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* AI 返回结果卡 */
+.ai-dec-result {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--yz-card);
+  border: 1px solid var(--yz-line);
+  border-radius: 8px;
+  animation: ai-dec-in 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ai-dec-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ai-dec-result-head {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--yz-ink);
+  margin-bottom: 10px;
+}
+
+.ai-dec-result-head .anticon {
+  color: var(--yz-seal);
+  margin-right: 4px;
+}
+
+/* 结果卡内的迷你预览：直接吃 AI 产出的主题变量 */
+.ai-dec-preview {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--yz-line);
+  margin-bottom: 10px;
+  font-family: var(--pf-font, inherit);
+}
+
+.ai-dec-prev-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+.ai-dec-prev-bar i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.ai-dec-prev-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+
+.ai-dec-prev-a,
+.ai-dec-prev-u {
+  margin: 0;
+  padding: 5px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  max-width: 86%;
+}
+
+.ai-dec-prev-a { align-self: flex-start; }
+.ai-dec-prev-u { align-self: flex-end; }
+
+.ai-dec-prev-swatches {
+  display: flex;
+  gap: 4px;
+}
+
+.ai-dec-prev-swatches i {
+  flex: 1;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.ai-dec-result-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ai-dec-result-foot .ant-btn-primary {
+  background: var(--yz-seal);
+  border-color: var(--yz-seal);
+}
+
+.ai-dec-result-foot .ant-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.ai-dec-result-meta {
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--yz-ink-3);
+  text-align: right;
+  word-break: break-all;
+}

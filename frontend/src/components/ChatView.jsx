@@ -99,8 +99,9 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   const rootRef = useRef(null);
   // 配色草稿：面板里改动时先落到这里实时预览，取消就丢弃，保存后由后端数据接管
   const [draftTheme, setDraftTheme] = useState(null);
-  // 装修台桥接：把聊天页持有的两个面板打开函数登记给全局悬浮球。
+  // 装修台桥接：把聊天页持有的面板打开函数 + 预览/保存通道登记给全局悬浮球。
   // 面板本体仍在这里渲染，预览/保存逻辑原样复用，悬浮球只是多一个就地入口。
+  // AI 装修也走这条通道：先 previewTheme 实时预览，用户点「采用」才 applyTheme 落库。
   // 用 ref 承载最新值，登记只做一次，避免每次改配色都重注册。
   const decorationRef = useRef(null);
   decorationRef.current = {
@@ -108,6 +109,16 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
     skeletonName: current?.skeleton_name || current?.skeleton_id || "",
     openTheme: () => setThemeOpen(true),
     openSkeleton: () => setPickOpen(true),
+    previewTheme: (theme) => setDraftTheme(theme),
+    resetPreview: () => setDraftTheme(null),
+    applyTheme: async (theme) => {
+      const updated = await request(`/personas/${current.id}`, {
+        method: "PATCH", body: { theme },
+      });
+      setDraftTheme(null);
+      setCurrent(updated);
+      return updated;
+    },
   };
   useEffect(() => {
     const unregister = registerDecoration({
@@ -115,6 +126,9 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
       get skeletonName() { return decorationRef.current.skeletonName; },
       openTheme: () => decorationRef.current.openTheme(),
       openSkeleton: () => decorationRef.current.openSkeleton(),
+      previewTheme: (theme) => decorationRef.current.previewTheme(theme),
+      resetPreview: () => decorationRef.current.resetPreview(),
+      applyTheme: (theme) => decorationRef.current.applyTheme(theme),
     });
     return unregister;
   }, []);

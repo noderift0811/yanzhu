@@ -15,11 +15,15 @@ REGISTRY: Dict[str, Type[BaseAdapter]] = {
 
 
 def get_adapter(purpose: str) -> BaseAdapter:
-    """purpose: engineer | persona。未配置密钥 → MockAdapter（框架期全流程可跑）。"""
+    """purpose: engineer | persona | decorate。未配置密钥 → MockAdapter（框架期全流程可跑）。
+
+    decorate 复用 persona 的快模型配置（flash，秒级返回）；装修只产主题 JSON，
+    不重写人设，用轻模型即可——真实适配器不看 purpose，mock 用 purpose 分流。
+    """
     s = get_settings()
     if purpose == "engineer":
         cfg = LLMConfig(s.engineer_llm_adapter, s.engineer_llm_base_url, s.engineer_llm_api_key, s.engineer_llm_model)
-    elif purpose == "persona":
+    elif purpose in ("persona", "decorate"):
         cfg = LLMConfig(s.persona_llm_adapter, s.persona_llm_base_url, s.persona_llm_api_key, s.persona_llm_model)
     else:
         raise ValueError(f"未知 purpose: {purpose}")
