@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { Badge, Button, Drawer, Switch, Tag, Typography, message } from "antd";
+import { Button, Drawer, Switch, Tag, Typography, message } from "antd";
+import { BgColorsOutlined, SwapOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { formatSwitchAt, patchTone, useMe } from "../lib/me.js";
+import { useDecoration } from "../lib/decoration.js";
 
-// 悬浮球 = 场景内的调参台。刻意只放「点了立刻生效、不耗生成配额」的两类动作：
-// 语气开关（拼运行时指令）与换场景（受冷却约束的入口）。
-// 重写人设要走工程师模型 30 秒，那种动作放在人格详情页，不挂在这里。
+// 悬浮球 = 场景内的装修台。只放「点了立刻生效、不耗生成配额」的动作：
+// 语气开关（拼运行时指令）、换场景（受冷却约束的入口），
+// 以及在专属页面里就地换骨架/调配色——这两个面板由聊天页持有，悬浮球经 decoration
+// 桥接就地打开，实时预览与保存仍走聊天页原逻辑，不跳页、不重复实现。
+// 重写人设要走工程师模型，那种动作放在人格详情页，不挂在这里。
 const TONES = [
   { key: "calm", label: "更沉稳", hint: "先承接再回应，不急着给方案" },
   { key: "brief", label: "更简短", hint: "三句以内，能一句说完就不写第二句" },
@@ -15,6 +19,7 @@ const TONES = [
 export default function AssistantFab() {
   const me = useMe();
   const navigate = useNavigate();
+  const deco = useDecoration(); // 聊天页登记后非 null：此刻悬浮球就是装修台
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState("");
 
@@ -39,7 +44,7 @@ export default function AssistantFab() {
         type="button"
         className="pf-fab"
         onClick={() => setOpen(true)}
-        title="调整当前场景与语气"
+        title={deco ? "装修台：语气 · 配色 · 骨架" : "调整当前场景与语气"}
         aria-label="打开调整面板"
       >
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -53,13 +58,17 @@ export default function AssistantFab() {
           <circle cx="16" cy="7" r="2.2" stroke="currentColor" strokeWidth="1.8" fill="none" />
           <circle cx="10" cy="17" r="2.2" stroke="currentColor" strokeWidth="1.8" fill="none" />
         </svg>
-        {active > 0 && <span className="pf-fab-dot">{active}</span>}
+        {deco ? (
+          <span className="pf-fab-dot pf-fab-dot-deco">装</span>
+        ) : active > 0 ? (
+          <span className="pf-fab-dot">{active}</span>
+        ) : null}
       </button>
 
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
-        title="工作台"
+        title={deco ? "装修台" : "工作台"}
         width={340}
         className="pf-fab-drawer"
       >
@@ -110,14 +119,44 @@ export default function AssistantFab() {
 
         <div className="pf-fab-section">
           <Typography.Text type="secondary" className="pf-fab-label">
-            外观
+            外观装修
           </Typography.Text>
-          <Typography.Paragraph type="secondary" className="pf-fab-hint">
-            换骨架、配色与字体在人格页右侧的「主题」面板里，那里能直接看到改动效果。
-          </Typography.Paragraph>
-          <Button size="small" onClick={() => { setOpen(false); navigate("/personas"); }}>
-            去人格库
-          </Button>
+          {deco ? (
+            <>
+              <div className="pf-fab-deco-now">
+                <span className="pf-fab-deco-name">{deco.persona?.name || "当前页面"}</span>
+                {deco.skeletonName && <Tag className="pf-fab-deco-sk">{deco.skeletonName}</Tag>}
+              </div>
+              <Button
+                block
+                icon={<BgColorsOutlined />}
+                className="pf-fab-deco-btn"
+                onClick={() => { setOpen(false); deco.openTheme(); }}
+              >
+                调整配色
+              </Button>
+              <Button
+                block
+                icon={<SwapOutlined />}
+                className="pf-fab-deco-btn"
+                onClick={() => { setOpen(false); deco.openSkeleton(); }}
+              >
+                换一套骨架
+              </Button>
+              <Typography.Paragraph type="secondary" className="pf-fab-hint pf-fab-deco-hint">
+                就地改动、实时预览，不跳页、不动人设与聊天记录，也不消耗生成次数。
+              </Typography.Paragraph>
+            </>
+          ) : (
+            <>
+              <Typography.Paragraph type="secondary" className="pf-fab-hint">
+                进入某个专属页面后，可在这里就地换骨架、调配色。现在先去人格库挑一个。
+              </Typography.Paragraph>
+              <Button size="small" onClick={() => { setOpen(false); navigate("/personas"); }}>
+                去人格库
+              </Button>
+            </>
+          )}
         </div>
       </Drawer>
     </>

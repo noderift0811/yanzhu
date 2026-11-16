@@ -266,6 +266,50 @@
   line-height: 1.7;
 }
 
+/* 装修角标：聊天页把悬浮球变成装修台时用印章红底区别于语气计数 */
+.pf-fab-dot-deco {
+  background: var(--yz-seal);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+/* 装修台：当前页面 + 就地打开的两个面板入口 */
+.pf-fab-deco-now {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pf-fab-deco-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--yz-ink);
+}
+
+.pf-fab-deco-sk {
+  margin: 0 !important;
+  font-size: 11px;
+}
+
+.pf-fab-deco-btn {
+  margin-bottom: 8px !important;
+  border-color: var(--yz-line) !important;
+  color: var(--yz-ink) !important;
+  background: var(--yz-card) !important;
+  text-align: left !important;
+}
+
+.pf-fab-deco-btn:hover {
+  border-color: var(--yz-brand) !important;
+  color: var(--yz-brand) !important;
+}
+
+.pf-fab-deco-hint {
+  margin-top: 10px !important;
+  margin-bottom: 0 !important;
+}
+
 .pf-fab-row {
   display: flex;
   align-items: center;

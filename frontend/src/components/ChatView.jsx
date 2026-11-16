@@ -16,6 +16,7 @@ import {
 } from "@ant-design/icons";
 import { request } from "../lib/api.js";
 import { useMe } from "../lib/me.js";
+import { registerDecoration } from "../lib/decoration.js";
 import { useChat } from "../hooks/useChat.js";
 import { useThemeVars } from "../hooks/useThemeVars.js";
 import {
@@ -89,6 +90,25 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   const rootRef = useRef(null);
   // 配色草稿：面板里改动时先落到这里实时预览，取消就丢弃，保存后由后端数据接管
   const [draftTheme, setDraftTheme] = useState(null);
+  // 装修台桥接：把聊天页持有的两个面板打开函数登记给全局悬浮球。
+  // 面板本体仍在这里渲染，预览/保存逻辑原样复用，悬浮球只是多一个就地入口。
+  // 用 ref 承载最新值，登记只做一次，避免每次改配色都重注册。
+  const decorationRef = useRef(null);
+  decorationRef.current = {
+    persona: current,
+    skeletonName: current?.skeleton_name || current?.skeleton_id || "",
+    openTheme: () => setThemeOpen(true),
+    openSkeleton: () => setPickOpen(true),
+  };
+  useEffect(() => {
+    const unregister = registerDecoration({
+      get persona() { return decorationRef.current.persona; },
+      get skeletonName() { return decorationRef.current.skeletonName; },
+      openTheme: () => decorationRef.current.openTheme(),
+      openSkeleton: () => decorationRef.current.openSkeleton(),
+    });
+    return unregister;
+  }, []);
   useEffect(() => {
     setCurrent(persona);
   }, [persona]);
