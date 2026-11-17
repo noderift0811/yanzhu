@@ -877,7 +877,9 @@ body {
   color: var(--pf-text, #1f2328);
   font-family: var(--pf-font, inherit);
   border-radius: 14px;
-  min-height: calc(100vh - 120px);
+  /* 固定高度：消息区自己滚，别让聊天框随对话变长把整页顶下去 */
+  height: calc(100vh - 120px);
+  min-height: 480px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -990,6 +992,82 @@ body {
   overflow-x: auto;
 }
 
+.pf-conv-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.pf-conv-tab {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  max-width: 190px;
+  border-radius: 7px;
+  color: var(--pf-text, var(--yz-ink));
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.pf-conv-tab:hover {
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.pf-conv-tab.is-active {
+  background: var(--pf-surface, #fff);
+  box-shadow: 0 1px 4px rgba(31, 35, 40, 0.14);
+  color: var(--pf-primary, var(--yz-brand-deep, #9c3f28));
+}
+
+.pf-conv-tab-main,
+.pf-conv-tab-close,
+.pf-conv-tab-add {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 5px 6px;
+  line-height: 1;
+}
+
+.pf-conv-tab-main {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-conv-tab-close {
+  font-size: 10px;
+  opacity: 0.45;
+  padding-right: 8px;
+}
+
+.pf-conv-tab:hover .pf-conv-tab-close,
+.pf-conv-tab.is-active .pf-conv-tab-close,
+.pf-conv-tab-close:focus-visible {
+  opacity: 1;
+}
+
+.pf-conv-tab-close:hover {
+  color: var(--yz-seal, #c15a3c);
+}
+
+.pf-conv-tab-add {
+  font-size: 12px;
+  opacity: 0.7;
+  border-radius: 7px;
+}
+
+.pf-conv-tab-add:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.14);
+}
+
 .pf-conv-label {
   display: inline-block;
   max-width: 120px;
@@ -1018,12 +1096,24 @@ body {
 
 .sk-msgs {
   flex: 1;
+  /* flex 子项默认 min-height:auto 会撑开父容器，滚动条就永远不出现 */
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 127, 127, 0.45) transparent;
   padding: 20px 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+
+.sk-msgs::-webkit-scrollbar { width: 8px; }
+.sk-msgs::-webkit-scrollbar-thumb {
+  background: rgba(127, 127, 127, 0.42);
+  border-radius: 8px;
+}
+.sk-msgs::-webkit-scrollbar-track { background: transparent; }
 
 .sk-row {
   display: flex;
@@ -1178,7 +1268,10 @@ body {
 /* 窄屏适配 */
 @media (max-width: 640px) {
   .pf-chat {
-    min-height: calc(100vh - 96px);
+    height: calc(100vh - 96px);
+  }
+  .pf-conv-bar {
+    padding: 8px 12px;
   }
   .sk-bubble {
     max-width: 86%;

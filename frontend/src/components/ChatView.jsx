@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Dropdown, Segmented, Space, Tooltip, Typography, message } from "antd";
+import { Button, Dropdown, Popconfirm, Space, Tooltip, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   AppstoreOutlined,
@@ -218,6 +218,26 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
     }
   };
 
+  // 关闭会话：删库后切到相邻会话；若这是最后一个，立刻补一个空会话，
+  // 保证聊天框永远有落点（种子开场白与建造揭晓一致）。
+  const closeConversation = async (target) => {
+    try {
+      await request(`/conversations/${target.id}`, { method: "DELETE" });
+      let left = conversations.filter((c) => c.id !== target.id);
+      if (target.id === cid) {
+        if (!left.length) {
+          const created = await request(`/personas/${persona.id}/conversations`, { method: "POST", body: {} });
+          left = [created];
+        }
+        setCid(left[0].id);
+      }
+      setConversations(left);
+      message.success("会话已关闭");
+    } catch (e) {
+      message.error(e.message);
+    }
+  };
+
   const toggleImmersive = async () => {
     if (!immersive) {
       setImmersive(true);
@@ -243,6 +263,15 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   };
 
   const conversation = conversations.find((c) => c.id === cid) || null;
+
+  // 消息区改成内部滚动后，切换会话 / 流式吐字都要跟到底部。
+  // 16 套骨架共用 .sk-msgs，这里只在聊天页容器里找一个节点，比改 16 个组件稳。
+  const lastMessage = chat.messages[chat.messages.length - 1];
+  const lastContentLength = (lastMessage?.content || "").length;
+  useEffect(() => {
+    const box = rootRef.current?.querySelector(".sk-msgs");
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [cid, chat.messages.length, lastContentLength, chat.sending]);
 
   const save = (kind) => {
     const messages = chat.messages;
@@ -324,9 +353,6 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
               站点
             </Button>
           </Dropdown>
-          <Button size="small" type="text" onClick={newConversation} icon={<PlusOutlined />}>
-            新会话
-          </Button>
           <Tooltip title="改限定词，重跑五步 Agent 链路（覆盖当前或另建一个）">
             <Button size="small" type="text" icon={<ReloadOutlined />} onClick={() => setRebuildOpen(true)}>
               重建
@@ -380,16 +406,42 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
         </div>
       )}
 
-      {conversations.length > 1 && (
+      {conversations.length > 0 && (
         <div className="pf-conv-bar">
-          <Segmented
-            value={cid}
-            onChange={setCid}
-            options={conversations.map((c) => ({
-              value: c.id,
-              label: <span className="pf-conv-label">{c.title}</span>,
-            }))}
-          />
+          <div className="pf-conv-tabs" role="tablist" aria-label="会话列表">
+            {conversations.map((c) => (
+              <div
+                key={c.id}
+                role="tab"
+                aria-selected={c.id === cid}
+                className={`pf-conv-tab${c.id === cid ? " is-active" : ""}`}
+              >
+                <button className="pf-conv-tab-main" onClick={() => setCid(c.id)}>
+                  <span className="pf-conv-label">{c.title}</span>
+                </button>
+                <Popconfirm
+                  title="关闭这个会话？"
+                  description="其中的对话内容会被删除"
+                  okText="关闭"
+                  cancelText="取消"
+                  onConfirm={() => closeConversation(c)}
+                >
+                  <button
+                    className="pf-conv-tab-close"
+                    aria-label={`关闭会话：${c.title}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <CloseOutlined />
+                  </button>
+                </Popconfirm>
+              </div>
+            ))}
+            <Tooltip title="新会话">
+              <button className="pf-conv-tab-add" aria-label="新会话" onClick={newConversation}>
+                <PlusOutlined />
+              </button>
+            </Tooltip>
+          </div>
         </div>
       )}
 

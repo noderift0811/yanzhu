@@ -102,6 +102,18 @@ def create_conversation(
     return {"id": cid, "title": title, "created_at": now, "updated_at": now}
 
 
+@router.delete("/conversations/{conversation_id}", status_code=204)
+def delete_conversation(
+    conversation_id: str,
+    user: sqlite3.Row = Depends(get_current_user),
+    conn: sqlite3.Connection = Depends(get_db),
+) -> None:
+    """关闭会话：只删自己的，消息随会话一起清掉；人格与主页面不受影响。"""
+    _owned_conversation(conn, user["id"], conversation_id)
+    conn.execute("DELETE FROM messages WHERE conversation_id=?", (conversation_id,))
+    conn.execute("DELETE FROM conversations WHERE id=?", (conversation_id,))
+
+
 @router.get("/conversations/{conversation_id}/messages")
 def get_messages(
     conversation_id: str,
