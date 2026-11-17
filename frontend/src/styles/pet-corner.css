@@ -75,11 +75,14 @@
   right: 0;
   bottom: 44px;
   width: 288px;
+  max-height: min(640px, calc(100vh - 150px));
+  overflow-y: auto;
   padding: 14px;
   border: 1px solid var(--yz-line, #e2d5c3);
   border-radius: 14px;
   background: var(--yz-card, #fffdf8);
   box-shadow: 0 12px 34px rgba(80, 60, 40, 0.18);
+  scrollbar-width: thin;
 }
 
 .pf-pet-card-head {
@@ -99,6 +102,107 @@
 .pf-pet-card-hint {
   font-size: 10.5px;
   color: var(--yz-ink-3, #8a7f72);
+}
+
+/* 续火花：连续天数 + 剧情阶段。断签阶段用中性色，避免"红色惩罚"太重。 */
+.pf-pet-streak {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--yz-brand-soft, #f7ede7);
+}
+
+.pf-pet-streak-num {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--yz-seal, #b0563a);
+}
+
+.pf-pet-streak-num i {
+  margin-left: 2px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.pf-pet-streak-text {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--yz-ink-2, #5b5248);
+}
+
+.pf-pet-streak.is-dozing,
+.pf-pet-streak.is-lost {
+  background: rgba(120, 116, 110, 0.08);
+}
+
+.pf-pet-streak.is-dozing .pf-pet-streak-num,
+.pf-pet-streak.is-lost .pf-pet-streak-num {
+  color: var(--yz-ink-3, #8a7f72);
+}
+
+/* 28 天日历热力图：4 行 × 7 列，旧→新。 */
+.pf-pet-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.pf-pet-day {
+  aspect-ratio: 1;
+  min-height: 11px;
+  border: 1px solid var(--yz-line, #e2d5c3);
+  border-radius: 3px;
+  background: transparent;
+}
+
+.pf-pet-day.is-on {
+  border-color: var(--yz-seal, #b0563a);
+  background: var(--yz-seal, #b0563a);
+}
+
+.pf-pet-day.is-today {
+  outline: 1px solid var(--yz-brand, #b0563a);
+  outline-offset: 1px;
+}
+
+.pf-pet-calendar-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 10px;
+  color: var(--yz-ink-3, #8a7f72);
+}
+
+.pf-pet-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pf-pet-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--yz-seal, #b0563a);
+}
+
+/* 断签阶段胶囊降饱和度，提醒但不喧宾夺主。 */
+.pf-pet-chip.is-dozing .pf-pet-chip-mark,
+.pf-pet-chip.is-lost .pf-pet-chip-mark {
+  background: rgba(120, 116, 110, 0.12);
+}
+
+.pf-pet-chip.is-dozing .pf-pet-chip-ear,
+.pf-pet-chip.is-lost .pf-pet-chip-ear {
+  background: var(--yz-ink-3, #8a7f72);
 }
 
 .pf-pet-field {

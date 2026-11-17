@@ -63,10 +63,17 @@ SCHEMA_SQL = [
         mood TEXT NOT NULL DEFAULT 'quiet',
         energy INTEGER NOT NULL DEFAULT 70,
         streak INTEGER NOT NULL DEFAULT 0,
+        best_streak INTEGER NOT NULL DEFAULT 0,
         last_fed_at TEXT,
         last_checkin TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
+    )""",
+    """CREATE TABLE IF NOT EXISTS pet_checkins (
+        persona_id TEXT NOT NULL,
+        checkin_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        PRIMARY KEY (persona_id, checkin_date)
     )""",
     """CREATE TABLE IF NOT EXISTS llm_calls (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,6 +90,7 @@ SCHEMA_SQL = [
     "CREATE INDEX IF NOT EXISTS idx_conv_user ON conversations(user_id, persona_id)",
     "CREATE INDEX IF NOT EXISTS idx_msg_conv ON messages(conversation_id, id)",
     "CREATE INDEX IF NOT EXISTS idx_pets_user ON pets(user_id)",
+    "CREATE INDEX IF NOT EXISTS idx_checkins_persona ON pet_checkins(persona_id, checkin_date)",
     "CREATE INDEX IF NOT EXISTS idx_llm_calls_user ON llm_calls(user_id, created_at)",
 ]
 
@@ -124,6 +132,8 @@ _MIGRATIONS = {
     ],
     "pets": [
         ("last_checkin", "TEXT", None),
+        # 续火花玩法：历史最长连续天数（断签不清零记录，只断当前 streak）
+        ("best_streak", "INTEGER NOT NULL DEFAULT 0", None),
     ],
 }
 

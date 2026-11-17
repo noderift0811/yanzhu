@@ -60,7 +60,13 @@ export default function PetCorner({ personaId, hidden = false }) {
     try {
       const updated = await request(`/personas/${personaId}/pet/checkin`, { method: "POST", body: {} });
       setPet(updated);
-      message.success(updated.checked_in ? `续上第 ${updated.streak} 天火花` : "今天已经续过火花啦");
+      if (!updated.checked_in) {
+        message.info("今天已经续过火花啦");
+      } else if (updated.recalled) {
+        message.success(`把你等回来了！${pet.name}断档 ${updated.missed_days} 天，火花重新点亮`);
+      } else {
+        message.success(`续上第 ${updated.streak} 天火花`);
+      }
     } catch (e) {
       message.error(e.message || "续火花失败");
     } finally {
@@ -69,6 +75,14 @@ export default function PetCorner({ personaId, hidden = false }) {
   };
 
   const moodLabel = MOODS.find((m) => m.value === pet.mood)?.label || "安静 · 静静待着";
+  const checkedCount = (pet.calendar || []).filter((d) => d.checked).length;
+  const stageHint = {
+    together: "今天一直陪着你",
+    waiting: "今晚在等你的信",
+    dozing: "两天没等到你，打起了盹",
+    lost: "几天没见，有点生疏了",
+    new: "刚来到你身边",
+  }[pet.stage] || pet.stage_text;
 
   return (
     <div className="pf-pet-corner" ref={wrapRef}>
@@ -77,6 +91,25 @@ export default function PetCorner({ personaId, hidden = false }) {
           <div className="pf-pet-card-head">
             <span className="pf-pet-card-title">伙伴状态</span>
             <span className="pf-pet-card-hint">改动即时进入下一句对话</span>
+          </div>
+          <div className={`pf-pet-streak is-${pet.stage}`}>
+            <span className="pf-pet-streak-num">{pet.streak}<i>天</i></span>
+            <span className="pf-pet-streak-text">
+              {stageHint} · 最长 {pet.best_streak ?? pet.streak} 天
+            </span>
+          </div>
+          <div className="pf-pet-calendar" aria-label="最近 28 天打卡日历">
+            {(pet.calendar || []).map((d) => (
+              <span
+                key={d.date}
+                className={`pf-pet-day${d.checked ? " is-on" : ""}${d.is_today ? " is-today" : ""}`}
+                title={`${d.date}${d.checked ? " · 已续火花" : ""}${d.is_today ? " · 今天" : ""}`}
+              />
+            ))}
+          </div>
+          <div className="pf-pet-calendar-foot">
+            <span>近 28 天续火花 {checkedCount} 次</span>
+            <span className="pf-pet-legend"><i /> 已续</span>
           </div>
           <label className="pf-pet-field">
             <span>名字</span>
@@ -119,8 +152,13 @@ export default function PetCorner({ personaId, hidden = false }) {
             <Button size="small" disabled={saving} onClick={() => change({ feed: true }, `${pet.name}吃饱了`)}>
               喂一次
             </Button>
-            <Button size="small" type="primary" disabled={saving} onClick={checkin}>
-              续火花
+            <Button
+              size="small"
+              type="primary"
+              disabled={saving}
+              onClick={checkin}
+            >
+              {pet.stage === "together" ? "今天已续" : pet.stage === "lost" || pet.stage === "dozing" ? "召回火花" : "续火花"}
             </Button>
           </div>
           <div className="pf-pet-clause">{pet.prompt_clause}</div>
@@ -128,7 +166,7 @@ export default function PetCorner({ personaId, hidden = false }) {
       )}
       <button
         type="button"
-        className={`pf-pet-chip${open ? " is-open" : ""}`}
+        className={`pf-pet-chip is-${pet.stage}${open ? " is-open" : ""}`}
         onClick={() => setOpen((v) => !v)}
         aria-label="查看伙伴状态"
       >
@@ -138,7 +176,10 @@ export default function PetCorner({ personaId, hidden = false }) {
         </span>
         <span className="pf-pet-chip-body">
           <span className="pf-pet-chip-name">{pet.name}</span>
-          <span className="pf-pet-chip-meta">{moodLabel.split(" · ")[0]} · 连续 {pet.streak} 天</span>
+          <span className="pf-pet-chip-meta">
+            {pet.stage === "waiting" ? "在等你的信" : pet.stage === "dozing" ? "打盹中" : pet.stage === "lost" ? "等你召回" : moodLabel.split(" · ")[0]}
+            {" · 连续 "}{pet.streak}{" 天"}
+          </span>
         </span>
       </button>
     </div>
