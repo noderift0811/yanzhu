@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Input, Modal, Typography, message } from "antd";
+import { Button, Input, Modal, Switch, Typography, message } from "antd";
 import { CameraOutlined, CheckOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import { request } from "../lib/api.js";
 import { compressImage } from "../lib/avatar.js";
@@ -13,6 +13,7 @@ export default function PersonaSettingsModal({ open, persona, theme, onCancel, o
   const [name, setName] = useState("");
   const [extra, setExtra] = useState("");
   const [avatar, setAvatar] = useState({ mode: "auto", image: null });
+  const [petUi, setPetUi] = useState({ hidden: false, x: 0, y: 0 });
   const [saving, setSaving] = useState(false);
   const fileRef = useRef(null);
 
@@ -22,6 +23,12 @@ export default function PersonaSettingsModal({ open, persona, theme, onCancel, o
     setName(persona.name || spec.name || "");
     setExtra(spec.extra_prompt || "");
     setAvatar(persona.avatar || spec.avatar || { mode: "auto", image: null });
+    // 拖动位置不在设置页改，但保存时须原样带回，避免开关一按位置被重置到右下角。
+    setPetUi({
+      hidden: !!spec.pet_ui?.hidden,
+      x: spec.pet_ui?.x || 0,
+      y: spec.pet_ui?.y || 0,
+    });
   }, [open, persona]);
 
   const pickFile = async (e) => {
@@ -45,7 +52,7 @@ export default function PersonaSettingsModal({ open, persona, theme, onCancel, o
     try {
       const updated = await request(`/personas/${persona.id}`, {
         method: "PATCH",
-        body: { name: cleanName, avatar, extra_prompt: extra.trim() },
+        body: { name: cleanName, avatar, extra_prompt: extra.trim(), pet_ui: petUi },
       });
       message.success("已保存，不消耗生成次数");
       onSaved?.(updated);
@@ -118,6 +125,22 @@ export default function PersonaSettingsModal({ open, persona, theme, onCancel, o
         />
         <Typography.Text type="secondary" className="pf-set-note">
           这段会确定性追加到人格的 system_prompt 末尾；想彻底重写人设请用「重建」。
+        </Typography.Text>
+
+        <div className="pf-set-section-title">伙伴角</div>
+        <div className="pf-set-switch-row">
+          <div className="pf-set-switch-copy">
+            <span>在页面显示伙伴角</span>
+            <Typography.Text type="secondary"> · 关闭后右下角宠物入口隐藏，状态仍写入对话</Typography.Text>
+          </div>
+          <Switch
+            checked={!petUi.hidden}
+            onChange={(v) => setPetUi((p) => ({ ...p, hidden: !v }))}
+            disabled={saving}
+          />
+        </div>
+        <Typography.Text type="secondary" className="pf-set-note">
+          伙伴角可在页面上直接拖动到任意位置；这里的开关只管显示，不影响续火花与状态注入。
         </Typography.Text>
       </div>
     </Modal>

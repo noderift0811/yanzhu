@@ -13,11 +13,22 @@ const MOODS = [
 
 // 宠物角：跟随人格的伙伴状态。核心不在"养"的玩法，而在让状态能进人格提示词——
 // 这里改的每一项，后端都会即时反映到下一句对话里（【伙伴状态】块），不耗生成配额。
-export default function PetCorner({ personaId, hidden = false }) {
+// ui/hidden：界面偏好（显示开关 + 拖动位置），存人格 spec.pet_ui；沉浸态由外部强制 hidden。
+export default function PetCorner({ personaId, hidden = false, ui, onUiChange }) {
   const [pet, setPet] = useState(null);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const wrapRef = useRef(null);
+  const dragRef = useRef(null);
+  const movedRef = useRef(false);
+  // 拖动中的临时偏移；松手才写回后端，避免每一次 pointermove 都打 PATCH。
+  // 同时存一份到 dragRef.cur，pointerup 闭包不必依赖可能陈旧的 draft state。
+  const [draft, setDraft] = useState(null);
+  const [dragging, setDragging] = useState(false);
+
+  // ui = { hidden, x, y }；x/y 是相对默认右下角的像素偏移，默认 0 保持原位。
+  const pos = draft || { x: ui?.x || 0, y: ui?.y || 0 };
+  const uiHidden = !!ui?.hidden;
 
   useEffect(() => {
     let live = true;
@@ -40,7 +51,48 @@ export default function PetCorner({ personaId, hidden = false }) {
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  if (!pet || hidden) return null;
+  // 拖动：只在 chip（入口按钮）上生效，卡片内部的输入/下拉不受影响。
+  const clamp = (v) => Math.max(-2000, Math.min(2000, Math.round(v)));
+  const onPointerDown = (e) => {
+    if (e.button !== 0) return; // 只响应主键，右键/中键留给浏览器
+    dragRef.current = {
+      sx: e.clientX, sy: e.clientY,
+      ox: ui?.x || 0, oy: ui?.y || 0,
+      cur: { x: ui?.x || 0, y: ui?.y || 0 },
+    };
+    movedRef.current = false;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = e.clientX - d.sx;
+    const dy = e.clientY - d.sy;
+    if (Math.abs(dx) + Math.abs(dy) < 3 && !movedRef.current) return; // 手抖阈值
+    movedRef.current = true;
+    setDragging(true);
+    d.cur = { x: clamp(d.ox + dx), y: clamp(d.oy + dy) };
+    setDraft(d.cur);
+  };
+  const onPointerUp = async () => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    setDragging(false);
+    if (!d || !movedRef.current) { setDraft(null); return; }
+    // 保留 draft 直到写回完成，否则松手瞬间先跳回旧位置、再弹到新位置会闪一下。
+    try {
+      await onUiChange?.({ hidden: uiHidden, x: d.cur.x, y: d.cur.y });
+    } finally {
+      setDraft(null);
+    }
+  };
+  // 拖动后浏览器仍会派发一次 click，这里拦掉，避免"拖完顺手打开了卡片"。
+  const onChipClick = () => {
+    if (movedRef.current) { movedRef.current = false; return; }
+    setOpen((v) => !v);
+  };
+
+  if (!pet || hidden || uiHidden) return null;
 
   const change = async (body, successText) => {
     setSaving(true);
@@ -85,7 +137,11 @@ export default function PetCorner({ personaId, hidden = false }) {
   }[pet.stage] || pet.stage_text;
 
   return (
-    <div className="pf-pet-corner" ref={wrapRef}>
+    <div
+      className="pf-pet-corner"
+      ref={wrapRef}
+      style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
+    >
       {open && (
         <div className="pf-pet-card">
           <div className="pf-pet-card-head">
@@ -166,9 +222,14 @@ export default function PetCorner({ personaId, hidden = false }) {
       )}
       <button
         type="button"
-        className={`pf-pet-chip is-${pet.stage}${open ? " is-open" : ""}`}
-        onClick={() => setOpen((v) => !v)}
-        aria-label="查看伙伴状态"
+        className={`pf-pet-chip is-${pet.stage}${open ? " is-open" : ""}${dragging ? " is-dragging" : ""}`}
+        onClick={onChipClick}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        aria-label="拖动可移动，点击查看伙伴状态"
+        title="拖动移动位置 · 点击查看伙伴状态"
       >
         <span className="pf-pet-chip-mark" aria-hidden="true">
           <span className="pf-pet-chip-ear" />

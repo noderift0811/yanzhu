@@ -6,6 +6,7 @@
   right: 78px;
   bottom: 22px;
   z-index: 890;
+  /* transform 由内联 style 提供拖动偏移；拖动须跟手，不加缓动。 */
 }
 
 .pf-pet-chip {
@@ -18,9 +19,16 @@
   background: var(--yz-card, #fffdf8);
   color: var(--yz-ink, #2f2a24);
   font: inherit;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none; /* 移动端拖动不被页面滚动抢走 */
   box-shadow: 0 4px 14px rgba(80, 60, 40, 0.1);
   transition: border-color 0.15s, transform 0.15s;
+}
+
+.pf-pet-chip.is-dragging {
+  cursor: grabbing;
+  border-color: var(--yz-brand, #b0563a);
+  box-shadow: 0 8px 22px rgba(80, 60, 40, 0.2);
 }
 
 .pf-pet-chip:hover,

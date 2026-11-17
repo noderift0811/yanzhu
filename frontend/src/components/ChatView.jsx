@@ -612,7 +612,22 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
         }}
       />
 
-      <PetCorner personaId={current?.id} hidden={immersive} />
+      <PetCorner
+        personaId={current?.id}
+        hidden={immersive}
+        ui={current?.spec?.pet_ui}
+        onUiChange={async (petUi) => {
+          try {
+            const updated = await request(`/personas/${current.id}`, {
+              method: "PATCH", body: { pet_ui: petUi },
+            });
+            setCurrent(updated);
+            onPersonaChange?.(updated);
+          } catch (e) {
+            message.error(e.message || "位置保存失败");
+          }
+        }}
+      />
     </div>
   );
 }

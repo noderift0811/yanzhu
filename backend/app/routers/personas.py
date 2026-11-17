@@ -257,6 +257,11 @@ def patch_persona(
         spec["decorations"] = [d.model_dump() for d in body.decorations]
         spec_touched = True
 
+    if body.pet_ui is not None:
+        # 伙伴角显示开关 + 拖动位置，确定性落库，不影响提示词、不调 LLM。
+        spec["pet_ui"] = body.pet_ui.model_dump()
+        spec_touched = True
+
     if body.extra_prompt is not None:
         # 补充设定是确定性文本追加，不调 LLM。先摘掉上一版，再写新版，
         # 避免用户改一次描述就在 system_prompt 里叠一段旧话。

@@ -46,7 +46,7 @@ AI 位于主链路核心——不是在传统功能上外挂问答框，也不�
 | 运行时调参 | 悬浮工作台：三个语气开关拼成运行时指令追加在 system_prompt 末尾，不重生成、不耗生成配额，点一下即时生效 | `scenes.py`、`routers/chat.py`、`components/AssistantFab.jsx` |
 | AI 装修师 | 自然语言 → 主题 token 候选 → 对比度护栏 → 关键词兜底；先预览再采用，采用前不落库、不耗配额 | `pipeline/decorate.py`、`routers/decorate.py`、`components/AiDecorator.jsx` |
 | 自由装饰层 | 骨架之上叠加用户自摆件（便签/引言/照片/标牌），类型白名单 + 坐标范围 + 图片 data URL 校验，拖拽后整组确定性落库；不进骨架、不调 LLM、不耗配额，导出网页保留静态摆件 | `schemas.py`、`routers/personas.py`、`components/DecorationLayer.jsx` |
-| 伙伴状态注入 | 宠物角 28 天打卡日历 + 断签/召回阶段，`【伙伴状态】` 确定性注入 system_prompt；喂食与打卡分离，续火花走独立接口，不调 LLM | `pets.py`、`routers/pets.py`、`routers/chat.py`、`components/PetCorner.jsx` |
+| 伙伴状态注入 | 宠物角 28 天打卡日历 + 断签/召回阶段，`【伙伴状态】` 确定性注入 system_prompt；喂食与打卡分离，续火花走独立接口，不调 LLM；伙伴角可拖动定位、设置页可隐藏（`spec.pet_ui`） | `pets.py`、`routers/pets.py`、`routers/chat.py`、`components/PetCorner.jsx` |
 | 预置骨架 | 16 套手工设计骨架，AI 只选择并填充 token，规避代码生成的不确定性 | `pipeline/skeleton_presets.py`、`components/skeletons/` |
 | 流式交互 | 生成链路 SSE 逐步推事件；对话 SSE 逐 token 推送 | `routers/agent.py`、`routers/chat.py`、`hooks/useChat.js` |
 | 无密钥降级 | 两个 `*_API_KEY` 留空即自动切换 MockAdapter，五步链路与 UI 全可离线演示 | `llm/mock.py`、`registry.py` |

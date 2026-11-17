@@ -92,6 +92,27 @@
   line-height: 1.6;
 }
 
+.pf-set-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--yz-line);
+  border-radius: 8px;
+  background: var(--yz-card, #fff);
+}
+
+.pf-set-switch-copy {
+  font-size: 13px;
+  color: var(--yz-ink);
+  line-height: 1.4;
+}
+
+.pf-set-switch-copy .ant-typography {
+  font-size: 11px;
+}
+
 .pf-set-footer {
   display: flex;
   justify-content: flex-end;

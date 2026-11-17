@@ -183,6 +183,13 @@ class DecorationModel(BaseModel):
         return v
 
 
+# 伙伴角界面设置：显示开关 + 相对默认右下角的像素偏移。存人格 spec，确定性、不调 LLM。
+class PetUiModel(BaseModel):
+    hidden: bool = False
+    x: float = Field(default=0, ge=-2000, le=2000)
+    y: float = Field(default=0, ge=-2000, le=2000)
+
+
 class PersonaPatchIn(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=20)
     theme: Optional[ThemeModel] = None
@@ -196,6 +203,8 @@ class PersonaPatchIn(BaseModel):
     set_primary: Optional[bool] = None
     # 自由装饰层：整组替换摆件（增删拖拽后一次性保存）。确定性存储，不调 LLM。
     decorations: Optional[List[DecorationModel]] = Field(default=None, max_length=DECORATION_MAX)
+    # 伙伴角界面：显示开关 + 拖动位置。确定性存储，不调 LLM。
+    pet_ui: Optional[PetUiModel] = None
 
     @field_validator("skeleton_id")
     @classmethod
