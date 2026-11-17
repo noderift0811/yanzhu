@@ -19,6 +19,7 @@ backend/data/*
 
 # ===== 在线演示与临时产物 =====
 share-url.txt
+share-access.txt
 *.log
 *.zip
 *.7z
