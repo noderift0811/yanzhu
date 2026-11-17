@@ -1,0 +1,16 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Microsoft YaHei,34,&H0022302A,&H00FFFFFF,&H00F2F8FD,&H80000000,0,0,0,0,100,100,0,0,1,2,0,2,40,40,42,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.40,0:00:06.80,Default,,0,0,0,,输入几个词，AI 交给你的不是一个对话框，是一整个网站。
+Dialogue: 0,0:00:07.20,0:00:21.40,Default,,0,0,0,,而这一次之后，言筑自己就退场了。每次登录，我直接落在自己的页面上。
+Dialogue: 0,0:00:21.80,0:00:25.70,Default,,0,0,0,,这里的纸、字、称呼、说话方式，都是它按我说的几个词搭出来的。
