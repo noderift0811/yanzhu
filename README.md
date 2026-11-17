@@ -15,6 +15,8 @@
 
 产品形态最终收敛为**专属网站模式**：言筑自己的页面只在「还没有站点」时出现一次。用户第一次把限定词交给 AI 之后，生成出的人格页就是他的网站——此后每次登录**直接落在自己搭好的页面上**，不再经过任何引导页。言筑的向导、场景页、人格库退成这张页面背后的管理后台，从聊天页头部的「站点」菜单进入。「言筑」是脚手架，产物是用户的站点。
 
+站点交付后仍可继续改造：右下角悬浮球是**装修台**，既能切运行时语气，也能唤出 **AI 装修师**——用自然语言说出想要的视觉，服务端产出主题 token 候选，经对比度护栏校验后先预览、点「采用」才落库；点头像可选**不显示**或上传**自定义图片**；「沉浸」按钮收起外壳只留站点，平台落款移到页脚。聊天区上方的多轮会话以**可关闭标签**管理，消息区内部滚动，聊天框不再随对话变长。
+
 ---
 
 ## 一、选题归类说明（自拟选题）
@@ -42,6 +44,7 @@ AI 位于主链路核心——不是在传统功能上外挂问答框，也不�
 | MCP 风格工具层 | 7 个工具以 JSON Schema 描述，统一 `call_tool` 调度，`GET /api/meta/tools` 可查 | `pipeline/tools.py`、`routers/meta.py` |
 | 场景约束 | 五套场景改变检索语料、规划约束与护栏级别；**账号级唯一主场景**，切换需二次确认并二次冷却 30 天 | `pipeline/presets.py`、`scenes.py`、`pages/ScenePage.jsx` |
 | 运行时调参 | 悬浮工作台：三个语气开关拼成运行时指令追加在 system_prompt 末尾，不重生成、不耗生成配额，点一下即时生效 | `scenes.py`、`routers/chat.py`、`components/AssistantFab.jsx` |
+| AI 装修师 | 自然语言 → 主题 token 候选 → 对比度护栏 → 关键词兜底；先预览再采用，采用前不落库、不耗配额 | `pipeline/decorate.py`、`routers/decorate.py`、`components/AiDecorator.jsx` |
 | 预置骨架 | 16 套手工设计骨架，AI 只选择并填充 token，规避代码生成的不确定性 | `pipeline/skeleton_presets.py`、`components/skeletons/` |
 | 流式交互 | 生成链路 SSE 逐步推事件；对话 SSE 逐 token 推送 | `routers/agent.py`、`routers/chat.py`、`hooks/useChat.js` |
 | 无密钥降级 | 两个 `*_API_KEY` 留空即自动切换 MockAdapter，五步链路与 UI 全可离线演示 | `llm/mock.py`、`registry.py` |
@@ -67,7 +70,7 @@ AI 选型理由：生成是低频、高价值、可容忍延迟的环节，用�
 ## 三、技术架构
 
 ```
-React 18 + Vite 5 + Antd 5 + HashRouter     前端：选场景 / 五步时间线 / 骨架装配 / 流式渲染 / 悬浮工作台
+React 18 + Vite 5 + Antd 5 + HashRouter     前端：选场景 / 五步时间线 / 骨架装配 / 流式渲染 / 悬浮装修台 / 会话管理与内部滚动
         |  X-Yanzhu-Token (JWT) + SSE
 FastAPI + SQLite WAL + PyJWT + bcrypt       后端：AI 接入层 + 轻数据持久化
         |  OpenAI 兼容协议
@@ -136,6 +139,8 @@ cd frontend && npm install && npm run build && npm run preview
 
 管理入口都在聊天页头部的「站点」菜单里：**新建人格 / 人格库 / 换场景 / 今日配额**；人格库卡片名字旁的星标可随时改主页面（不调 LLM、不耗生成配额）。「重建」按钮把当前限定词回填到弹窗，可选**覆盖这个页面**或**另建一个**——覆盖保留人格 id、聊天记录与创建时间，只换规格与视觉。
 
+站点内的后续改造不必回管理后台：悬浮装修台里的 **AI 装修师**接受自然语言（如「换成更沉静的夜读配色」），面板里能看到思考步骤与候选色带，点「采用」才写回人格主题；点头像可切到**隐藏**或上传自定义图片；「沉浸」按钮进入全屏，页脚才出现「言筑」落款。多轮会话在聊天区上方以可关闭标签管理，关闭会弹确认，关掉最后一个自动补建；消息区独立滚动，聊天框高度固定。
+
 **演示动线（约 120 秒）**：登录页点「一键填充」（自动填 `demo` / `yanzhu2026`）→ 登录，**直接落在 demo 的站点「苏桃」手账书信页** → 点右下角悬浮球，切一个语气开关（如「更沉稳」），发一句话即听出差别（不耗配额、即时生效）→ 点头部「站点 → 新建人格」，填三个标签 + 一段描述 → `/build` 逐步展示五步施工、工具调用、护栏与检索证据 → 进新页面。想验 AI 安全，在新建弹窗把「演示输入」改成 `他说不想活了，我该怎么回应` 再生成一次，可见护栏给出 3 条求助资源。想验场景隔离，头部「站点 → 换场景」切到职场沟通演练（演示账号豁免 30 天冷却），同一句「领导让我加班到十一点，我想拒绝」的检索证据与护栏反应与心理陪伴完全不同；自由创作是**无场景注入的对照基线**。
 
 端口固定为后端 8100、预览 4180、开发 5180（本机 8000/4173/5173 被其它常驻服务占用）。**改端口需同步三处**：`start.bat`、`frontend/vite.config.js`、`share.py`。
@@ -164,14 +169,19 @@ yanzhu/
 │   │   │   ├── knowledge.py          BM25-lite 检索、查询改写、按场景隔离
 │   │   │   ├── guard.py             安全护栏与边界注入
 │   │   │   ├── tools.py             MCP 风格工具注册表与统一调度
-│   │   │   └── agent.py             五步 Agent 编排与 SSE 事件
-│   │   └── routers/           auth / personas / agent / chat / meta
+│   │   │   ├── agent.py             五步 Agent 编排与 SSE 事件
+│   │   │   └── decorate.py          AI 装修师：主题候选、对比度护栏、兜底
+│   │   └── routers/           auth / personas / agent / chat / decorate / meta
 │   ├── data/.gitkeep          运行时 SQLite 落点（内容忽略）
 │   └── *_test.py              接口与行为验收脚本（含 presets / scene / agent / scene_lock）
 ├── frontend/
 │   ├── src/components/
 │   │   ├── skeletons/         16 套骨架组件
-│   │   ├── AssistantFab.jsx   悬浮工作台（语气开关 + 当前场景）
+│   │   ├── AssistantFab.jsx   悬浮装修台（语气开关 + AI 装修师入口，居中浮窗）
+│   │   ├── AiDecorator.jsx    AI 装修对话：思考步骤 / 候选色带 / 预览与采用
+│   │   ├── AvatarEditor.jsx   头像三态设置（自动 / 隐藏 / 自定义图片，canvas 压缩）
+│   │   ├── SiteFooter.jsx     站点页脚：平台落款与二维码占位
+│   │   ├── BuildReveal.jsx    建造揭晓动画（跳过键固定在底部居中）
 │   │   ├── PersonaPreview.jsx 人格库卡片的界面缩略图（骨架本体缩放实时渲染，零图片）
 │   │   ├── PersonaBriefModal.jsx 新建 / 重建共用弹窗（标签 + 描述 + 名字 + 覆盖或另建）
 │   │   ├── AgentBuildView.jsx SSE 容器与状态机
@@ -182,11 +192,14 @@ yanzhu/
 │   │   ├── ScenePage.jsx      选场景 / 换场景（含冷却与归档说明）
 │   │   └── ChatPage / PersonasPage / LoginPage / SkeletonGalleryPage
 │   ├── src/lib/me.js          账号级场景、主页面与配额的全局缓存
-│   ├── src/styles/theme.css   纸感设计 token 层（--yz-*）+ 外壳样式
+│   ├── src/styles/theme.css   纸感设计 token 层（--yz-*）+ 外壳 / 会话条 / 聊天区滚动
+│   ├── src/styles/ai-decorator.css  AI 装修浮窗与思考过程
+│   ├── src/styles/avatar-editor.css 头像编辑浮层
+│   ├── src/styles/site-footer.css   站点页脚
 │   ├── src/styles/scene.css   场景引导页与悬浮球样式
 │   ├── src/styles/agent.css   Agent 视图样式
 │   ├── src/hooks/             构建揭示、流式聊天、主题变量
-│   └── src/lib/               API 封装、页面导出、对话导出
+│   └── src/lib/               API 封装、页面导出、对话导出、装修桥接（decoration.js）
 ├── docs/言筑-可实现方案-v1.4.html  设计文档
 ├── docs/言筑-提交说明.pdf          提交说明（20 页，含截图与验收数据）
 ├── docs/言筑-90秒演示分镜.md        录屏分镜表（提交材料）
@@ -209,6 +222,8 @@ yanzhu/
 | 场景锁定 | 41/41 | 是（`scene_lock_test.py`：强制选场景、改参数绕过被 400、冷却 409、切换归档、演示账号豁免） |
 | 演示账号 | 14/14 | 是（`demo_test.py`：重复播种不重复建号、密码 bcrypt 入库、配额档位、接口下发、错误密码 401） |
 | 浏览器端到端 | 16/16 + 11/11 + 9/9 | 是（新落点链路：注册→场景→开站页→弹窗→`/build` 五步→聊天→持久化 16；重建覆盖/另建 11；站点菜单与主页面星标往返 9；控制台零错误零 401） |
+| AI 装修接口 | 16/16 | 是（`decorate_test.py`：主题候选、对比度护栏、关键词兜底、无密钥降级） |
+| 站点内交互 E2E | 15 + 12 + 19 + 8 + 16 + 11 + 11 | 是（装修台 15、页脚 12、AI 装修浮窗 19、建造跳过键 8、思考过程与沉浸引导 16、头像设置 11、会话关闭与内部滚动 11；控制台零错误） |
 | 限流 | 17/17 | 是（限流开启、干净窗口下单独跑；脚本已改为自建基准账号，不再依赖预置数据） |
 | 保存导出 | 35/35 | 沿用既有基线；E2E 脚本位于本机工作区，未入仓 |
 
