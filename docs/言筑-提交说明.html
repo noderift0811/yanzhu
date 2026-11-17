@@ -927,7 +927,7 @@ backend/.venv/Scripts/python backend/agent_test.py</pre>
     <tr><td>提交说明（本文档）</td><td>≤30 页，覆盖定位、技术深度、验收与边界</td></tr>
     <tr><td>设计文档</td><td><code>docs/言筑-可实现方案-v1.4.html</code></td></tr>
     <tr><td>演示账号</td><td><code>demo</code> / <code>yanzhu2026</code>（后端启动时幂等播种，配额 200 / 2000）</td></tr>
-    <tr><td>截图</td><td><code>docs/screenshots/</code>，共 9 张，含桌面与移动端</td></tr>
+    <tr><td>截图</td><td><code>docs/screenshots/</code>，共 16 张，含桌面与移动端，以及后期新增能力</td></tr>
   </table>
 
   <div class="note" style="margin-top:6mm">
@@ -935,6 +935,51 @@ backend/.venv/Scripts/python backend/agent_test.py</pre>
   </div>
 
   <div class="pnum">20</div>
+</section>
+
+<!-- ===================== 21-22 新增演示界面 ===================== -->
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>十一、新增演示界面</span></div>
+  <h2>十一、新增演示界面<small>后期迭代能力，真实模型下截图</small></h2>
+  <p style="margin:1mm 0 2.5mm">以下四屏为文档正文中「运行时调参」与「AI 装修师」章节的实际落地效果，均在火山方舟真实模型下截取，非演示数据拼图。</p>
+  <div class="figs" style="flex-wrap:wrap;gap:3mm">
+    <div class="shot" style="flex:0 0 78mm">
+      <img src="screenshots/10-chat-conv-tabs.png" alt="多轮会话标签" />
+      <div class="cap">图 7　多轮会话与追问气泡：每条回复后自动生成 3 个承接话题，点击即发；会话以可关闭标签管理。</div>
+    </div>
+    <div class="shot" style="flex:0 0 78mm">
+      <img src="screenshots/12-deco-studio.png" alt="悬浮装修台" />
+      <div class="cap">图 8　悬浮装修台：右下角悬浮球唤出「AI 装修师 + 摆件 + 语气」三合一面板，改配色与放摆件均可先预览、采用才落库。</div>
+    </div>
+    <div class="shot" style="flex:0 0 78mm">
+      <img src="screenshots/13-ai-deco-flower.png" alt="AI 装修落地界面元素" />
+      <div class="cap">图 9　AI 装修真正落地元素：说「添加一朵花」，AI 不只是改配色，而是往页面右上角放了 SVG 花朵摆件。</div>
+    </div>
+    <div class="shot" style="flex:0 0 78mm">
+      <img src="screenshots/14-page-with-flower.png" alt="采用后的页面" />
+      <div class="cap">图 10　采用后的站点页面：关闭浮窗后花朵保留，可继续拖动定位；不改人设、不耗生成配额。</div>
+    </div>
+  </div>
+  <div class="pnum">21</div>
+</section>
+
+<section class="page">
+  <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>十一、新增演示界面（续）</span></div>
+  <h2>十一、新增演示界面（续）<small>伙伴状态与人格设置</small></h2>
+  <div class="figs" style="flex-wrap:wrap;gap:3mm">
+    <div class="shot" style="flex:0 0 78mm">
+      <img src="screenshots/15-pet-calendar.png" alt="伙伴状态与续火花日历" />
+      <div class="cap">图 11　伙伴状态与 28 天续火花日历：连续天数、打卡热力图与断签阶段；点一下即可续火花，状态确定性注入 system_prompt。</div>
+    </div>
+    <div class="shot" style="flex:0 0 78mm">
+      <img src="screenshots/16-persona-settings.png" alt="人格设置" />
+      <div class="cap">图 12　人格设置：点头像旁名字进入，改名字、切头像三态、补充人格设定、开关伙伴角；全部确定性落库，不调 LLM。</div>
+    </div>
+  </div>
+  <div class="note" style="margin-top:4mm">
+    <b>设计一致性：</b>以上新增能力延续同一条原则——凡是用户能直接看见的改动（配色、摆件、伙伴角位置、头像），都先实时预览、采用才确定性落库；凡是影响对话的改动（伙伴状态、语气、补充设定），都走 system_prompt 追加而非重生成。因此这些交互既不消耗生成配额，也不会破坏既有人格。
+  </div>
+  <div class="pnum">22</div>
 </section>
 
 </body>
