@@ -8,6 +8,34 @@ from pydantic import BaseModel, Field, field_validator
 from .pipeline.engineer_prompt import SKELETON_IDS
 
 COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+# 头像图片：只接受前端 canvas 压缩后的 data URL（PNG/JPEG/WebP）。
+# 上限按 base64 长度算，约 180KB 二进制——足以放 160×160 高清头像，又不让 SQLite/导出体积失控。
+AVATAR_DATA_RE = re.compile(r"^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$")
+AVATAR_MAX_CHARS = 240_000
+
+
+class AvatarModel(BaseModel):
+    """头像显示方式：auto=首字渐变 / hidden=不显示 / image=自定义图片。跟随人格存储。"""
+    mode: str = "auto"
+    image: Optional[str] = None
+
+    @field_validator("mode")
+    @classmethod
+    def _mode(cls, v: str) -> str:
+        if v not in ("auto", "hidden", "image"):
+            raise ValueError("avatar.mode 须为 auto/hidden/image 之一")
+        return v
+
+    @field_validator("image")
+    @classmethod
+    def _image(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if len(v) > AVATAR_MAX_CHARS:
+            raise ValueError("头像图片过大，请先压缩")
+        if not AVATAR_DATA_RE.match(v):
+            raise ValueError("头像图片格式非法，须为 png/jpeg/webp 的 data URL")
+        return v
 
 
 class ThemeModel(BaseModel):
@@ -128,6 +156,8 @@ class AgentBuildIn(PersonaCreateIn):
 class PersonaPatchIn(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=20)
     theme: Optional[ThemeModel] = None
+    # 头像设置：跟随人格，就地生效；不调 LLM、不耗生成配额
+    avatar: Optional[AvatarModel] = None
     # 换骨架不调 LLM、不耗生成配额；不传 theme 时自动套用该骨架的成套主题预设
     skeleton_id: Optional[str] = None
     # 专属网站模式：把这个人格设为登录落点（主页面）。星标切换，不调 LLM、不耗配额。

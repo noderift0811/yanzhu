@@ -183,7 +183,7 @@ export default function PersonasPage() {
                   ]}
                 >
                   <div className="pf-persona-head">
-                    <Avatar name={p.name} theme={p.theme} size={48} />
+                    <Avatar name={p.name} theme={p.theme} size={48} avatar={p.avatar} />
                     <div className="pf-persona-meta">
                       <div className="pf-persona-name-row">
                         <Typography.Text strong>{p.name}</Typography.Text>

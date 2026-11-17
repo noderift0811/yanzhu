@@ -926,14 +926,61 @@ body {
 }
 
 .pf-avatar {
+  position: relative;
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  padding: 0;
+  border: none;
   border-radius: 50%;
   color: #fff;
+  font-family: inherit;
   font-weight: 700;
+  line-height: 1;
   flex: none;
   user-select: none;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+/* 可编辑态：点头像弹配置浮层。hover 提示 + 右下角小铅笔 */
+.pf-avatar--editable { cursor: pointer; }
+.pf-avatar--editable:hover { box-shadow: 0 0 0 2px rgba(193, 90, 60, 0.5); }
+
+.pf-avatar-edit {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 40%;
+  height: 40%;
+  min-width: 14px;
+  min-height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 400;
+  color: #fff;
+  background: var(--yz-seal, #c15a3c);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+
+.pf-avatar--editable:hover .pf-avatar-edit { opacity: 1; }
+
+/* 隐藏头像：保留圆形占位轮廓，点击可恢复设置 */
+.pf-avatar--hidden {
+  background: transparent !important;
+  border: 1px dashed var(--yz-line-strong, #cbb9a5) !important;
+}
+
+/* 自定义图片：object-fit cover 撑满圆形 */
+.pf-avatar--image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .pf-conv-bar {

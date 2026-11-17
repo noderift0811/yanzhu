@@ -22,7 +22,7 @@ from ..pipeline.engineer_prompt import SKELETONS
 from ..pipeline.skeleton_presets import SKELETON_PRESETS
 from ..pipeline.validate import generate_spec
 from ..quota import check_quota, consume_quota, log_llm_call
-from ..schemas import PersonaCreateIn, PersonaPatchIn, SpecModel, ThemeModel
+from ..schemas import AvatarModel, PersonaCreateIn, PersonaPatchIn, SpecModel, ThemeModel
 
 router = APIRouter(prefix="/personas", tags=["personas"], dependencies=[Depends(get_current_user)])
 
@@ -33,10 +33,20 @@ def _utcnow() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _avatar_of(spec: Dict[str, Any]) -> Dict[str, Any]:
+    """老数据没有 avatar 字段时兜底为默认头像，避免前端读到 undefined。"""
+    av = spec.get("avatar")
+    if not isinstance(av, dict) or av.get("mode") not in ("auto", "hidden", "image"):
+        return {"mode": "auto", "image": None}
+    return {"mode": av["mode"], "image": av.get("image")}
+
+
 def _summary(row: sqlite3.Row) -> Dict[str, Any]:
+    spec = json.loads(row["spec_json"])
     return {
         "id": row["id"],
         "name": row["name"],
+        "avatar": _avatar_of(spec),
         "skeleton_id": row["skeleton_id"],
         "skeleton_name": _SKELETON_NAMES.get(row["skeleton_id"], row["skeleton_id"]),
         "scene_id": row["scene_id"] if "scene_id" in row.keys() else "free",
@@ -236,6 +246,10 @@ def patch_persona(
     if theme:
         updates["theme_json"] = theme.model_dump_json()
         spec["theme"] = theme.model_dump()
+        spec_touched = True
+
+    if body.avatar is not None:
+        spec["avatar"] = body.avatar.model_dump()
         spec_touched = True
 
     if spec_touched:

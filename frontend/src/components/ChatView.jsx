@@ -32,6 +32,7 @@ import {
 import { buildPageHtml, downloadHtml, pageFileName } from "../lib/exportPage.js";
 import { getSkeleton, SKELETON_NAMES } from "./skeletons/index.js";
 import Avatar from "./Avatar.jsx";
+import AvatarEditor from "./AvatarEditor.jsx";
 import SkeletonPicker from "./SkeletonPicker.jsx";
 import ThemePanel from "./ThemePanel.jsx";
 import PersonaBriefModal from "./PersonaBriefModal.jsx";
@@ -293,7 +294,20 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
               <Button size="small" type="text" icon={<ArrowLeftOutlined />} onClick={onBack} />
             </Tooltip>
           )}
-          <Avatar name={spec.name} theme={activeTheme} size={40} />
+          <AvatarEditor
+            persona={current}
+            theme={activeTheme}
+            avatar={current?.avatar || spec.avatar}
+            onChanged={(updated) => { setCurrent(updated); onPersonaChange?.(updated); }}
+          >
+            <Avatar
+              name={spec.name}
+              theme={activeTheme}
+              size={40}
+              avatar={current?.avatar || spec.avatar}
+              onEdit={() => {}}
+            />
+          </AvatarEditor>
           <div>
             <Typography.Text strong className="pf-chat-name">
               {spec.name || current?.name}

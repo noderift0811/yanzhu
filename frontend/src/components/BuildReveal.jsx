@@ -70,7 +70,7 @@ export default function BuildReveal({ persona, onDone }) {
 
         {stage >= 3 && (
           <div className="pf-build-stage pf-build-identity">
-            <Avatar name={spec.name} theme={theme} size={64} />
+            <Avatar name={spec.name} theme={theme} size={64} avatar={spec.avatar} />
             <div>
               <div className="pf-build-name">{spec.name}</div>
               <div className="pf-build-note">{spec.page_copy?.title}</div>
