@@ -1,0 +1,20 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Brand,Microsoft YaHei,110,&H003A56B0,&H003A56B0,&HF4EFE4,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,5,0,0,0,1
+Style: Slogan,Microsoft YaHei,54,&H0030353A,&H0030353A,&HF4EFE4,&H00000000,0,0,0,0,100,100,4,0,1,0,0,5,0,0,0,1
+Style: Team,Microsoft YaHei,32,&H0058626E,&H0058626E,&HF4EFE4,&H00000000,0,0,0,0,100,100,2,0,1,0,0,5,0,0,0,1
+Style: Repo,Microsoft YaHei,26,&H00687078,&H00687078,&HF4EFE4,&H00000000,0,0,0,0,100,100,0,0,1,0,0,5,0,0,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.0,0:00:03.5,Brand,,0,0,0,,{\pos(960,410)}言筑 YanZhu
+Dialogue: 0,0:00:00.0,0:00:03.5,Slogan,,0,0,0,,{\pos(960,555)}你说，它筑
+Dialogue: 0,0:00:00.8,0:00:03.5,Team,,0,0,0,,{\pos(960,690)}未命名者  ·  绵阳城市学院
+Dialogue: 0,0:00:01.4,0:00:03.5,Repo,,0,0,0,,{\pos(960,745)}github.com/noderift0811/yanzhu

@@ -1,0 +1,32 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Microsoft YaHei,58,&H00FFFFFF,&H00FFFFFF,&H00201814,&H80000000,-1,0,0,0,100,100,0,0,3,3,1,2,80,80,72,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.50,0:00:04.20,Default,,0,0,0,,我们都见过 AI 生成网页。
+Dialogue: 0,0:00:04.29,0:00:07.00,Default,,0,0,0,,但你见过 AI 交付一个「家」吗？
+Dialogue: 0,0:00:07.29,0:00:09.80,Default,,0,0,0,,言筑不是对话框。
+Dialogue: 0,0:00:09.90,0:00:12.50,Default,,0,0,0,,你说几个词，它给你搭出一整个网站。
+Dialogue: 0,0:00:12.80,0:00:15.00,Default,,0,0,0,,选一个场景——之后的生成都受它约束。
+Dialogue: 0,0:00:15.09,0:00:18.00,Default,,0,0,0,,这里每一处纸、字、称呼，\N都是它按那几个词搭的。
+Dialogue: 0,0:00:18.10,0:00:21.00,Default,,0,0,0,,第一次搭建之后，言筑自己就退场了。
+Dialogue: 0,0:00:21.10,0:00:23.89,Default,,0,0,0,,下次登录，你直接落在自己的页面上。
+Dialogue: 0,0:00:24.19,0:00:26.50,Default,,0,0,0,,它怎么搭的？全程摊开给你看。
+Dialogue: 0,0:00:26.60,0:00:29.00,Default,,0,0,0,,第一步检索——只在你的场景语料里找依据。\N
+Dialogue: 0,0:00:29.10,0:00:31.50,Default,,0,0,0,,第二步规划——定骨架、定语气，\N也定下禁区。
+Dialogue: 0,0:00:31.60,0:00:34.00,Default,,0,0,0,,第三步生成——只输出结构化 JSON，\N不写一行代码。
+Dialogue: 0,0:00:34.10,0:00:36.79,Default,,0,0,0,,第四步校验，第五步兜底——每一步都有确定性退路。\N
+Dialogue: 0,0:00:37.79,0:00:40.00,Default,,0,0,0,,出来的不是模板，是它为我挑的骨架和配色。\N
+Dialogue: 0,0:00:40.29,0:00:42.79,Default,,0,0,0,,站点交付了，它还在长。
+Dialogue: 0,0:00:42.89,0:00:45.50,Default,,0,0,0,,我说一句「加朵花」，它就真的放了一朵花。\N
+Dialogue: 0,0:00:45.60,0:00:48.00,Default,,0,0,0,,配色和摆件先预览，我点头才保存。
+Dialogue: 0,0:00:48.29,0:00:50.79,Default,,0,0,0,,每次回复完，它还替我想好接下来能问什么。\N
+Dialogue: 0,0:00:51.60,0:00:53.70,Default,,0,0,0,,十六套手写骨架，零代码生成。言筑——你说，\N它筑。
