@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Dropdown, Popconfirm, Space, Tooltip, Typography, message } from "antd";
+import { Button, Dropdown, Popconfirm, Space, Tooltip, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   AppstoreOutlined,
@@ -8,6 +8,7 @@ import {
   BookOutlined,
   CloseOutlined,
   DownloadOutlined,
+  FileTextOutlined,
   FullscreenExitOutlined,
   FullscreenOutlined,
   LogoutOutlined,
@@ -33,6 +34,7 @@ import { buildPageHtml, downloadHtml, pageFileName } from "../lib/exportPage.js"
 import { getSkeleton, SKELETON_NAMES } from "./skeletons/index.js";
 import Avatar from "./Avatar.jsx";
 import AvatarEditor from "./AvatarEditor.jsx";
+import PersonaSettingsModal from "./PersonaSettingsModal.jsx";
 import SkeletonPicker from "./SkeletonPicker.jsx";
 import ThemePanel from "./ThemePanel.jsx";
 import PersonaBriefModal from "./PersonaBriefModal.jsx";
@@ -52,6 +54,15 @@ const LOOK_ITEMS = [
   { key: "theme", icon: <BgColorsOutlined />, label: "调整配色" },
 ];
 
+// 与后端 scenes.tone_clause 保持一致：导出提示词时把当前账号的语气开关一并带上。
+function toneClause(tone) {
+  const bits = [];
+  if (tone?.calm) bits.push("语气更沉稳：先承接再回应，不急着给方案");
+  if (tone?.brief) bits.push("回复更简短：控制在三句以内，能一句说完就不写第二句");
+  if (tone?.no_exclaim) bits.push("不使用感叹号，也不用「呢 / 哦 / 呀」这类语气词");
+  return bits.length ? "【本次对话的语气偏好】" + bits.join("；") + "。这条只影响说法，不改变身份与边界。" : "";
+}
+
 // 聊天视图：共用 chrome（头部 + 会话切换）+ 骨架组件（视觉人格）
 export default function ChatView({ persona, onBack, headerExtra, onPersonaChange }) {
   const navigate = useNavigate();
@@ -63,6 +74,8 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   const [rebuildOpen, setRebuildOpen] = useState(false);
   // 新建：站点下拉里直接打开轻弹窗（与重建共用 PersonaBriefModal）
   const [createOpen, setCreateOpen] = useState(false);
+  // 人格设置：点头像旁的名字进入，只做头像 / 名字 / 补充设定的确定性修改
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const goBuild = ({ body, preset }) => navigate("/build", { state: { body, preset } });
   // 站点下拉：全局导航（新建 / 人格库 / 换场景）+ 今日配额展示
   const me = useMe();
@@ -168,6 +181,8 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   }, []);
 
   const spec = current?.spec || {};
+  const avatarState = current?.avatar || spec.avatar || { mode: "auto" };
+  const hiddenAvatar = avatarState.mode === "hidden";
   const activeTheme = draftTheme || spec.theme;
   const activeSpec = draftTheme ? { ...spec, theme: draftTheme } : spec;
   const activePersona = draftTheme ? { ...current, spec: activeSpec } : current;
@@ -310,6 +325,47 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
     }
   };
 
+  // 导出当前人格真正会用到的全部提示词：生成期写入的 system_prompt、
+  // 用户在设置页补的设定、账号级运行时语气指令，以及开场白。
+  const exportPrompts = () => {
+    const runtime = toneClause(me?.tone);
+    const lines = [
+      `# ${spec.name || current?.name} · 提示词导出`,
+      "",
+      `- 导出时间：${new Date().toLocaleString("zh-CN")}`,
+      `- 场景：${current?.scene_id || me?.primary_scene || "自由创作"}`,
+      `- 骨架：${SKELETON_NAMES[spec.skeleton_id] || spec.skeleton_id || "—"}`,
+      "",
+      "## 1. 人格系统提示词（生成期写入，对话时原样作为 system role）",
+      "",
+      "```text",
+      spec.system_prompt || "（暂无）",
+      "```",
+      "",
+      "## 2. 补充人格设定（设置页追加，确定性拼接，不重生成）",
+      "",
+      spec.extra_prompt || "（暂无）",
+      "",
+      "## 3. 运行时语气指令（当前账号开关，逐条对话追加，不落库）",
+      "",
+      runtime || "（未开启任何语气开关）",
+      "",
+      "## 4. 开场白",
+      "",
+      spec.opening_message || "（暂无）",
+      "",
+      "---",
+      "由言筑 YanZhu 导出。语气开关只影响说法，不改变身份与边界。",
+    ];
+    const base = conversationFileBase(current, conversation, new Date());
+    try {
+      downloadText(`${base}-提示词.md`, lines.join("\n"), "text/markdown;charset=utf-8");
+      message.success("提示词已导出到下载目录");
+    } catch (e) {
+      message.error(`导出失败：${e.message}`);
+    }
+  };
+
   return (
     <div
       ref={rootRef}
@@ -317,30 +373,38 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
       style={style}
     >
       <header className="pf-chat-header">
-        <div className="pf-chat-title">
+        <div className={`pf-chat-title${hiddenAvatar ? " pf-chat-title--no-avatar" : ""}`}>
           {onBack && (
             <Tooltip title="返回">
               <Button size="small" type="text" icon={<ArrowLeftOutlined />} onClick={onBack} />
             </Tooltip>
           )}
-          <AvatarEditor
-            persona={current}
-            theme={activeTheme}
-            avatar={current?.avatar || spec.avatar}
-            onChanged={(updated) => { setCurrent(updated); onPersonaChange?.(updated); }}
-          >
-            <Avatar
-              name={spec.name}
+          {!hiddenAvatar && (
+            <AvatarEditor
+              persona={current}
               theme={activeTheme}
-              size={40}
-              avatar={current?.avatar || spec.avatar}
-              onEdit={() => {}}
-            />
-          </AvatarEditor>
-          <div>
-            <Typography.Text strong className="pf-chat-name">
-              {spec.name || current?.name}
-            </Typography.Text>
+              avatar={avatarState}
+              onChanged={(updated) => { setCurrent(updated); onPersonaChange?.(updated); }}
+            >
+              <Avatar
+                name={spec.name}
+                theme={activeTheme}
+                size={40}
+                avatar={avatarState}
+                onEdit={() => {}}
+              />
+            </AvatarEditor>
+          )}
+          <div className="pf-chat-title-text">
+            <Tooltip title="点头像/名字可设置头像、名字并补充人格设定">
+              <button
+                type="button"
+                className="pf-chat-name-btn"
+                onClick={() => setSettingsOpen(true)}
+              >
+                {spec.name || current?.name}
+              </button>
+            </Tooltip>
             <div className="pf-chat-sub">
               {spec.page_copy?.title} · {SKELETON_NAMES[spec.skeleton_id] || spec.skeleton_id}
               {current?.status === "needs_review" && <span className="pf-badge-warn">待重生成</span>}
@@ -378,6 +442,11 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
               保存
             </Button>
           </Dropdown>
+          <Tooltip title="导出这个人格当前生效的全部提示词">
+            <Button size="small" type="text" icon={<FileTextOutlined />} onClick={exportPrompts}>
+              提示词
+            </Button>
+          </Tooltip>
           <Tooltip title={immersive ? "退出沉浸（Esc）" : "全屏沉浸，只留这个人格"}>
             <Button
               size="small"
@@ -499,6 +568,18 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
         mode="create"
         onCancel={() => setCreateOpen(false)}
         onConfirm={goBuild}
+      />
+
+      <PersonaSettingsModal
+        open={settingsOpen}
+        persona={current}
+        theme={activeTheme}
+        onCancel={() => setSettingsOpen(false)}
+        onSaved={(updated) => {
+          setCurrent(updated);
+          onPersonaChange?.(updated);
+          setSettingsOpen(false);
+        }}
       />
     </div>
   );

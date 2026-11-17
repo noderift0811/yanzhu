@@ -252,6 +252,24 @@ def patch_persona(
         spec["avatar"] = body.avatar.model_dump()
         spec_touched = True
 
+    if body.extra_prompt is not None:
+        # 补充设定是确定性文本追加，不调 LLM。先摘掉上一版，再写新版，
+        # 避免用户改一次描述就在 system_prompt 里叠一段旧话。
+        old_block = spec.get("extra_prompt_block") or ""
+        prompt = spec.get("system_prompt") or ""
+        if old_block and old_block in prompt:
+            prompt = prompt.replace(old_block, "")
+        extra = body.extra_prompt.strip()
+        block = f"【补充人格设定】{extra}" if extra else ""
+        if block:
+            prompt = (prompt.strip() + "\n" + block).strip()[:1500]
+        else:
+            prompt = prompt.strip()
+        spec["extra_prompt"] = extra
+        spec["extra_prompt_block"] = block
+        spec["system_prompt"] = prompt
+        spec_touched = True
+
     if spec_touched:
         updates["spec_json"] = json.dumps(spec, ensure_ascii=False)
 

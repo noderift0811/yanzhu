@@ -2,44 +2,9 @@ import { useRef, useState } from "react";
 import { Popover, Typography, message } from "antd";
 import { CheckOutlined, CameraOutlined, EyeInvisibleOutlined, UserOutlined } from "@ant-design/icons";
 import { request } from "../lib/api.js";
+import { compressImage } from "../lib/avatar.js";
 import Avatar from "./Avatar.jsx";
 import "../styles/avatar-editor.css";
-
-// 图片压缩参数：160×160 正方形 + JPEG 0.82。
-// 项目默认零图片零 base64；这里是用户主动上传，压缩后约 8-20KB，
-// 既能放进 SQLite 的 spec_json，也不会让导出的单文件 HTML 体积失控。
-const IMG_SIZE = 160;
-const IMG_QUALITY = 0.82;
-
-function compressImage(file) {
-  return new Promise((resolve, reject) => {
-    if (!file.type.startsWith("image/")) {
-      reject(new Error("请选择图片文件"));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("读取图片失败"));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("图片解析失败"));
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = IMG_SIZE;
-        canvas.height = IMG_SIZE;
-        const ctx = canvas.getContext("2d");
-        // 居中裁剪成正方形，避免变形
-        const side = Math.min(img.width, img.height);
-        const sx = (img.width - side) / 2;
-        const sy = (img.height - side) / 2;
-        ctx.drawImage(img, sx, sy, side, side, 0, 0, IMG_SIZE, IMG_SIZE);
-        const dataUrl = canvas.toDataURL("image/jpeg", IMG_QUALITY);
-        resolve(dataUrl);
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
 // 头像编辑器：包在 Avatar 外面，点头像弹就地浮层。
 // 三种模式：auto（首字渐变）/ hidden（不显示）/ image（自定义图片）。

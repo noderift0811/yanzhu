@@ -158,6 +158,8 @@ class PersonaPatchIn(BaseModel):
     theme: Optional[ThemeModel] = None
     # 头像设置：跟随人格，就地生效；不调 LLM、不耗生成配额
     avatar: Optional[AvatarModel] = None
+    # 用户在设置页自行补充的人格描述：确定性拼进 system_prompt，不重生成、不耗配额
+    extra_prompt: Optional[str] = Field(default=None, max_length=300)
     # 换骨架不调 LLM、不耗生成配额；不传 theme 时自动套用该骨架的成套主题预设
     skeleton_id: Optional[str] = None
     # 专属网站模式：把这个人格设为登录落点（主页面）。星标切换，不调 LLM、不耗配额。

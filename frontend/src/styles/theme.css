@@ -903,9 +903,45 @@ body {
   gap: 10px;
 }
 
-.pf-chat-name {
+.pf-chat-name,
+.pf-chat-name-btn {
   font-size: 15.5px;
   color: var(--pf-text, #1f2328);
+}
+
+/* 名字本身是设置入口：点头像旁的名字也能改头像 / 名字 / 补充人格设定 */
+.pf-chat-name-btn {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-chat-name-btn:hover {
+  color: var(--pf-primary, var(--yz-brand-deep, #9c3f28));
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.pf-chat-title-text {
+  min-width: 0;
+}
+
+/* 隐藏头像：不画虚线占位，名字放大并顶到原来的头像位置 */
+.pf-chat-title--no-avatar .pf-chat-title-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.pf-chat-title--no-avatar .pf-chat-name-btn {
+  font-size: 22px;
+  letter-spacing: 0.02em;
 }
 
 /* 深色骨架（霓虹 / 星舰 / 终端 / 牌阵等）下头部是深底，
@@ -971,10 +1007,11 @@ body {
 
 .pf-avatar--editable:hover .pf-avatar-edit { opacity: 1; }
 
-/* 隐藏头像：保留圆形占位轮廓，点击可恢复设置 */
+/* 隐藏头像：任何页面都不画虚线占位；聊天页名字会放大顶到这个位置 */
 .pf-avatar--hidden {
   background: transparent !important;
-  border: 1px dashed var(--yz-line-strong, #cbb9a5) !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 /* 自定义图片：object-fit cover 撑满圆形 */
