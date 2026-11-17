@@ -127,6 +127,9 @@ export function buildPageHtml({ rootEl, persona, conversation, exportedAt = new 
   clone.querySelectorAll("button").forEach((el) => el.setAttribute("disabled", "disabled"));
   // 流式期间的动画残留（打字点）不必带走
   clone.querySelectorAll(".sk-typing").forEach((n) => n.remove());
+  // 摆件保留（它是用户装饰的一部分），但选中态工具条和拖拽提示属于编辑态，不带走
+  clone.querySelectorAll(".pf-deco").forEach((n) => n.classList.remove("is-selected"));
+  clone.querySelectorAll(".pf-deco-toolbar").forEach((n) => n.remove());
 
   const used = collectUsedClasses(clone);
   const css = collectStyles(used);

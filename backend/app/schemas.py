@@ -153,6 +153,36 @@ class AgentBuildIn(PersonaCreateIn):
     target_persona_id: Optional[str] = Field(default=None, max_length=36)
 
 
+# 摆件覆盖层：骨架之上叠加的用户自装饰元件。只存类型/百分比坐标/内容，
+# 不存 HTML/脚本——前端按类型白名单渲染，避免用户数据变成 XSS 入口。
+DECORATION_TYPES = ("note", "quote", "photo", "badge")
+DECORATION_MAX = 12
+
+
+class DecorationModel(BaseModel):
+    """单个摆件：type 决定渲染样式，x/y 为相对聊天区的百分比左上角坐标。"""
+    id: str = Field(min_length=1, max_length=40)
+    type: str
+    x: float = Field(ge=0, le=95)
+    y: float = Field(ge=0, le=95)
+    text: Optional[str] = Field(default=None, max_length=120)
+    image: Optional[str] = Field(default=None, max_length=240_000)
+
+    @field_validator("type")
+    @classmethod
+    def _type(cls, v: str) -> str:
+        if v not in DECORATION_TYPES:
+            raise ValueError(f"摆件类型须为 {', '.join(DECORATION_TYPES)} 之一")
+        return v
+
+    @field_validator("image")
+    @classmethod
+    def _image(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not AVATAR_DATA_RE.match(v):
+            raise ValueError("摆件图片须为压缩后的 png/jpeg/webp data URL")
+        return v
+
+
 class PersonaPatchIn(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=20)
     theme: Optional[ThemeModel] = None
@@ -164,6 +194,8 @@ class PersonaPatchIn(BaseModel):
     skeleton_id: Optional[str] = None
     # 专属网站模式：把这个人格设为登录落点（主页面）。星标切换，不调 LLM、不耗配额。
     set_primary: Optional[bool] = None
+    # 自由装饰层：整组替换摆件（增删拖拽后一次性保存）。确定性存储，不调 LLM。
+    decorations: Optional[List[DecorationModel]] = Field(default=None, max_length=DECORATION_MAX)
 
     @field_validator("skeleton_id")
     @classmethod

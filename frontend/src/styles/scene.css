@@ -430,6 +430,63 @@
   margin-top: 8px;
 }
 
+/* 摆件管理：添加类型按钮 + 已有摆件清单 */
+.pf-fab-label-hint { font-size: 10.5px; color: var(--yz-ink-3); font-weight: 400; }
+
+.pf-fab-deco-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pf-fab-deco-list { display: flex; flex-direction: column; gap: 6px; }
+
+.pf-fab-deco-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--yz-line);
+  border-radius: 8px;
+  background: var(--yz-paper);
+}
+
+.pf-fab-deco-item-type {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--yz-brand-soft);
+  color: var(--yz-brand);
+  font-size: 10px;
+}
+
+.pf-fab-deco-item-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  color: var(--yz-ink-2);
+}
+
+.pf-fab-deco-item > button {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--yz-ink-3);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pf-fab-deco-item > button:hover { background: var(--yz-brand-soft); color: var(--yz-brand); }
+
 @media (max-width: 620px) {
   .pf-fab-tone-grid { grid-template-columns: 1fr; }
   .pf-fab-modal .ant-modal-content { padding: 18px; }

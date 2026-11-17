@@ -19,13 +19,28 @@ function publish(next) {
 
 // 聊天页调用：登记当前人格、面板打开函数，以及 AI 装修的预览/保存通道。返回卸载清理函数。
 // handle = { persona, skeletonName, openTheme(), openSkeleton(),
-//            previewTheme(theme), resetPreview(), applyTheme(theme) }
+//            previewTheme(theme), resetPreview(), applyTheme(theme),
+//            saveDecorations(list) }
 // AI 装修：悬浮球拿到 AI 产出的 theme → previewTheme 实时套用 → 用户点「采用」才 applyTheme 落库。
+// 摆件：装修台增删后调 saveDecorations 整组写回（确定性，不调 LLM）。
 export function registerDecoration(handle) {
   publish(handle);
   return () => {
     if (state === handle) publish(null);
   };
+}
+
+// 聊天页数据变了但 handle 对象没变时（如摆件增删后 spec 更新），主动通知订阅者
+// 重新求值 getter。否则 AssistantFab 拿到的 persona 是旧快照，计数不会刷新。
+export function refreshDecoration() {
+  if (!state) return;
+  // 浅拷贝并保留所有 getter（persona），让 useDecoration 拿到新引用触发重渲染，
+  // 同时 getter 仍读到 decorationRef 里的最新人格。
+  const snapshot = Object.create(
+    Object.getPrototypeOf(state),
+    Object.getOwnPropertyDescriptors(state)
+  );
+  publish(snapshot);
 }
 
 // 悬浮球读取是否处于可装修页面（聊天页）。

@@ -19,7 +19,7 @@ import {
 } from "@ant-design/icons";
 import { authStore, request } from "../lib/api.js";
 import { resetMe, useMe } from "../lib/me.js";
-import { registerDecoration } from "../lib/decoration.js";
+import { registerDecoration, refreshDecoration } from "../lib/decoration.js";
 import { useChat } from "../hooks/useChat.js";
 import { useThemeVars } from "../hooks/useThemeVars.js";
 import {
@@ -35,6 +35,7 @@ import { getSkeleton, SKELETON_NAMES } from "./skeletons/index.js";
 import Avatar from "./Avatar.jsx";
 import AvatarEditor from "./AvatarEditor.jsx";
 import PersonaSettingsModal from "./PersonaSettingsModal.jsx";
+import DecorationLayer from "./DecorationLayer.jsx";
 import PetCorner from "./PetCorner.jsx";
 import SkeletonPicker from "./SkeletonPicker.jsx";
 import ThemePanel from "./ThemePanel.jsx";
@@ -143,6 +144,18 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
       setCurrent(updated);
       return updated;
     },
+    // 摆件整组写回：增删/拖拽都走这里，确定性落库、不调 LLM、不耗配额
+    saveDecorations: async (list) => {
+      const updated = await request(`/personas/${current.id}`, {
+        method: "PATCH", body: { decorations: list },
+      });
+      setCurrent(updated);
+      onPersonaChange?.(updated);
+      // 等 React 提交后通知装修台刷新：它的摆件计数读的是 persona getter，
+      // 不主动推一次就会停在旧快照，连加第二个摆件都看不到。
+      setTimeout(refreshDecoration, 0);
+      return updated;
+    },
   };
   useEffect(() => {
     const unregister = registerDecoration({
@@ -153,6 +166,7 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
       previewTheme: (theme) => decorationRef.current.previewTheme(theme),
       resetPreview: () => decorationRef.current.resetPreview(),
       applyTheme: (theme) => decorationRef.current.applyTheme(theme),
+      saveDecorations: (list) => decorationRef.current.saveDecorations(list),
     });
     return unregister;
   }, []);
@@ -535,6 +549,12 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
           onSend={chat.send}
         />
       )}
+
+      <DecorationLayer
+        decorations={spec.decorations || []}
+        onChange={(list) => decorationRef.current.saveDecorations(list)}
+        hidden={immersive}
+      />
 
       <SkeletonPicker
         open={pickOpen}

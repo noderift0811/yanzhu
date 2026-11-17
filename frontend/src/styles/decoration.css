@@ -1,0 +1,161 @@
+/* 自由装饰层：摆件浮在骨架消息区之上，但永不拦截对话输入。
+   容器 pointer-events:none，单个摆件 auto——用户只能拖摆件本身。
+   每个摆件自带纸卡片底（不继承骨架 --pf-*），所以 16 套深浅骨架下都清晰。 */
+
+.pf-deco-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.pf-deco {
+  position: absolute;
+  pointer-events: auto;
+  max-width: 168px;
+  padding: 10px 12px;
+  border: 1px solid var(--yz-line, #e2d5c3);
+  border-radius: 10px;
+  background: var(--yz-card, #fffdf8);
+  color: var(--yz-ink, #2f2a24);
+  box-shadow: 0 6px 18px rgba(80, 60, 40, 0.16);
+  font-family: var(--yz-font, inherit);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.pf-deco:active { cursor: grabbing; }
+
+.pf-deco.is-selected {
+  border-color: var(--yz-brand, #b0563a);
+  box-shadow: 0 8px 24px rgba(176, 86, 58, 0.28);
+}
+
+.pf-deco-body {
+  font-size: 12.5px;
+  line-height: 1.65;
+  word-break: break-word;
+}
+
+/* 便签：暖黄纸 + 轻微倾斜，像贴在页面上的便条。 */
+.pf-deco--note {
+  background: #fbf0d8;
+  border-color: #e8d29a;
+  transform: rotate(-1.5deg);
+}
+
+.pf-deco--note .pf-deco-body::before {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 3px;
+  margin-bottom: 6px;
+  border-radius: 2px;
+  background: var(--yz-seal, #b0563a);
+  opacity: 0.55;
+}
+
+/* 引言：左侧赤陶竖线 + 衬线感。 */
+.pf-deco--quote {
+  border-left: 3px solid var(--yz-seal, #b0563a);
+}
+
+.pf-deco--quote blockquote {
+  margin: 0;
+  font-style: italic;
+  font-size: 13px;
+}
+
+.pf-deco--quote blockquote::before { content: "「"; }
+.pf-deco--quote blockquote::after { content: "」"; }
+
+/* 照片：固定方形，圆角卡片。 */
+.pf-deco--photo { padding: 8px; }
+
+.pf-deco--photo .pf-deco-body img,
+.pf-deco-ph {
+  display: block;
+  width: 132px;
+  height: 132px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--yz-brand-soft, #f7ede7);
+}
+
+.pf-deco-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--yz-ink-3, #8a7f72);
+  text-align: center;
+}
+
+/* 标牌：小号、居中、像门牌。 */
+.pf-deco--badge {
+  max-width: 130px;
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* 选中后的工具条：编辑 / 删除 / 拖动把手。 */
+.pf-deco-toolbar {
+  position: absolute;
+  top: -13px;
+  right: -6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border: 1px solid var(--yz-line, #e2d5c3);
+  border-radius: 999px;
+  background: var(--yz-card, #fffdf8);
+  box-shadow: 0 3px 10px rgba(80, 60, 40, 0.14);
+}
+
+.pf-deco-toolbar button,
+.pf-deco-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--yz-ink-2, #5b5248);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.pf-deco-toolbar button:hover { background: var(--yz-brand-soft, #f7ede7); color: var(--yz-brand, #b0563a); }
+.pf-deco-handle { cursor: grab; color: var(--yz-ink-3, #8a7f72); }
+
+.pf-deco-edit-field { display: block; }
+.pf-deco-edit-field > span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--yz-ink-2, #5b5248);
+}
+.pf-deco-edit-preview {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin-top: 10px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+@media (max-width: 720px) {
+  .pf-deco { max-width: 132px; padding: 8px 10px; }
+  .pf-deco--photo .pf-deco-body img,
+  .pf-deco-ph { width: 104px; height: 104px; }
+}
