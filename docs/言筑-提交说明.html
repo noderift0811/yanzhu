@@ -277,6 +277,7 @@
     <tr><td>还没选场景</td><td><code>/scene</code></td><td>先完成账号级场景选择，再回开站页</td></tr>
   </table>
   <p>主页面记录在 <code>users.primary_persona_id</code>，生成第一个页面时自动设为落点；人格库卡片名字旁的星标可随时改（不调 LLM、不耗生成配额）。删除主页面会自动顺延到剩余最早的人格，换场景归档后清空落点——<strong>任何一条路径都不会把用户扔回引导页。</strong></p>
+  <p>站点交付后仍可就地改造：右下角悬浮球是<strong>装修台</strong>，既切语气也提供 <strong>AI 装修师</strong>——用自然语言描述视觉，服务端产出主题 token 候选，经对比度护栏校验后先预览、点「采用」才落库；点头像可隐藏或上传自定义图片；「沉浸」按钮收起外壳，平台落款移到页脚。聊天区上方的多轮会话以可关闭标签管理，消息区内部滚动，聊天框高度固定。</p>
 
   <h3>2.2 建站四步</h3>
   <div class="flow">
@@ -691,6 +692,7 @@
 
   <h3>4.2 运行时调参：不重生成也能改语气</h3>
   <p>悬浮工作台提供三个语气开关（如「更沉稳」「多问一句」「少说教」）。它们不改 spec、不调生成模型，而是在对话请求时把一段运行时指令<strong>追加到 system_prompt 末尾</strong>。点一下即时生效、不消耗生成配额，也不会把用户的会话记录弄丢。</p>
+  <p>同一悬浮台还承接 <strong>AI 装修师</strong>：它把自然语言诉求翻译成主题 token 候选，先预览再采用，采用前不落库、不耗配额。语气调的是"人怎么说"，装修调的是"页面长什么样"，两者都不需要重生成人格。</p>
 
   <div class="note">
     <b>为什么不重生成：</b>重生成要 30 秒且会换掉页面。用户调语气时想要的是"这个人在我心里更稳一点"，不是"换一个人"。运行时指令是这句话在工程上的正确形态。
@@ -769,6 +771,7 @@ Engineer LLM（深层生成）  /  Persona LLM（实时对话）      留空即 
     <tr><td>配额可见</td><td>生成与对话配额直接挂在站点菜单里，避免用户在第五次生成时才发现没额度。</td></tr>
     <tr><td>保存与导出</td><td>对话可导出 Markdown / 纯文本 / JSON；页面可导出单文件 HTML（DOM 快照复用线上样式，body 底色写死，脱离 CSS 变量也能看）。</td></tr>
     <tr><td>建造揭晓</td><td>生成完成后不是直接跳转，而是一段从线框到成品的过渡——把"它刚刚为你搭了一个房间"这件事演出来。</td></tr>
+    <tr><td>会话与滚动</td><td>多轮会话以可关闭标签并列，关闭前确认、关掉最后一个自动补建；聊天框固定高度、消息区独立滚动，长对话不再把整页拉成纸条。</td></tr>
   </table>
 
   <h3>6.1 纸感设计系统</h3>
@@ -783,9 +786,9 @@ Engineer LLM（深层生成）  /  Persona LLM（实时对话）      留空即 
   <div class="runhead"><span>言筑 YanZhu · 提交说明</span><span>七、验收</span></div>
   <h2>七、验收基线与复现方式<small>全部脚本可在本地重跑</small></h2>
 
-  <p>后端验收为独立 Python 脚本（<code>backend/*_test.py</code>），浏览器验收为 Playwright 脚本。下表为 2026-11-15 至 11-16 的实测结果，均为连跑通过。</p>
+  <p>后端验收为独立 Python 脚本（<code>backend/*_test.py</code>），浏览器验收为 Playwright 脚本。下表为 2026-11-15 至 11-17 的实测结果，均为连跑通过。</p>
 
-  <table style="font-size:8.1pt">
+  <table style="font-size:7.5pt">
     <tr><th style="width:44mm">项目</th><th class="num" style="width:20mm">结果</th><th>覆盖内容</th></tr>
     <tr><td>冒烟 <code>smoke_test</code></td><td class="num">14/14</td><td>注册、登录、生成、对话、列表、删除的主干路径</td></tr>
     <tr><td>标签 / 命名</td><td class="num">33 + 25</td><td>前后端标签轴一致性、互斥与配额、名字校验与重名</td></tr>
@@ -802,6 +805,8 @@ Engineer LLM（深层生成）  /  Persona LLM（实时对话）      留空即 
     <tr><td>保存导出 <code>pf-save</code></td><td class="num">35/35</td><td>六种导出格式、单文件 HTML 离线可开</td></tr>
     <tr class="total"><td>前端构建</td><td class="num">通过</td><td><code>npm run build</code> 无错误；16 套骨架画廊零溢出；全仓密钥扫描无真实 key</td></tr>
   </table>
+
+  <p style="margin:0 0 0.6mm"><b>11-17 增量：</b>会话关闭 10/10、装修接口 16/16、标签与滚动 11/11；站点交互 81 项通过。</p>
 
   <h3>7.1 复现方式</h3>
   <pre class="json"># 后端（8100）
