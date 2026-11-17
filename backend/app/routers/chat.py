@@ -19,6 +19,7 @@ from ..pets import load_pet, pet_clause
 from ..quota import check_quota, consume_quota, log_llm_call
 from ..scenes import tone_clause, tone_of
 from ..schemas import ConversationCreateIn, MessageCreateIn
+from ..suggestions import generate_suggestions
 
 router = APIRouter(tags=["chat"], dependencies=[Depends(get_current_user)])
 
@@ -234,6 +235,23 @@ async def send_message_stream(
                 },
             },
         )
+
+        # 追问建议：豆包式"接着聊"按钮。done 之后再发，主回复不被拖慢；
+        # 这是增值体验，不耗用户对话配额，只记一条 decorate 类日志用于观测。
+        try:
+            spec = json.loads(persona["spec_json"])
+            name = spec.get("name") or "伙伴"
+            questions = await generate_suggestions(
+                adapter,
+                name=name,
+                last_user=body.content,
+                reply=reply,
+                scene=persona["scene_id"] or "",
+            )
+            log_llm_call(conn, user["id"], "suggest", adapter.name, adapter.cfg.model, 0, "ok", "")
+            yield sse("suggestions", {"questions": questions})
+        except Exception:  # noqa: BLE001 - 追问失败不该影响已完成的回复
+            pass
 
     return StreamingResponse(
         event_gen(),

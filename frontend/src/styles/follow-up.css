@@ -1,0 +1,74 @@
+/* 豆包式追问气泡：挂在骨架消息区末尾，自带纸卡片底，深浅骨架下都清晰。
+   不继承骨架的 --pf-*，只用外壳纸感 token；点一下即把问题发出去。 */
+
+.pf-followup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 12px 0 6px;
+  animation: pf-followup-in 0.28s ease-out both;
+}
+
+@keyframes pf-followup-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pf-followup-label {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: #9b8d7d;
+  padding-left: 2px;
+}
+
+.pf-followup-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pf-followup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 7px 11px;
+  border: 1px solid #e5d8c6;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #4a4239;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(80, 60, 40, 0.07);
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.pf-followup-chip .anticon {
+  flex: none;
+  font-size: 10px;
+  color: #b0563a;
+  transition: transform 0.15s;
+}
+
+.pf-followup-chip:hover:not(:disabled) {
+  border-color: #b0563a;
+  background: #fff7f1;
+  transform: translateY(-1px);
+}
+
+.pf-followup-chip:hover:not(:disabled) .anticon {
+  transform: translateX(2px);
+}
+
+.pf-followup-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-followup { animation: none; }
+}

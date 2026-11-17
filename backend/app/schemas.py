@@ -155,8 +155,10 @@ class AgentBuildIn(PersonaCreateIn):
 
 # 摆件覆盖层：骨架之上叠加的用户自装饰元件。只存类型/百分比坐标/内容，
 # 不存 HTML/脚本——前端按类型白名单渲染，避免用户数据变成 XSS 入口。
-DECORATION_TYPES = ("note", "quote", "photo", "badge")
+DECORATION_TYPES = ("note", "quote", "photo", "badge", "sticker")
 DECORATION_MAX = 12
+# 图案摆件（sticker）的造型白名单：前端用内联 SVG 渲染，不接收用户 HTML。
+STICKER_GLYPHS = ("flower", "star", "heart", "leaf")
 
 
 class DecorationModel(BaseModel):
@@ -167,6 +169,8 @@ class DecorationModel(BaseModel):
     y: float = Field(ge=0, le=95)
     text: Optional[str] = Field(default=None, max_length=120)
     image: Optional[str] = Field(default=None, max_length=240_000)
+    # sticker 专用：造型标识；其余类型忽略此字段。
+    glyph: Optional[str] = Field(default=None, max_length=20)
 
     @field_validator("type")
     @classmethod
@@ -180,6 +184,13 @@ class DecorationModel(BaseModel):
     def _image(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and not AVATAR_DATA_RE.match(v):
             raise ValueError("摆件图片须为压缩后的 png/jpeg/webp data URL")
+        return v
+
+    @field_validator("glyph")
+    @classmethod
+    def _glyph(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in STICKER_GLYPHS:
+            raise ValueError(f"图案须为 {', '.join(STICKER_GLYPHS)} 之一")
         return v
 
 
@@ -245,6 +256,8 @@ class DecorateIn(BaseModel):
     request: str = Field(min_length=2, max_length=200)
     theme: ThemeModel
     skeleton_id: Optional[str] = Field(default=None, max_length=36)
+    # 当前页面已有的摆件（AI 据此决定新增还是保留，避免中文描述"加朵花"时覆盖旧摆件）
+    decorations: List[DecorationModel] = Field(default_factory=list, max_length=DECORATION_MAX)
 
 
 class DecorateOut(BaseModel):
@@ -252,6 +265,9 @@ class DecorateOut(BaseModel):
     note: str
     model: str
     mock: bool = False
+    # 摆件覆盖层：AI 理解"放朵花/贴个星星"等具体元素需求后产出的完整摆件数组。
+    # 是"完整替换"语义——前端采用时整组写回，和手动拖拽共用同一通道。
+    decorations: List[DecorationModel] = Field(default_factory=list, max_length=DECORATION_MAX)
 
 
 class ConversationCreateIn(BaseModel):

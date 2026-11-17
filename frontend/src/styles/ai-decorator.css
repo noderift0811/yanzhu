@@ -358,3 +358,14 @@
   text-align: right;
   word-break: break-all;
 }
+
+.ai-dec-deco-note {
+  margin: 8px 0;
+  padding: 7px 10px;
+  border: 1px dashed var(--yz-seal, #b0563a);
+  border-radius: 8px;
+  background: var(--yz-brand-soft, #f7ede7);
+  color: var(--yz-ink-2, #5b5248);
+  font-size: 11.5px;
+  line-height: 1.5;
+}

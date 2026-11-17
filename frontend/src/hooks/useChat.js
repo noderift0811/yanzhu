@@ -66,6 +66,17 @@ export function useChat({ conversationId }) {
             } else if (event === "done") {
               window.dispatchEvent(new Event("pf-quota-changed"));
               setMessages((prev) => prev.map((m) => (m.id === tempAsstId ? { ...data.assistant_message } : m)));
+            } else if (event === "suggestions") {
+              // 追问气泡挂到最后一条助手消息上；done 已把它的临时 id 换成库里真实 id，
+              // 所以按 role 定位最后一条即可，不依赖 id。
+              const questions = Array.isArray(data.questions) ? data.questions.slice(0, 3) : [];
+              setMessages((prev) => {
+                const idx = prev.map((m) => m.role).lastIndexOf("assistant");
+                if (idx < 0) return prev;
+                const next = [...prev];
+                next[idx] = { ...next[idx], suggestions: questions };
+                return next;
+              });
             } else if (event === "error") {
               streamFailed = true;
               setError(data.message);

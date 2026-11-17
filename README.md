@@ -44,7 +44,8 @@ AI 位于主链路核心——不是在传统功能上外挂问答框，也不�
 | MCP 风格工具层 | 7 个工具以 JSON Schema 描述，统一 `call_tool` 调度，`GET /api/meta/tools` 可查 | `pipeline/tools.py`、`routers/meta.py` |
 | 场景约束 | 五套场景改变检索语料、规划约束与护栏级别；**账号级唯一主场景**，切换需二次确认并二次冷却 30 天 | `pipeline/presets.py`、`scenes.py`、`pages/ScenePage.jsx` |
 | 运行时调参 | 悬浮工作台：三个语气开关拼成运行时指令追加在 system_prompt 末尾，不重生成、不耗生成配额，点一下即时生效 | `scenes.py`、`routers/chat.py`、`components/AssistantFab.jsx` |
-| AI 装修师 | 自然语言 → 主题 token 候选 → 对比度护栏 → 关键词兜底；先预览再采用，采用前不落库、不耗配额 | `pipeline/decorate.py`、`routers/decorate.py`、`components/AiDecorator.jsx` |
+| AI 装修师 | 自然语言 → 主题 token 候选 + 界面摆件（说「加朵花」就真放 SVG 花）→ 对比度护栏 → 关键词兜底；先预览再采用，采用前不落库、不耗配额 | `pipeline/decorate.py`、`routers/decorate.py`、`components/AiDecorator.jsx` |
+| 对话追问建议 | 每次回复 SSE `done` 后追加 `suggestions` 事件，生成 3 个承接话题的可点追问（豆包式），点击即发送；复用 persona 轻量模型、失败走确定性兜底，不耗用户配额 | `suggestions.py`、`routers/chat.py`、`components/FollowUpBubbles.jsx` |
 | 自由装饰层 | 骨架之上叠加用户自摆件（便签/引言/照片/标牌），类型白名单 + 坐标范围 + 图片 data URL 校验，拖拽后整组确定性落库；不进骨架、不调 LLM、不耗配额，导出网页保留静态摆件 | `schemas.py`、`routers/personas.py`、`components/DecorationLayer.jsx` |
 | 伙伴状态注入 | 宠物角 28 天打卡日历 + 断签/召回阶段，`【伙伴状态】` 确定性注入 system_prompt；喂食与打卡分离，续火花走独立接口，不调 LLM；伙伴角可拖动定位、设置页可隐藏（`spec.pet_ui`） | `pets.py`、`routers/pets.py`、`routers/chat.py`、`components/PetCorner.jsx` |
 | 预置骨架 | 16 套手工设计骨架，AI 只选择并填充 token，规避代码生成的不确定性 | `pipeline/skeleton_presets.py`、`components/skeletons/` |
@@ -225,7 +226,7 @@ yanzhu/
 | 演示账号 | 14/14 | 是（`demo_test.py`：重复播种不重复建号、密码 bcrypt 入库、配额档位、接口下发、错误密码 401） |
 | 浏览器端到端 | 16/16 + 11/11 + 9/9 | 是（新落点链路：注册→场景→开站页→弹窗→`/build` 五步→聊天→持久化 16；重建覆盖/另建 11；站点菜单与主页面星标往返 9；控制台零错误零 401） |
 | AI 装修接口 | 16/16 | 是（`decorate_test.py`：主题候选、对比度护栏、关键词兜底、无密钥降级） |
-| 站点内交互 E2E | 15 + 12 + 19 + 8 + 16 + 11 + 11 | 是（装修台 15、页脚 12、AI 装修浮窗 19、建造跳过键 8、思考过程与沉浸引导 16、头像设置 11、会话关闭与内部滚动 11；控制台零错误） |
+| 站点内交互 E2E | 15 + 12 + 19 + 8 + 16 + 11 + 11 + 11 | 是（装修台 15、页脚 12、AI 装修浮窗 19、建造跳过键 8、思考过程与沉浸引导 16、头像设置 11、会话关闭与内部滚动 11、追问气泡+装修落地摆件 11；控制台零错误） |
 | 摆件 / 宠物状态 E2E | 16 + 10 + 17 | 本机脚本，未入仓（摆件增删拖拽保存 16、宠物状态注入 10、续火花玩法 17）；摆件 schema 校验 4 项后端单测通过 |
 | 限流 | 17/17 | 是（限流开启、干净窗口下单独跑；脚本已改为自建基准账号，不再依赖预置数据） |
 | 保存导出 | 35/35 | 沿用既有基线；E2E 脚本位于本机工作区，未入仓 |

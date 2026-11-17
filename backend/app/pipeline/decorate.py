@@ -15,9 +15,9 @@ from __future__ import annotations
 import colorsys
 import json
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from ..schemas import DecorateIn, DecorateOut, ThemeModel
+from ..schemas import DecorateIn, DecorateOut, DecorationModel, ThemeModel
 from ..llm.base import BaseAdapter
 from .engineer_prompt import SKELETON_IDS
 from .skeleton_presets import SKELETON_PRESETS
@@ -35,8 +35,22 @@ SYSTEM_PROMPT = """你是「言筑」的界面装修师。用户会用自然语�
     "font_style": "system 或 rounded 或 serif 或 mono",
     "decoration": "none 或 paper 或 petal 或 stars 或 grid"
   },
+  "decorations": [
+    {"id": "dxxx", "type": "sticker", "glyph": "flower", "x": 70, "y": 12, "text": null}
+  ],
   "note": "一句话中文说明你做了什么，20字以内"
 }
+
+关于 decorations（摆件覆盖层，可真正往页面放具体元素）：
+- 只有当用户明确要求"放一朵花/贴个星星/加个爱心/放片叶子/写张便签/贴句引言/放照片/加个小标牌"这类**具体元素**时才输出，否则给空数组 []。
+- 这是一组完整替换：把你决定保留的旧摆件原样带上，再加上用户新要的，一次给全。
+- type 只能是 note / quote / photo / badge / sticker 之一：
+  · note 便签（text 写内容）；quote 引言（text 写句子）；badge 小标牌（text 写短词）；
+  · photo 照片（不靠 AI 生成图，image 一律留空，等用户自己编辑上传）；
+  · sticker 图案摆件（glyph 只能是 flower 花 / star 星 / heart 心 / leaf 叶之一，text 可留空）。
+- id 用 6~10 位小写字母数字，稳定不重复；x/y 是 0~95 的左上角百分比坐标，避开页面中间的消息区——放右上角(约 x=72..86, y=8..18)或左下角(约 x=6..16, y=68..82)，最大不超过 12 个。
+- 用户说"一朵花"就放 1 个 flower sticker；说"加点星星"可放 2~3 个 star 错落摆放。
+- 不要把"花瓣/星点"这类纯风格词理解成摆件——"粉色花瓣感"是主题 decoration=petal，不是摆件；只有"放一朵花在页面上"这种具体放置才用 decorations。
 
 字段含义：
 - primary 主色：按钮、强调、光标
@@ -124,11 +138,15 @@ def build_messages(payload: DecorateIn, skeleton_name: str = "") -> List[Dict[st
             skeleton_hint = f"\n当前骨架「{skeleton_name or payload.skeleton_id}」是固定深色底，请务必做深色系配色。"
         elif preset_theme:
             skeleton_hint = f"\n当前骨架「{skeleton_name or payload.skeleton_id}」的默认气质是 {preset_theme.get('font_style')} 字体、{preset_theme.get('decoration')} 装饰，可作参考。"
+    existing = [d.model_dump(exclude_none=True) for d in payload.decorations]
     user = (
         f"当前主题：{json.dumps(current, ensure_ascii=False)}\n"
+        f"当前摆件（用户已摆放，需保留或按需求调整）：{json.dumps(existing, ensure_ascii=False)}\n"
         f"{skeleton_hint}\n"
         f"用户想要的风格：{payload.request}\n\n"
-        "请输出新的 theme 与一句 note，只在用户要求改变那些维度上做明显调整，其余维度保持接近当前主题。"
+        "请输出新的 theme、完整的 decorations 数组与一句 note。"
+        "只在用户要求改变那些维度上做明显调整，其余维度保持接近当前主题。"
+        "若用户没要求放具体元素，decorations 原样带回当前摆件；用户没摆过就给 []。"
     )
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -136,7 +154,7 @@ def build_messages(payload: DecorateIn, skeleton_name: str = "") -> List[Dict[st
     ]
 
 
-def _parse_decoration(raw: Any) -> Tuple[ThemeModel, str]:
+def _parse_decoration(raw: Any) -> Tuple[ThemeModel, str, List[DecorationModel]]:
     if isinstance(raw, str):
         text = raw.strip()
         if text.startswith("```"):
@@ -148,7 +166,17 @@ def _parse_decoration(raw: Any) -> Tuple[ThemeModel, str]:
         raise ValueError("装修结果不是对象")
     theme = ThemeModel.model_validate(raw.get("theme"))
     note = str(raw.get("note") or "已调整配色").strip()[:20]
-    return theme, note
+    # 摆件是新增能力：旧模型可能不返回这个字段，缺失就当空数组（不覆盖现有摆件的语义
+    # 由调用方处理——generate_decoration 会在缺失时回填 payload 里的原摆件）。
+    decos_raw = raw.get("decorations")
+    decos: List[DecorationModel] = []
+    if isinstance(decos_raw, list):
+        for item in decos_raw[:12]:
+            try:
+                decos.append(DecorationModel.model_validate(item))
+            except Exception:  # noqa: BLE001 - 单个摆件非法就跳过，不拖垮整套配色
+                continue
+    return theme, note, decos
 
 
 # ---- 确定性兜底 ----
@@ -169,18 +197,58 @@ _FALLBACK = [
 ]
 
 
-def fallback_decoration(payload: DecorateIn) -> Tuple[ThemeModel, str]:
+# 具体元素兜底：用户点名了要放什么，AI 不可用时也要真放出来（这是本次修复的核心——
+# 过去只把"花"翻译成 theme.decoration=petal，页面上看不到任何花）。
+_STICKER_FALLBACK = [
+    (("花", "花朵", "小花", "玫瑰", "樱"), "flower"),
+    (("星", "星星", "星光"), "star"),
+    (("心", "爱心", "红心"), "heart"),
+    (("叶", "叶子", "绿叶", "树叶"), "leaf"),
+]
+
+
+def sticker_from_request(text: str) -> Optional[DecorationModel]:
+    """从用户描述里识别明确的具体元素需求，返回 1 个摆件；纯风格词返回 None。"""
+    # 必须是"放/加/贴/摆/要/来"这类放置动词 + 元素，避免"粉色花瓣感"被误读成摆花。
+    place_verbs = ("放", "加", "贴", "摆", "来", "要", "弄", "插")
+    if not any(v in text for v in place_verbs):
+        return None
+    for keywords, glyph in _STICKER_FALLBACK:
+        if any(k in text for k in keywords):
+            return DecorationModel(
+                id=f"s{abs(hash(glyph + text)) % 100000:05x}",
+                type="sticker",
+                glyph=glyph,
+                x=74,
+                y=12,
+                text=None,
+            )
+    return None
+
+
+def fallback_decoration(payload: DecorateIn) -> Tuple[ThemeModel, str, List[DecorationModel]]:
     text = payload.request
+    sticker = sticker_from_request(text)
     for keywords, theme_data, note in _FALLBACK:
         if any(k in text for k in keywords):
-            return ThemeModel.model_validate(theme_data), note
+            theme = ThemeModel.model_validate(theme_data)
+            decos = list(payload.decorations) + ([sticker] if sticker else [])
+            if sticker:
+                glyph_cn = {"flower": "花", "star": "星星", "heart": "爱心", "leaf": "叶子"}[sticker.glyph]
+                note = f"{note}，放了一朵{glyph_cn}"
+            return theme, note, decos[:12]
     # 无关键词命中：在现有主题上把主色往暖色轻推一点，给一个"我动了"的真实反馈
     data = payload.theme.model_dump()
     r, g, b = _rgb(data["primary"])
     h, l, s = colorsys.rgb_to_hls(r, g, b)
     r2, g2, b2 = colorsys.hls_to_rgb((h + 0.04) % 1.0, l, min(1.0, s + 0.06))
     data["primary"] = _hex(r2, g2, b2)
-    return ThemeModel.model_validate(data), "在原配色上做了一点微调"
+    decos = list(payload.decorations)
+    if sticker:
+        decos.append(sticker)
+        note_cn = {"flower": "花", "star": "星星", "heart": "爱心", "leaf": "叶子"}[sticker.glyph]
+        return ThemeModel.model_validate(data), f"配色微调，放了一朵{note_cn}", decos[:12]
+    return ThemeModel.model_validate(data), "在原配色上做了一点微调", decos[:12]
 
 
 async def generate_decoration(
@@ -202,12 +270,18 @@ async def generate_decoration(
                     {"role": "user", "content": f"上次输出未通过校验：{last_err}。请严格按 schema 重新输出 JSON，不要解释文字。"}
                 ]
             raw = await adapter.chat_json(msgs, temperature=0.8)
-            theme, note = _parse_decoration(raw)
-            return DecorateOut(theme=guard_contrast(theme), note=note, model=model_label, mock=is_mock)
+            theme, note, decos = _parse_decoration(raw)
+            # 模型漏返 decorations 字段时，保留原摆件而不是清空（老模型兼容）。
+            if isinstance(raw, dict) and "decorations" not in raw:
+                decos = list(payload.decorations)
+            return DecorateOut(
+                theme=guard_contrast(theme), note=note, model=model_label,
+                mock=is_mock, decorations=decos,
+            )
         except Exception as e:  # noqa: BLE001 - 兜底需要兜住一切
             last_err = f"{type(e).__name__}: {e}"
-    theme, note = fallback_decoration(payload)
+    theme, note, decos = fallback_decoration(payload)
     return DecorateOut(
         theme=guard_contrast(theme), note=note + "（AI 暂不可用，已用推荐配色）",
-        model="fallback", mock=True,
+        model="fallback", mock=True, decorations=decos,
     )

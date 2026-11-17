@@ -13,7 +13,36 @@ export const DECO_TYPES = {
   quote: { label: "引言", defaultText: "一句喜欢的话" },
   photo: { label: "照片", defaultText: "" },
   badge: { label: "小标牌", defaultText: "我的角落" },
+  sticker: { label: "小图案", defaultText: "" },
 };
+
+export const STICKER_GLYPHS = {
+  flower: "小花", star: "星星", heart: "爱心", leaf: "叶子",
+};
+
+// 图案摆件的内联 SVG：不用图片、不用 emoji，深浅骨架下都用固定色，稳定清晰。
+function StickerGlyph({ glyph }) {
+  const common = { width: 42, height: 42, viewBox: "0 0 48 48", "aria-hidden": true };
+  if (glyph === "star") {
+    return <svg {...common}><path d="M24 4l5.6 12.2 13.4 1.6-9.9 9.1 2.7 13.2L24 34.4 12.2 40.1l2.7-13.2-9.9-9.1 13.4-1.6z" fill="#e0a458" stroke="#b97a2b" strokeWidth="1.6" strokeLinejoin="round" /></svg>;
+  }
+  if (glyph === "heart") {
+    return <svg {...common}><path d="M24 41S6 29.5 6 17.8C6 11.3 11.3 6 17.8 6c2.9 0 5 1.3 6.2 3.2C25.2 7.3 27.3 6 30.2 6 36.7 6 42 11.3 42 17.8 42 29.5 24 41 24 41z" fill="#d4738f" stroke="#a94c68" strokeWidth="1.6" strokeLinejoin="round" /></svg>;
+  }
+  if (glyph === "leaf") {
+    return <svg {...common}><path d="M39 9C22 9 9 17 9 31c0 4 2 7 5 8 1-13 10-21 22-23-9 4-15 11-17 22 13 1 22-9 22-22 0-2-1-5-2-7z" fill="#7fa86a" stroke="#4f7743" strokeWidth="1.5" strokeLinejoin="round" /></svg>;
+  }
+  // flower（默认）：五瓣 + 花心
+  return (
+    <svg {...common}>
+      {[0, 72, 144, 216, 288].map((deg) => (
+        <ellipse key={deg} cx="24" cy="13.5" rx="6.5" ry="10" fill="#e79bb0" stroke="#b0563a" strokeWidth="1.2"
+          transform={`rotate(${deg} 24 24)`} />
+      ))}
+      <circle cx="24" cy="24" r="6" fill="#e8b64c" stroke="#b0563a" strokeWidth="1.2" />
+    </svg>
+  );
+}
 
 const clamp = (v) => Math.max(0, Math.min(95, v));
 
@@ -24,6 +53,7 @@ export default function DecorationLayer({ decorations = [], onChange, hidden = f
   const [editing, setEditing] = useState(null);
   const [editText, setEditText] = useState("");
   const [editImage, setEditImage] = useState("");
+  const [editGlyph, setEditGlyph] = useState("flower");
   const [saving, setSaving] = useState(false);
   const wrapRef = useRef(null);
   const dragRef = useRef(null);
@@ -67,14 +97,18 @@ export default function DecorationLayer({ decorations = [], onChange, hidden = f
     setEditing(deco);
     setEditText(deco.text || "");
     setEditImage(deco.image || "");
+    setEditGlyph(deco.glyph || "flower");
   };
 
   const saveEdit = async () => {
     if (!editing) return;
     setSaving(true);
     try {
+      const patch = editing.type === "sticker"
+        ? { glyph: editGlyph }
+        : { text: editText, image: editImage || undefined };
       const next = draft.map((x) => (
-        x.id === editing.id ? { ...x, text: editText, image: editImage || undefined } : x
+        x.id === editing.id ? { ...x, ...patch } : x
       ));
       await onChange(next);
       setEditing(null);
@@ -122,7 +156,9 @@ export default function DecorationLayer({ decorations = [], onChange, hidden = f
             onClick={() => { if (!movedRef.current) setSelected(selected === d.id ? null : d.id); }}
           >
             <div className="pf-deco-body">
-              {d.type === "photo" ? (
+              {d.type === "sticker" ? (
+                <span className="pf-deco-sticker"><StickerGlyph glyph={d.glyph || "flower"} /></span>
+              ) : d.type === "photo" ? (
                 d.image ? <img src={d.image} alt={d.text || "摆件照片"} /> : <span className="pf-deco-ph">点击编辑照片</span>
               ) : d.type === "quote" ? (
                 <blockquote>{d.text || DECO_TYPES.quote.defaultText}</blockquote>
@@ -157,7 +193,24 @@ export default function DecorationLayer({ decorations = [], onChange, hidden = f
       >
         {editing && (
           <Space direction="vertical" style={{ width: "100%" }} size="middle">
-            {editing.type !== "photo" && (
+            {editing.type === "sticker" ? (
+              <label className="pf-deco-edit-field">
+                <span>选择图案</span>
+                <div className="pf-deco-glyph-picker">
+                  {Object.entries(STICKER_GLYPHS).map(([g, label]) => (
+                    <button
+                      key={g}
+                      type="button"
+                      className={`pf-deco-glyph-opt${(editGlyph || "flower") === g ? " is-on" : ""}`}
+                      onClick={() => setEditGlyph(g)}
+                    >
+                      <StickerGlyph glyph={g} />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </label>
+            ) : editing.type !== "photo" && (
               <label className="pf-deco-edit-field">
                 <span>文字内容</span>
                 <Input.TextArea

@@ -15,17 +15,17 @@ const QUICK = [
   "深夜咖啡馆的暖色调",
   "清爽冷调、极简一点",
   "暖纸书卷、温柔些",
-  "粉粉的可爱风",
+  "在页面上放一朵小花",
 ];
 
 // 思考过程的文案，对应后端 pipeline/decorate.py 的真实步骤：
 // prompt 构造 → 快模型生成 → 对比度护栏 → 兜底 → 产出预览。
 // 接口是一次性返回（非流式），这里用定时逐条点亮把等待过程可视化，不假装编造结果。
 const THINK_STEPS = [
-  "读懂你的描述与情绪",
-  "匹配当前骨架的气质",
-  "生成配色与字体方案",
-  "校验文字对比度",
+  "读懂你的描述与意图",
+  "判断要改配色还是放元素",
+  "生成配色与摆件方案",
+  "校验文字对比度与位置",
   "铺成可预览的页面",
 ];
 
@@ -95,12 +95,15 @@ export default function AiDecorator({ deco }) {
           request: want,
           theme,
           skeleton_id: persona?.skeleton_id || null,
+          decorations: persona?.spec?.decorations || [],
         },
       });
       setResult(data);
       setInput("");
       // 立刻实时套到当前页面；用户没点「采用」前不做任何持久化。
+      // 摆件（如"放朵花"）也一样先预览，采用才写库。
       deco.previewTheme?.(data.theme);
+      deco.previewDecorations?.(data.decorations || []);
     } catch (e) {
       message.error(e.message || "AI 装修失败，请重试");
     } finally {
@@ -114,8 +117,13 @@ export default function AiDecorator({ deco }) {
     if (!result || !deco) return;
     setLoading(true);
     try {
-      await deco.applyTheme(result.theme);
-      message.success("已采用，新配色已保存");
+      if (deco.applyDecor) {
+        await deco.applyDecor(result.theme, result.decorations || []);
+      } else {
+        await deco.applyTheme(result.theme);
+      }
+      const n = (result.decorations || []).length;
+      message.success(n ? `已采用，配色与 ${n} 个摆件已保存` : "已采用，新配色已保存");
       setResult(null);
     } catch (e) {
       message.error(e.message || "保存失败");
@@ -154,7 +162,7 @@ export default function AiDecorator({ deco }) {
             <span className="ai-dec-badge">实时生效</span>
           </div>
           <Typography.Paragraph type="secondary" className="ai-dec-hero-desc">
-            用大白话描述气质或颜色，AI 当场改好配色与字体，页面立刻变给你看。满意再点采用——不改人设与聊天记录，不消耗生成次数。
+            用大白话描述风格，或直接说"放朵花""贴个星星"——AI 当场改好配色、把元素放到页面上，满意再点采用。不改人设与聊天记录，不消耗生成次数。
           </Typography.Paragraph>
         </div>
       </div>
@@ -221,6 +229,11 @@ export default function AiDecorator({ deco }) {
           <div className="ai-dec-result-head">
             <RobotOutlined /> AI 说：{result.note}
           </div>
+          {(result.decorations || []).length > 0 && (
+            <div className="ai-dec-deco-note">
+              已往页面放了 {result.decorations.length} 个摆件（小花/星星等），可在页面上直接拖动
+            </div>
+          )}
           <ResultPreview theme={result.theme} />
           <div className="ai-dec-result-foot">
             <Button size="small" onClick={retry} icon={<ReloadOutlined />} disabled={loading}>

@@ -20,8 +20,10 @@ function publish(next) {
 // 聊天页调用：登记当前人格、面板打开函数，以及 AI 装修的预览/保存通道。返回卸载清理函数。
 // handle = { persona, skeletonName, openTheme(), openSkeleton(),
 //            previewTheme(theme), resetPreview(), applyTheme(theme),
-//            saveDecorations(list) }
+//            previewDecorations(list), applyDecor(theme, list), saveDecorations(list) }
 // AI 装修：悬浮球拿到 AI 产出的 theme → previewTheme 实时套用 → 用户点「采用」才 applyTheme 落库。
+// 装修含具体元素（放朵花）：AI 还会产出 decorations → previewDecorations 一起预览 →
+//   点采用时 applyDecor 一次 PATCH 同时落 theme 与整组摆件，和手动拖拽共用同一通道。
 // 摆件：装修台增删后调 saveDecorations 整组写回（确定性，不调 LLM）。
 export function registerDecoration(handle) {
   publish(handle);

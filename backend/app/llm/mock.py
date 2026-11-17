@@ -138,6 +138,31 @@ class MockAdapter(BaseAdapter):
         user = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "")
         m = re.search(r"用户想要的风格：(.*)", user)
         want = m.group(1).strip() if m else ""
+        # 当前摆件：装修接口把它序列化在 user 消息里，Mock 原样带回，避免"换个配色把花弄丢了"。
+        existing: list = []
+        em = re.search(r"当前摆件[^\n]*：(\[.*?\])", user)
+        if em:
+            try:
+                existing = json.loads(em.group(1))
+            except (json.JSONDecodeError, TypeError):
+                existing = []
+        # 具体元素：用户明确说"放朵花/贴个星星"就真放一个 sticker（本次修复的核心演示点）。
+        glyph_cn = [
+            (("花", "花朵", "小花", "玫瑰", "樱"), "flower"),
+            (("星", "星星", "星光"), "star"),
+            (("心", "爱心", "红心"), "heart"),
+            (("叶", "叶子", "绿叶", "树叶"), "leaf"),
+        ]
+        sticker_note = ""
+        if any(v in want for v in ("放", "加", "贴", "摆", "来", "要", "弄", "插")):
+            for words, glyph in glyph_cn:
+                if any(k in want for k in words):
+                    existing = list(existing) + [{
+                        "id": f"s{abs(hash(glyph + want)) % 100000:05x}",
+                        "type": "sticker", "glyph": glyph, "x": 74, "y": 12, "text": None,
+                    }]
+                    sticker_note = {"flower": "花", "star": "星星", "heart": "爱心", "leaf": "叶子"}[glyph]
+                    break
         keyword_map = [
             (("暗", "深夜", "夜", "酷", "黑", "咖啡", "酒", "霓虹"),
              {"primary": "#d9a441", "bg": "#141821", "surface": "#1e2532", "text": "#f0e9dc", "accent": "#e0744f",
@@ -154,11 +179,14 @@ class MockAdapter(BaseAdapter):
         ]
         for keywords, theme, note in keyword_map:
             if any(k in want for k in keywords):
-                return {"theme": theme, "note": note}
+                if sticker_note:
+                    note = f"{note}，放了一朵{sticker_note}"
+                return {"theme": theme, "note": note, "decorations": existing[:12]}
         return {
             "theme": {"primary": "#7c6cf0", "bg": "#f5f4fb", "surface": "#ffffff", "text": "#26233a",
                       "accent": "#b48341", "font_style": "serif", "decoration": "stars"},
-            "note": "加了一点星点与书卷气",
+            "note": f"加了一点星点与书卷气{('，放了一朵' + sticker_note) if sticker_note else ''}",
+            "decorations": existing[:12],
         }
 
     async def chat_json(self, messages: List[Dict[str, str]], *, temperature: float = 0.7) -> dict:

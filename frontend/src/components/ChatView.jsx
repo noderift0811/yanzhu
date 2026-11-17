@@ -36,6 +36,7 @@ import Avatar from "./Avatar.jsx";
 import AvatarEditor from "./AvatarEditor.jsx";
 import PersonaSettingsModal from "./PersonaSettingsModal.jsx";
 import DecorationLayer from "./DecorationLayer.jsx";
+import FollowUpBubbles from "./FollowUpBubbles.jsx";
 import PetCorner from "./PetCorner.jsx";
 import SkeletonPicker from "./SkeletonPicker.jsx";
 import ThemePanel from "./ThemePanel.jsx";
@@ -124,6 +125,8 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   const rootRef = useRef(null);
   // 配色草稿：面板里改动时先落到这里实时预览，取消就丢弃，保存后由后端数据接管
   const [draftTheme, setDraftTheme] = useState(null);
+  // 摆件草稿：AI 装修说"放朵花"时先在这里实时预览，采用才落库；null = 没在预览，用后端数据
+  const [draftDecorations, setDraftDecorations] = useState(null);
   // 装修台桥接：把聊天页持有的面板打开函数 + 预览/保存通道登记给全局悬浮球。
   // 面板本体仍在这里渲染，预览/保存逻辑原样复用，悬浮球只是多一个就地入口。
   // AI 装修也走这条通道：先 previewTheme 实时预览，用户点「采用」才 applyTheme 落库。
@@ -135,13 +138,27 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
     openTheme: () => setThemeOpen(true),
     openSkeleton: () => setPickOpen(true),
     previewTheme: (theme) => setDraftTheme(theme),
-    resetPreview: () => setDraftTheme(null),
+    resetPreview: () => { setDraftTheme(null); setDraftDecorations(null); },
     applyTheme: async (theme) => {
       const updated = await request(`/personas/${current.id}`, {
         method: "PATCH", body: { theme },
       });
       setDraftTheme(null);
       setCurrent(updated);
+      return updated;
+    },
+    // AI 装修预览具体元素（放朵花等）：整组摆件先落到草稿，页面即时渲染，未采用不持久化。
+    previewDecorations: (list) => setDraftDecorations(list || []),
+    // 采用 AI 装修：theme 与整组摆件一次 PATCH 落库，和手动编辑共用确定性通道。
+    applyDecor: async (theme, list) => {
+      const updated = await request(`/personas/${current.id}`, {
+        method: "PATCH", body: { theme, decorations: list || [] },
+      });
+      setDraftTheme(null);
+      setDraftDecorations(null);
+      setCurrent(updated);
+      onPersonaChange?.(updated);
+      setTimeout(refreshDecoration, 0);
       return updated;
     },
     // 摆件整组写回：增删/拖拽都走这里，确定性落库、不调 LLM、不耗配额
@@ -166,6 +183,8 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
       previewTheme: (theme) => decorationRef.current.previewTheme(theme),
       resetPreview: () => decorationRef.current.resetPreview(),
       applyTheme: (theme) => decorationRef.current.applyTheme(theme),
+      previewDecorations: (list) => decorationRef.current.previewDecorations(list),
+      applyDecor: (theme, list) => decorationRef.current.applyDecor(theme, list),
       saveDecorations: (list) => decorationRef.current.saveDecorations(list),
     });
     return unregister;
@@ -550,8 +569,15 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
         />
       )}
 
+      <FollowUpBubbles
+        container={rootRef}
+        questions={lastMessage?.role === "assistant" ? lastMessage?.suggestions : []}
+        onPick={(q) => chat.send(q)}
+        disabled={chat.sending}
+      />
+
       <DecorationLayer
-        decorations={spec.decorations || []}
+        decorations={draftDecorations || spec.decorations || []}
         onChange={(list) => decorationRef.current.saveDecorations(list)}
         hidden={immersive}
       />

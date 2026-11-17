@@ -104,6 +104,47 @@
   letter-spacing: 0.04em;
 }
 
+/* 图案摆件：AI 说"放朵花"时真正落到页面上的元素，无边框像一枚贴纸。 */
+.pf-deco--sticker {
+  padding: 4px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pf-deco--sticker.is-selected {
+  border-color: var(--yz-brand, #b0563a);
+  background: var(--yz-card, #fffdf8);
+  box-shadow: 0 8px 24px rgba(176, 86, 58, 0.28);
+}
+
+.pf-deco-sticker { display: inline-flex; filter: drop-shadow(0 3px 5px rgba(80, 60, 40, 0.18)); }
+
+.pf-deco-glyph-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pf-deco-glyph-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--yz-line, #e2d5c3);
+  border-radius: 8px;
+  background: var(--yz-card, #fffdf8);
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--yz-ink-2, #5b5248);
+}
+
+.pf-deco-glyph-opt.is-on {
+  border-color: var(--yz-brand, #b0563a);
+  background: var(--yz-brand-soft, #f7ede7);
+}
+
 /* 选中后的工具条：编辑 / 删除 / 拖动把手。 */
 .pf-deco-toolbar {
   position: absolute;

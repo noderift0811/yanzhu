@@ -4,7 +4,7 @@ import { RobotOutlined } from "@ant-design/icons";
 import { patchTone, useMe } from "../lib/me.js";
 import { useDecoration } from "../lib/decoration.js";
 import AiDecorator from "./AiDecorator.jsx";
-import { DECO_TYPES } from "./DecorationLayer.jsx";
+import { DECO_TYPES, STICKER_GLYPHS } from "./DecorationLayer.jsx";
 
 // 悬浮球 = 场景内的装修台。刻意只放界面里没有、且点了不耗生成配额的动作：
 // ① AI 装修师（一句话让 AI 改配色，实时预览后采用）；② 对话语气快捷开关。
@@ -36,7 +36,8 @@ export default function AssistantFab() {
       { x: 68, y: 8 }, { x: 6, y: 10 }, { x: 66, y: 42 }, { x: 8, y: 44 },
     ];
     const pos = slots[decorations.length % slots.length];
-    const next = [...decorations, { id, type, ...pos, text: DECO_TYPES[type].defaultText }];
+    const extra = type === "sticker" ? { glyph: "flower" } : {};
+    const next = [...decorations, { id, type, ...pos, text: DECO_TYPES[type].defaultText, ...extra }];
     try {
       await deco.saveDecorations(next);
       message.success(`已添加${DECO_TYPES[type].label}，在页面上拖动它到喜欢的位置`);
@@ -128,7 +129,7 @@ export default function AssistantFab() {
                 {decorations.map((d) => (
                   <div key={d.id} className="pf-fab-deco-item">
                     <span className="pf-fab-deco-item-type">{DECO_TYPES[d.type]?.label || d.type}</span>
-                    <span className="pf-fab-deco-item-text">{d.text || "（图片）"}</span>
+                    <span className="pf-fab-deco-item-text">{d.type === "sticker" ? (STICKER_GLYPHS[d.glyph] || "小图案") : d.type === "photo" ? "（图片）" : d.text || "（空）"}</span>
                     <button type="button" aria-label="移除摆件" onClick={() => removeDecoration(d.id)}>×</button>
                   </div>
                 ))}
