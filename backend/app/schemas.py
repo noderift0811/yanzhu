@@ -175,6 +175,25 @@ class PersonaPatchIn(BaseModel):
         return v
 
 
+class PetPatchIn(BaseModel):
+    """宠物状态增量更新：名字/物种/心情/活力/连续天数。确定性存储，不调 LLM。"""
+    name: Optional[str] = Field(default=None, min_length=1, max_length=20)
+    species: Optional[str] = Field(default=None, min_length=1, max_length=20)
+    mood: Optional[str] = Field(default=None, max_length=20)
+    energy: Optional[int] = Field(default=None, ge=0, le=100)
+    streak: Optional[int] = Field(default=None, ge=0, le=9999)
+    feed: Optional[bool] = None  # true = 喂一次，energy +25 并记 last_fed_at
+
+    @field_validator("mood")
+    @classmethod
+    def _mood(cls, v: Optional[str]) -> Optional[str]:
+        from .pets import MOODS
+
+        if v is not None and v not in MOODS:
+            raise ValueError(f"mood 须为 {', '.join(MOODS)} 之一")
+        return v
+
+
 class DecorateIn(BaseModel):
     """AI 装修：用户用自然语言描述想要的风格，AI 只产出主题参数（不写代码、不重写人设）。
 

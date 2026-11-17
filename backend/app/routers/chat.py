@@ -15,6 +15,7 @@ from ..db import get_db
 from ..deps import get_current_user
 from ..errors import ApiError
 from ..llm.registry import get_adapter
+from ..pets import load_pet, pet_clause
 from ..quota import check_quota, consume_quota, log_llm_call
 from ..scenes import tone_clause, tone_of
 from ..schemas import ConversationCreateIn, MessageCreateIn
@@ -52,6 +53,24 @@ def _message_dict(row: sqlite3.Row) -> Dict[str, Any]:
         "tokens": row["tokens"],
         "created_at": row["created_at"],
     }
+
+
+def _compose_system_prompt(conn: sqlite3.Connection, persona: sqlite3.Row, user: sqlite3.Row) -> str:
+    """生成期 system_prompt + 运行时语气 + 宠物状态。三块都只拼接，不重写人设。
+
+    语气与宠物状态都在对话时现算：点开关 / 喂宠物立刻生效，不重跑工程师模型、
+    不耗生成配额。宠物状态放在语气之前，让语气修饰整个表达（包括提到宠物时）。
+    """
+    spec = json.loads(persona["spec_json"])
+    pieces = [spec["system_prompt"]]
+    pet = pet_clause(load_pet(conn, persona["id"]))
+    if pet:
+        pieces.append(pet)
+    tone = tone_of(user)
+    clause = tone_clause(tone)
+    if any(tone.values()) and clause:
+        pieces.append(clause)
+    return "\n".join(pieces)
 
 
 @router.get("/personas/{persona_id}/conversations")
@@ -160,11 +179,7 @@ async def send_message_stream(
         "SELECT role, content FROM messages WHERE conversation_id=? ORDER BY id DESC LIMIT ?",
         (conversation_id, s.chat_history_window),
     ).fetchall()
-    spec = json.loads(persona["spec_json"])
-    # 语气开关拼在 system 末尾而不是重写人设：重写要走工程师模型（30 秒 + 耗配额），
-    # 悬浮球点一下必须立刻生效，所以这里只追加一段运行时说法约束。
-    tone = tone_of(user)
-    system_prompt = spec["system_prompt"] + (("\n" + tone_clause(tone)) if any(tone.values()) else "")
+    system_prompt = _compose_system_prompt(conn, persona, user)
     messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
     messages += [{"role": h["role"], "content": h["content"]} for h in reversed(history)]
 
@@ -175,7 +190,10 @@ async def send_message_stream(
         def sse(event: str, data: Dict[str, Any]) -> str:
             return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
-        yield sse("meta", {"user_message": user_msg, "tone": tone})
+        # 语气状态属于账号级运行时数据，在这里现取。之前从外层作用域引用 tone，
+        # 抽 _compose_system_prompt 后该局部变量被删，导致 async generator 首帧 NameError，
+        # SSE 只建立连接却零事件，前端永久卡在加载态。
+        yield sse("meta", {"user_message": user_msg, "tone": tone_of(user)})
         chunks: List[str] = []
         try:
             async for delta in adapter.chat_stream(messages):
@@ -249,11 +267,7 @@ async def send_message(
         "SELECT role, content FROM messages WHERE conversation_id=? ORDER BY id DESC LIMIT ?",
         (conversation_id, s.chat_history_window),
     ).fetchall()
-    spec = json.loads(persona["spec_json"])
-    # 语气开关拼在 system 末尾而不是重写人设：重写要走工程师模型（30 秒 + 耗配额），
-    # 悬浮球点一下必须立刻生效，所以这里只追加一段运行时说法约束。
-    tone = tone_of(user)
-    system_prompt = spec["system_prompt"] + (("\n" + tone_clause(tone)) if any(tone.values()) else "")
+    system_prompt = _compose_system_prompt(conn, persona, user)
     messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
     messages += [{"role": h["role"], "content": h["content"]} for h in reversed(history)]
 

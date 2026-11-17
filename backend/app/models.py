@@ -55,6 +55,19 @@ SCHEMA_SQL = [
         tokens INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
     )""",
+    """CREATE TABLE IF NOT EXISTS pets (
+        persona_id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        name TEXT NOT NULL DEFAULT '团子',
+        species TEXT NOT NULL DEFAULT '猫',
+        mood TEXT NOT NULL DEFAULT 'quiet',
+        energy INTEGER NOT NULL DEFAULT 70,
+        streak INTEGER NOT NULL DEFAULT 0,
+        last_fed_at TEXT,
+        last_checkin TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )""",
     """CREATE TABLE IF NOT EXISTS llm_calls (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
@@ -69,6 +82,7 @@ SCHEMA_SQL = [
     "CREATE INDEX IF NOT EXISTS idx_personas_user ON personas(user_id)",
     "CREATE INDEX IF NOT EXISTS idx_conv_user ON conversations(user_id, persona_id)",
     "CREATE INDEX IF NOT EXISTS idx_msg_conv ON messages(conversation_id, id)",
+    "CREATE INDEX IF NOT EXISTS idx_pets_user ON pets(user_id)",
     "CREATE INDEX IF NOT EXISTS idx_llm_calls_user ON llm_calls(user_id, created_at)",
 ]
 
@@ -107,6 +121,9 @@ _MIGRATIONS = {
     ],
     "personas": [
         ("scene_id", "TEXT NOT NULL DEFAULT 'free'", None),
+    ],
+    "pets": [
+        ("last_checkin", "TEXT", None),
     ],
 }
 

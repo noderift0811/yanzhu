@@ -35,6 +35,7 @@ import { getSkeleton, SKELETON_NAMES } from "./skeletons/index.js";
 import Avatar from "./Avatar.jsx";
 import AvatarEditor from "./AvatarEditor.jsx";
 import PersonaSettingsModal from "./PersonaSettingsModal.jsx";
+import PetCorner from "./PetCorner.jsx";
 import SkeletonPicker from "./SkeletonPicker.jsx";
 import ThemePanel from "./ThemePanel.jsx";
 import PersonaBriefModal from "./PersonaBriefModal.jsx";
@@ -326,9 +327,14 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
   };
 
   // 导出当前人格真正会用到的全部提示词：生成期写入的 system_prompt、
-  // 用户在设置页补的设定、账号级运行时语气指令，以及开场白。
-  const exportPrompts = () => {
+  // 用户在设置页补的设定、宠物状态、运行时语气指令，以及开场白。
+  const exportPrompts = async () => {
     const runtime = toneClause(me?.tone);
+    let petClause = "（暂无宠物伙伴）";
+    try {
+      const pet = await request(`/personas/${current.id}/pet`);
+      petClause = pet.prompt_clause || petClause;
+    } catch { /* 宠物接口异常时不影响其余提示词导出 */ }
     const lines = [
       `# ${spec.name || current?.name} · 提示词导出`,
       "",
@@ -346,16 +352,20 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
       "",
       spec.extra_prompt || "（暂无）",
       "",
-      "## 3. 运行时语气指令（当前账号开关，逐条对话追加，不落库）",
+      "## 3. 伙伴状态（宠物角实时拼接，改状态即生效，不重生成）",
+      "",
+      petClause,
+      "",
+      "## 4. 运行时语气指令（当前账号开关，逐条对话追加，不落库）",
       "",
       runtime || "（未开启任何语气开关）",
       "",
-      "## 4. 开场白",
+      "## 5. 开场白",
       "",
       spec.opening_message || "（暂无）",
       "",
       "---",
-      "由言筑 YanZhu 导出。语气开关只影响说法，不改变身份与边界。",
+      "由言筑 YanZhu 导出。语气开关与伙伴状态只影响说法，不改变身份与边界。",
     ];
     const base = conversationFileBase(current, conversation, new Date());
     try {
@@ -581,6 +591,8 @@ export default function ChatView({ persona, onBack, headerExtra, onPersonaChange
           setSettingsOpen(false);
         }}
       />
+
+      <PetCorner personaId={current?.id} hidden={immersive} />
     </div>
   );
 }
